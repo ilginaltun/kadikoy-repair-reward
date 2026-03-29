@@ -322,6 +322,9 @@
           
           useEffect(() => {
             if (!mapRef.current) return;
+            if (mapRef.current._leaflet_id) {
+                 mapRef.current._leaflet_id = null;
+            }
             
             // Initialize map
             const map = L.map(mapRef.current, {
