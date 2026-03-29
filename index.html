@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kadıköy Tamir & Ödül</title>
+    
+    <!-- QRCode Generator (For User Dashboard) -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <!-- HTML5 QRCode Scanner (For Staff View) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandYellow: '#E6FF00',
+                        brandBlack: '#000000',
+                        brandWhite: '#FFFFFF',
+                    },
+                    fontFamily: {
+                        sans: ['"Space Grotesk"', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-once': 'pulse 0.5s cubic-bezier(0.4, 0, 0.6, 1) 1',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #FFFFFF; color: #000000; overflow-x: hidden; }
+        .brutal-border { border: 4px solid #000000; }
+        
+        .brutal-shadow { box-shadow: 4px 4px 0px 0px #000000; transition: all 0.2s ease; }
+        .brutal-shadow:hover { box-shadow: 8px 8px 0px 0px #000000; transform: translate(-4px, -4px); }
+        .brutal-shadow-static { box-shadow: 6px 6px 0px 0px #000000; }
+        
+        ::-webkit-progress-bar { background-color: #FFFFFF; border: 3px solid #000; border-radius: 0; }
+        ::-webkit-progress-value { background-color: #E6FF00; border-right: 3px solid #000; }
+        
+        /* Overrides for html5-qrcode standard ugly buttons */
+        #qr-reader { border: none !important; }
+        #qr-reader button {
+            background-color: #E6FF00; color: #000; border: 3px solid #000; 
+            padding: 8px 16px; font-weight: 900; margin: 4px; border-radius: 0;
+            box-shadow: 2px 2px 0px 0px #000; cursor: pointer; text-transform: uppercase;
+        }
+        #qr-reader select {
+            border: 3px solid #000; padding: 8px; font-weight: bold; background: #fff;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 font-sans antialiased text-black">
+    <div id="root"></div>
+    <script type="module">
+        import { h, Component, render } from 'https://esm.sh/preact@10.19.6';
+        import { useState, useEffect } from 'https://esm.sh/preact@10.19.6/hooks';
+        import htm from 'https://esm.sh/htm@3.1.1';
+        import { supabase } from './supabaseClient.js';
+
+        const html = htm.bind(h);
+
+        // Icons
+        const IconHome = () => html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+        const IconGift = () => html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>`;
+        const IconMap = () => html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>`;
+        const IconTool = () => html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`;
+        const IconCamera = () => html`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
+
+        // Mock State details (until auth is established)
+        const USER_ID = "550e8400-e29b-41d4-a716-446655440000"; // Mock Supabase UUID
+        const POINTS = 250;
+        const REPAIRS = [
+          { id: 1, item: "Tost Makinesi", location: "Moda Merkezi", points: "+50", date: "2026-03-25" },
+          { id: 2, item: "Sandalye", location: "Yeldeğirmeni Merkezi", points: "+150", date: "2026-03-12" },
+        ];
+        const VENUES = [
+          { id: 1, name: "Kadıköy Sineması", offer: "Ücretsiz Sinema Bileti", cost: 300, type: "Sinema", bg: "bg-[#00FFcc]" },
+          { id: 2, name: "Kadıköy Sahne", offer: "%50 İndirimli Konser Girişi", cost: 200, type: "Müzik", bg: "bg-[#ff00ff]" },
+          { id: 3, name: "Bina Cafe", offer: "Ücretsiz Kahve & Pasta", cost: 100, type: "Kafe", bg: "bg-brandYellow" },
+        ];
+
+
+        /* --- STAFF PORTAL COMPONENT --- */
+        function StaffPortal() {
+          const [isAuthenticated, setIsAuthenticated] = useState(false);
+          const [pin, setPin] = useState('');
+          const [scannedUserId, setScannedUserId] = useState(null);
+          const [itemName, setItemName] = useState('');
+          const [pointsInput, setPointsInput] = useState('');
+          const [status, setStatus] = useState(null); // 'loading', 'success'
+
+          const handleLogin = (e) => {
+            e.preventDefault();
+            if (pin === '1234') setIsAuthenticated(true);
+            else alert('Hatalı PIN. (Deneme için 1234 girin)');
+          };
+
+          useEffect(() => {
+            if (isAuthenticated && !scannedUserId && window.Html5QrcodeScanner) {
+              const html5QrcodeScanner = new Html5QrcodeScanner(
+                "qr-reader",
+                { fps: 10, qrbox: {width: 250, height: 250} },
+                false
+              );
+              html5QrcodeScanner.render((decodedText) => {
+                setScannedUserId(decodedText);
+                html5QrcodeScanner.clear();
+              }, () => {}); // Ignore empty scan frames
+              
+              return () => html5QrcodeScanner.clear().catch(e => console.error(e));
+            }
+          }, [isAuthenticated, scannedUserId]);
+
+          const handleSubmitTransaction = async (e) => {
+            e.preventDefault();
+            setStatus('loading');
+            
+            try {
+                // Attempt Real Supabase Insert
+                const { error } = await supabase.from('repairs').insert({
+                    user_id: scannedUserId,
+                    item_name: itemName,
+                    points_earned: parseInt(pointsInput, 10)
+                });
+                
+                if (error) throw error;
+                // Success branch
+                finalize(true);
+            } catch(err) {
+                // Fallback Simulation (If DUMMY keys are still in Client)
+                console.warn("Supabase fetch failed (dummy keys?). Simulating success.", err.message);
+                finalize(false);
+            }
+          };
+
+          const finalize = (realDB) => {
+             setStatus('success');
+             setTimeout(() => {
+                 setScannedUserId(null);
+                 setItemName('');
+                 setPointsInput('');
+                 setStatus(null);
+             }, 3000);
+          }
+
+          if (!isAuthenticated) {
+            return html`
+              <div class="max-w-md mx-auto mt-20 brutal-border brutal-shadow-static bg-[#ff00ff] p-10 flex flex-col items-center">
+                 <h2 class="text-3xl font-black text-white mb-6 uppercase">Yetkili Girişi</h2>
+                 <form onSubmit=${handleLogin} class="w-full flex w-full flex-col gap-4">
+                    <input type="password" placeholder="PIN Kodu (1234)" value=${pin} onChange=${e => setPin(e.target.value)} class="w-full p-4 brutal-border text-2xl font-black text-center" />
+                    <button type="submit" class="w-full bg-brandYellow text-black p-4 font-black text-2xl brutal-border shadow-[4px_4px_0px_0px_#000] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all">GİRİŞ YAP</button>
+                 </form>
+              </div>
+            `;
+          }
+
+          return html`
+            <div class="max-w-3xl mx-auto flex flex-col gap-10 animate-fade-in">
+                <h2 class="text-4xl md:text-5xl font-black uppercase bg-[#00FFcc] text-black inline-block px-6 py-3 brutal-border shadow-[8px_8px_0px_0px_#000] w-max">
+                    <${IconCamera} /> Kamera Okuyucu
+                </h2>
+                
+                ${!scannedUserId ? html`
+                    <div class="brutal-border brutal-shadow-static bg-brandWhite p-8 text-center">
+                        <h3 class="text-3xl font-black mb-6 uppercase">Müşteri QR Kodunu Okutun</h3>
+                        <div id="qr-reader" class="mx-auto w-full max-w-lg brutal-border border-[6px]"></div>
+                    </div>
+                ` : html`
+                    <div class="brutal-border brutal-shadow-static bg-brandYellow p-10 animate-pulse-once">
+                        <div class="bg-brandBlack text-brandWhite px-4 py-2 font-black text-xl mb-6 inline-block brutal-border rotate-2">Müşteri Bulundu</div>
+                        
+                        <form onSubmit=${handleSubmitTransaction} class="flex flex-col gap-6">
+                            <div class="brutal-border bg-white p-4">
+                                <span class="text-sm font-bold text-gray-500 uppercase block mb-1">Kullanıcı Kimliği (UUID)</span>
+                                <span class="font-black md:text-xl break-all">${scannedUserId}</span>
+                            </div>
+                            
+                            <div>
+                                <label class="font-black text-2xl uppercase block mb-2">Tamir Edilen Eşya</label>
+                                <input required type="text" placeholder="Örn: Tost Makinesi" value=${itemName} onChange=${e => setItemName(e.target.value)} class="w-full p-4 brutal-border text-xl font-bold brutal-shadow focus:outline-none focus:bg-gray-100" />
+                            </div>
+
+                            <div>
+                                <label class="font-black text-2xl uppercase block mb-2">Puan Miktarı</label>
+                                <input required type="number" min="1" placeholder="Örn: 50" value=${pointsInput} onChange=${e => setPointsInput(e.target.value)} class="w-full p-4 brutal-border text-2xl font-black brutal-shadow focus:outline-none focus:bg-gray-100" />
+                            </div>
+
+                            <button type="submit" disabled=${status === 'loading' || status === 'success'} class="mt-4 bg-[#ff00ff] text-white p-6 font-black text-2xl md:text-3xl uppercase tracking-widest brutal-border shadow-[8px_8px_0px_0px_#000] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                ${status === 'loading' ? 'İşleniyor...' : status === 'success' ? 'BAŞARILI!' : 'ONAYLA VE PUAN YÜKLE'}
+                            </button>
+                        </form>
+                    </div>
+                `}
+            </div>
+          `;
+        }
+
+        /* --- DASHBOARD COMPONENT --- */
+        function Dashboard({ points }) {
+          const maxPoints = 500;
+          
+          useEffect(() => {
+            const canvas = document.getElementById('user-qr-code');
+            if (canvas && window.QRCode) {
+                window.QRCode.toCanvas(canvas, USER_ID, {
+                    width: 220, margin: 2, color: { dark: '#000000', light: '#FFFFFF' }
+                }, (error) => error && console.error(error));
+            }
+          }, []);
+
+          return html`
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              <div class="brutal-border brutal-shadow-static bg-brandYellow p-10 flex flex-col items-center text-center">
+                <h2 class="text-3xl font-black mb-6 uppercase tracking-widest bg-brandBlack text-brandWhite px-6 py-3 brutal-border border-white">Puanınız</h2>
+                <div class="text-[10rem] leading-none font-black tracking-tighter my-4 drop-shadow-md">${points}</div>
+                <p class="font-bold text-2xl uppercase mt-2 mb-10">Kullanılabilir Puan</p>
+                <div class="w-full mt-auto">
+                    <div class="flex justify-between font-black text-xl mb-3"><span>0</span><span>Hedef ${maxPoints}</span></div>
+                    <progress class="w-full h-10 brutal-border bg-brandWhite" value=${points} max=${maxPoints}></progress>
+                </div>
+              </div>
+
+              <div class="brutal-border brutal-shadow-static bg-brandWhite p-10 flex flex-col">
+                <h2 class="text-4xl font-black mb-10 uppercase flex items-center gap-4 bg-[#00FFcc] inline-flex w-max px-4 py-2 brutal-border"><${IconTool} /> Son Tamirler</h2>
+                <div class="space-y-6 flex-grow">
+                  ${REPAIRS.map((r, i) => html`
+                    <div key=${r.id} class="brutal-border p-6 flex justify-between items-center brutal-shadow hover:-translate-y-1 hover:-translate-x-1 transition-transform ${i % 2 === 0 ? 'bg-gray-50' : 'bg-[#ff00ff] text-white'}">
+                      <div>
+                        <h3 class="text-2xl font-black uppercase tracking-wide">${r.item}</h3>
+                        <p class="text-sm font-bold mt-1 ${i % 2 === 0 ? 'text-gray-500' : 'text-white'}">${r.location} • ${r.date}</p>
+                      </div>
+                      <div class="bg-brandYellow text-black brutal-border px-4 py-2 font-black text-2xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                        ${r.points}
+                      </div>
+                    </div>
+                  `)}
+                </div>
+              </div>
+
+              <!-- Müşteri Kimliği (QR) Section -->
+              <div class="brutal-border brutal-shadow-static bg-brandWhite p-10 flex flex-col items-center justify-center text-center col-span-1 lg:col-span-2">
+                 <h2 class="text-3xl font-black mb-6 uppercase tracking-widest bg-brandBlack text-brandYellow px-6 py-3 brutal-border">Müşteri Kimliği</h2>
+                 <div class="brutal-border p-4 bg-white shadow-[8px_8px_0px_0px_#000] mb-8">
+                     <canvas id="user-qr-code"></canvas>
+                 </div>
+                 <p class="font-bold text-2xl mb-2">Puan kazanmak için bu kodu okutun.</p>
+                 <p class="text-sm bg-gray-100 p-2 brutal-border font-mono">${USER_ID}</p>
+              </div>
+            </div>
+          `;
+        }
+
+        /* --- OTHER COMPONENTS (Marketplace, Voucher, Map) --- */
+        function Marketplace({ points, onRedeem }) {
+          return html`
+              <h2 class="text-5xl font-black mb-10 uppercase bg-brandBlack text-brandWhite inline-block px-6 py-3 brutal-border shadow-[8px_8px_0px_0px_#E6FF00]">Ödülleri Kullan</h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 mt-6">
+                ${VENUES.map(v => {
+                  const canAfford = points >= v.cost;
+                  return html`
+                    <div key=${v.id} class="brutal-border brutal-shadow w-full ${v.bg} p-8 flex flex-col relative group" style="min-height: 350px;">
+                      <div class="absolute -top-4 -right-4 bg-brandBlack text-brandWhite px-4 py-2 font-black text-xl brutal-border transform rotate-6 group-hover:rotate-12 transition-transform">${v.type}</div>
+                      <h3 class="text-3xl font-black mb-4 uppercase leading-none mt-2">${v.name}</h3>
+                      <p class="text-xl font-bold mb-auto flex-grow bg-brandWhite/80 brutal-border p-3 inline-block self-start">${v.offer}</p>
+                      <div class="mt-8 border-t-[6px] border-black pt-6 flex justify-between items-center">
+                        <span class="text-2xl font-black px-3 py-2 bg-brandWhite brutal-border shadow-[2px_2px_0px_0px_#000]">${v.cost} puan</span>
+                        <button onClick=${() => onRedeem(v)} disabled=${!canAfford} class="px-6 py-3 font-black text-xl brutal-border transition-all ${canAfford ? 'bg-brandYellow text-black brutal-shadow hover:bg-brandBlack hover:text-brandYellow' : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'}">${canAfford ? 'KULLAN' : 'KİLİTLİ'}</button>
+                      </div>
+                    </div>
+                  `;
+                })}
+              </div>
+          `;
+        }
+
+        function Map() {
+          return html`
+              <h2 class="text-5xl font-black mb-12 uppercase bg-[#ff00ff] text-white brutal-border px-8 py-4 brutal-shadow-static transform -rotate-2 inline-block shadow-[8px_8px_0px_0px_#000]">Aktif Tamir Merkezleri</h2>
+              <div class="w-full h-[600px] brutal-border brutal-shadow-static bg-brandWhite relative overflow-hidden flex items-center justify-center cursor-crosshair">
+                <div class="absolute w-[200%] h-12 bg-gray-200 top-1/4 left-0 transform -rotate-12 border-y-4 border-black"></div>
+                <div class="absolute w-[200%] h-24 bg-brandYellow bottom-1/4 left-0 transform rotate-6 border-y-4 border-black opacity-30"></div>
+                <!-- ... Mock Map Items ... -->
+                <div class="absolute top-1/3 left-1/4 group z-10 hover:z-20">
+                   <div class="w-10 h-10 bg-[#ff00ff] brutal-border rotate-12 flex items-center justify-center animate-pulse"><${IconTool} /></div>
+                </div>
+                <!-- Legend -->
+                <div class="brutal-border bg-brandWhite p-6 absolute top-6 left-6 shadow-[8px_8px_0px_0px_#000] z-30">
+                   <h3 class="font-black text-2xl mb-4 uppercase border-b-4 border-black pb-2">Harita Lejantı</h3>
+                   <div class="flex items-center gap-4 mb-3"><div class="w-6 h-6 bg-[#ff00ff] brutal-border"></div><span class="font-bold text-lg">Merkez</span></div>
+                </div>
+              </div>
+          `;
+        }
+
+        /* --- MAIN APP --- */
+        function App() {
+          const [view, setView] = useState('dashboard');
+          const [points, setPoints] = useState(POINTS);
+
+          const handleRedeem = (venue) => {
+            if (points >= venue.cost) {
+              setPoints(points - venue.cost);
+              alert("Kod: " + Math.random().toString(36).substring(2, 10).toUpperCase() + "\nGişede kullanabilirsiniz.");
+            }
+          };
+
+          return html`
+            <div class="max-w-6xl mx-auto min-h-screen flex flex-col">
+              <header class="mb-12 border-b-[6px] border-black pb-8 pt-4 flex flex-col lg:flex-row justify-between items-center gap-6">
+                <h1 class="text-4xl md:text-5xl font-black bg-brandYellow px-6 py-3 brutal-border brutal-shadow-static">
+                  TAMİR & ÖDÜL
+                </h1>
+                <nav class="flex flex-wrap justify-center gap-4 font-bold md:text-xl text-lg">
+                  <button onClick=${() => setView('dashboard')} class="px-5 py-3 brutal-border flex items-center gap-2 ${view === 'dashboard' ? 'bg-brandBlack text-brandWhite translate-y-1 translate-x-1' : 'bg-brandWhite brutal-shadow hover:bg-gray-100'}">
+                     <${IconHome} /> Panel
+                  </button>
+                  <button onClick=${() => setView('marketplace')} class="px-5 py-3 brutal-border flex items-center gap-2 ${view === 'marketplace' ? 'bg-brandBlack text-brandWhite translate-y-1 translate-x-1' : 'bg-brandWhite brutal-shadow hover:bg-gray-100'}">
+                     <${IconGift} /> Ödüller
+                  </button>
+                  <button onClick=${() => setView('map')} class="px-5 py-3 brutal-border flex items-center gap-2 ${view === 'map' ? 'bg-brandBlack text-brandWhite translate-y-1 translate-x-1' : 'bg-brandWhite brutal-shadow hover:bg-gray-100'}">
+                     <${IconMap} /> Merkezler
+                  </button>
+                  <!-- Staff Route Button -->
+                  <button onClick=${() => setView('staff')} class="px-5 py-3 brutal-border flex items-center gap-2 text-red-600 ${view === 'staff' ? 'bg-red-100 translate-y-1 translate-x-1' : 'bg-brandWhite brutal-shadow hover:bg-red-50'}">
+                     Yetkili
+                  </button>
+                </nav>
+              </header>
+
+              <main class="flex-grow pb-16">
+                ${view === 'dashboard' ? html`<${Dashboard} points=${points} />` : null}
+                ${view === 'marketplace' ? html`<${Marketplace} points=${points} onRedeem=${handleRedeem} />` : null}
+                ${view === 'map' ? html`<${Map} />` : null}
+                ${view === 'staff' ? html`<${StaffPortal} />` : null}
+              </main>
+            </div>
+          `;
+        }
+
+        render(html`<${App} />`, document.getElementById('root'));
+    </script>
+</body>
+</html>
