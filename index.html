@@ -9,6 +9,9 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <!-- HTML5 QRCode Scanner (For Staff View) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <!-- Leaflet JS & CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&display=swap" rel="stylesheet">
@@ -52,13 +55,48 @@
         #qr-reader select {
             border: 3px solid #000; padding: 8px; font-weight: bold; background: #fff;
         }
+        
+        /* Neo-Brutalist Leaflet overrides */
+        .leaflet-container {
+            font-family: 'Space Grotesk', sans-serif !important;
+            background: #000 !important;
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 0 !important;
+            border: 4px solid #000 !important;
+            box-shadow: 6px 6px 0px 0px #000 !important;
+            background-color: #E6FF00 !important;
+            color: #000 !important;
+            font-weight: 900 !important;
+            text-transform: uppercase;
+        }
+        .leaflet-popup-tip {
+            border-top: 4px solid #000;
+            border-left: 4px solid #000;
+            background-color: #E6FF00 !important;
+        }
+        .leaflet-popup-close-button {
+            color: #000 !important;
+            font-weight: 900 !important;
+            padding: 4px !important;
+        }
+        .leaflet-control-zoom a {
+            border-radius: 0 !important;
+            border: 2px solid #000 !important;
+            color: #000 !important;
+            background-color: #fff !important;
+            font-weight: 900 !important;
+        }
+        .leaflet-control-zoom a:hover {
+            background-color: #E6FF00 !important;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8 font-sans antialiased text-black">
     <div id="root"></div>
     <script type="module">
         import { h, Component, render } from 'https://esm.sh/preact@10.19.6';
-        import { useState, useEffect } from 'https://esm.sh/preact@10.19.6/hooks';
+        import { useState, useEffect, useRef } from 'https://esm.sh/preact@10.19.6/hooks';
         import htm from 'https://esm.sh/htm@3.1.1';
         import { supabase } from './supabaseClient.js';
 
@@ -280,20 +318,91 @@
         }
 
         function Map() {
+          const mapRef = useRef(null);
+          
+          useEffect(() => {
+            if (!mapRef.current) return;
+            
+            // Initialize map
+            const map = L.map(mapRef.current, {
+                zoomControl: true,
+            }).setView([40.988, 29.045], 14);
+            
+            // CartoDB Dark Matter
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+            
+            // Custom Icons
+            const repairIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div class="w-6 h-6 bg-brandYellow border-4 border-black shadow-[4px_4px_0px_0px_#000] transform hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_#000] transition-all duration-200"></div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+            
+            const wasteIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div class="w-6 h-6 bg-white border-4 border-black rounded-full shadow-[4px_4px_0px_0px_#000] transform hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_#000] transition-all duration-200"></div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+            
+            // Fetch and render data
+            fetch('./map_data.json').then(res => res.json()).then(data => {
+                if (data.buffers) {
+                    data.buffers.forEach(b => {
+                        L.circle([b.lat, b.lon], {
+                            radius: 400,
+                            color: 'white',
+                            weight: 2,
+                            fillColor: '#E6FF00',
+                            fillOpacity: 0.1,
+                            dashArray: '10, 10',
+                        }).addTo(map);
+                    });
+                }
+                if (data.markers) {
+                    data.markers.forEach(m => {
+                        const icon = m.type === 'Waste' ? wasteIcon : repairIcon;
+                        L.marker([m.lat, m.lon], { icon }).bindPopup(`
+                            <div class="flex flex-col gap-2 p-1">
+                                <span class="text-xs bg-black text-white px-2 py-1 uppercase tracking-widest inline-block w-max mt-2">${m.type === 'Waste' ? 'Atık Noktası' : 'Tamir Merkezi'}</span>
+                                <span class="text-lg leading-tight break-words">${m.name}</span>
+                            </div>
+                        `).addTo(map);
+                    });
+                }
+            }).catch(e => console.error("Map data missing/error:", e));
+            
+            // Force redraw to fix tile layout bugs on modal open
+            setTimeout(() => map.invalidateSize(), 500);
+            
+            return () => map.remove();
+          }, []);
+
           return html`
-              <h2 class="text-5xl font-black mb-12 uppercase bg-[#ff00ff] text-white brutal-border px-8 py-4 brutal-shadow-static transform -rotate-2 inline-block shadow-[8px_8px_0px_0px_#000]">Aktif Tamir Merkezleri</h2>
-              <div class="w-full h-[600px] brutal-border brutal-shadow-static bg-brandWhite relative overflow-hidden flex items-center justify-center cursor-crosshair">
-                <div class="absolute w-[200%] h-12 bg-gray-200 top-1/4 left-0 transform -rotate-12 border-y-4 border-black"></div>
-                <div class="absolute w-[200%] h-24 bg-brandYellow bottom-1/4 left-0 transform rotate-6 border-y-4 border-black opacity-30"></div>
-                <!-- ... Mock Map Items ... -->
-                <div class="absolute top-1/3 left-1/4 group z-10 hover:z-20">
-                   <div class="w-10 h-10 bg-[#ff00ff] brutal-border rotate-12 flex items-center justify-center animate-pulse"><${IconTool} /></div>
-                </div>
-                <!-- Legend -->
-                <div class="brutal-border bg-brandWhite p-6 absolute top-6 left-6 shadow-[8px_8px_0px_0px_#000] z-30">
-                   <h3 class="font-black text-2xl mb-4 uppercase border-b-4 border-black pb-2">Harita Lejantı</h3>
-                   <div class="flex items-center gap-4 mb-3"><div class="w-6 h-6 bg-[#ff00ff] brutal-border"></div><span class="font-bold text-lg">Merkez</span></div>
-                </div>
+              <h2 class="text-4xl md:text-5xl font-black mb-12 uppercase bg-[#E6FF00] text-black pt-4 pb-2 px-6 brutal-border brutal-shadow-static shadow-[8px_8px_0px_0px_#000] z-20 relative transform -rotate-2 inline-block w-max">ONARIM NOKTALARI</h2>
+              <div class="flex flex-col relative w-full mb-20 max-w-[95vw] mx-auto">
+                  <div ref=${mapRef} class="w-full h-[700px] brutal-border shadow-[12px_12px_0px_#000] bg-[#111] z-10 block relative"></div>
+                  <!-- Legend -->
+                  <div class="hidden lg:block absolute z-[400] bottom-8 left-8 bg-brandWhite p-6 brutal-border shadow-[8px_8px_0px_0px_#000]">
+                     <h3 class="font-black text-2xl mb-4 uppercase border-b-4 border-black pb-2">Noktalar</h3>
+                     <div class="flex items-center gap-4 mb-3">
+                        <div class="w-6 h-6 bg-brandYellow border-4 border-black"></div>
+                        <span class="font-bold text-lg uppercase tracking-wide">Tamir Merkezi</span>
+                     </div>
+                     <div class="flex items-center gap-4">
+                        <div class="w-6 h-6 bg-white border-4 border-black  rounded-full"></div>
+                        <span class="font-bold text-lg uppercase tracking-wide">Atık Kutusu</span>
+                     </div>
+                     <div class="flex items-center gap-4 mt-3">
+                        <div class="w-6 h-6 border-4 border-white bg-[#E6FF00] opacity-50 border-dotted"></div>
+                        <span class="font-bold text-lg tracking-wide">400m Hizmet Alanı</span>
+                     </div>
+                  </div>
               </div>
           `;
         }
