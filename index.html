@@ -103,9 +103,10 @@
     const IconHome = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
     const IconGift = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>`;
     const IconMap = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>`;
+    const IconWrench = () => html`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`;
 
-    function ChatBot() {
-      const [isOpen, setIsOpen] = useState(false);
+    // Chatbot state'ini yukarı (App'e) taşıdık ki Katman 4 sticker'ına komut verebilelim.
+    function ChatBot({ isChatOpen, setIsChatOpen }) {
       const [messages, setMessages] = useState([{ role: 'bot', text: 'Selam Ilgın! Kadıköy tamir ağı hazır.' }]);
       const [input, setInput] = useState('');
 
@@ -116,7 +117,6 @@
         setInput('');
 
         try {
-          // Canlı ortamda çalışması için localhost yerine direkt yolu yazıyoruz
           const res = await fetch('/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -131,11 +131,11 @@
 
       return html`
         <div class="fixed bottom-10 right-10 z-[9999]">
-          ${isOpen && html`
-            <div class="w-80 md:w-[400px] h-[500px] brutal-card flex flex-col mb-6 overflow-hidden">
+          ${isChatOpen && html`
+            <div class="w-80 md:w-[400px] h-[500px] brutal-card flex flex-col mb-6 overflow-hidden bg-white">
               <div class="bg-black text-brandYellow p-5 font-black uppercase flex justify-between items-center border-b-4 border-black">
                 <span>TAMİR AI</span>
-                <button onClick=${() => setIsOpen(false)}>×</button>
+                <button onClick=${() => setIsChatOpen(false)}>×</button>
               </div>
               <div class="flex-grow p-4 overflow-y-auto space-y-4 bg-white/60">
                 ${messages.map(m => html`<div class="p-3 border-4 border-black font-bold ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">${m.text}</div>`)}
@@ -146,7 +146,7 @@
               </div>
             </div>
           `}
-          <button onClick=${() => setIsOpen(!isOpen)} class="bg-brandPink text-white w-20 h-20 brutal-card flex items-center justify-center hover:scale-110 transition-transform text-4xl font-black shadow-[10px_10px_0px_#000]">?</button>
+          <button onClick=${() => setIsChatOpen(!isChatOpen)} class="bg-brandPink text-white w-20 h-20 brutal-card flex items-center justify-center hover:scale-110 transition-transform text-4xl font-black shadow-[10px_10px_0px_#000]">?</button>
         </div>
       `;
     }
@@ -171,16 +171,12 @@
 
         fetch('./kadikoy_map_data.json').then(res => res.json()).then(data => {
           const icon = (bg, shape) => window.L.divIcon({ className: '', html: `<div class="w-7 h-7 border-4 border-black shadow-[4px_4px_0px_#000] ${bg} ${shape === 'circle' ? 'rounded-full' : ''}"></div>`, iconSize: [28, 28] });
-
-          if (data.tamirciler) {
-            data.tamirciler.forEach(m => {
-              window.L.marker([m.lat, m.lon], { icon: icon('bg-brandYellow', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.tamirciler);
-              window.L.circle([m.lat, m.lon], { radius: 400, color: '#000', weight: 2, fillColor: '#E6FF00', fillOpacity: 0.1, dashArray: '5, 10' }).addTo(groupsRef.current.buffers);
-            });
-          }
+          data.tamirciler?.forEach(m => {
+            window.L.marker([m.lat, m.lon], { icon: icon('bg-brandYellow', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.tamirciler);
+            window.L.circle([m.lat, m.lon], { radius: 400, color: '#000', weight: 2, fillColor: '#E6FF00', fillOpacity: 0.1, dashArray: '5, 10' }).addTo(groupsRef.current.buffers);
+          });
           data.atik?.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-white', 'circle') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.atik));
           data.kamu?.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-brandPink', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.kamu));
-
           Object.keys(layers).forEach(k => { if (layers[k].active) groupsRef.current[k].addTo(map); });
         });
       }, []);
@@ -210,7 +206,9 @@
     }
 
     function App() {
-      const [view, setView] = useState('kampanyalar');
+      const [view, setView] = useState('panel');
+      const [isChatOpen, setIsChatOpen] = useState(false); // Yeni Chatbot Durum Kontrolü
+
       useEffect(() => { if (view === 'panel') { setTimeout(() => { const canvas = document.getElementById('user-qr-code'); if (canvas) window.QRCode.toCanvas(canvas, "TAMIR-2026-ILGIN", { width: 250, margin: 1 }); }, 100); } }, [view]);
 
       const kampanyalarData = [
@@ -230,19 +228,21 @@
         { id: 1, isim: 'TOST MAKİNESİ', konum: 'Moda Merkezi', tarih: '2026-03-25', puan: 50, bg: 'bg-white', text: 'text-black' },
         { id: 2, isim: 'SANDALYE', konum: 'Yeldeğirmeni Merkezi', tarih: '2026-03-12', puan: 150, bg: 'bg-[#FF33FF]', text: 'text-white' },
         { id: 3, isim: 'BİSİKLET FRENİ', konum: 'Moda Sahili', tarih: '2026-02-18', puan: 80, bg: 'bg-white', text: 'text-black' },
-        { id: 4, isim: 'ESPRESSO MAKİNESİ', konum: 'Osmanağa Evi', tarih: '2026-01-27', puan: 200, bg: 'bg-[#FF33FF]', text: 'text-white' },
+        { id: 4, isim: 'PORTAFİLTRE ESPRESSO MAK.', konum: 'Osmanağa Evi', tarih: '2026-01-27', puan: 200, bg: 'bg-[#FF33FF]', text: 'text-white' },
         { id: 5, isim: 'MASA LAMBASI', konum: 'Hasanpaşa Atölyesi', tarih: '2026-01-05', puan: 40, bg: 'bg-white', text: 'text-black' }
       ];
 
       return html`
-        <img src="./Katman 2.png" alt="Yıldız" class="absolute pointer-events-none sticker-drop w-28 top-5 left-[-20px] rotate-[-15deg] z-50 opacity-90" />
+        <img src="./Katman 2.png" alt="Yıldız" class="absolute pointer-events-none sticker-drop w-28 top-[-10px] left-[5%] rotate-[-10deg] z-50 opacity-90" />
         <img src="./Katman 3.png" alt="Kazan" class="absolute pointer-events-none sticker-drop w-48 top-60 left-[1%] rotate-[-10deg] z-50" />
-        <img src="./Katman 4.png" alt="İndirim" class="absolute pointer-events-none sticker-drop w-64 top-64 right-[-40px] rotate-[-5deg] z-50" />
+        
+        <img src="./Katman 4.png" alt="İndirim" class="absolute pointer-events-none sticker-drop w-64 top-64 right-[-40px] rotate-[-5deg] z-50 transition-opacity duration-300 ${isChatOpen ? 'opacity-0' : 'opacity-100'}" />
+        
         <img src="./Katman 5.png" alt="Telefon" class="absolute pointer-events-none sticker-drop w-24 top-[500px] left-[5%] rotate-[-12deg] z-50" />
         <img src="./Katman 6.png" alt="Çiçek" class="absolute pointer-events-none sticker-drop w-20 top-10 right-[35%] rotate-[20deg] z-50" />
         <img src="./Katman 7.png" alt="Tamir Ettir" class="absolute pointer-events-none sticker-drop w-36 bottom-20 left-[-30px] rotate-[8deg] z-50" />
         <img src="./Katman 8.png" alt="Kadıköy Semti" class="absolute pointer-events-none sticker-drop w-48 bottom-[200px] right-[5%] rotate-[-6deg] z-50" />
-        <img src="./Katman 10.png" alt="Pembe Çiçek" class="absolute pointer-events-none sticker-drop w-28 top-[200px] right-[45%] rotate-[-18deg] z-50" />
+        <img src="./Katman 10.png" alt="Pembe Çiçek" class="absolute pointer-events-none sticker-drop w-28 top-[200px] right-[40%] rotate-[-18deg] z-50" />
 
         <div class="max-w-7xl mx-auto space-y-12 relative z-10">
           <header class="flex flex-col gap-8 border-b-8 border-black pb-8">
@@ -356,7 +356,7 @@
               </div>
             `}
           </main>
-          <${ChatBot} />
+          <${ChatBot} isChatOpen=${isChatOpen} setIsChatOpen=${setIsChatOpen} />
         </div>
       `;
     }

@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 # .env dosyasındaki değişkenleri yükle
 load_dotenv()
 
-app = Flask(__name__, static_folder='.')
+app = Flask(__name__, static_folder='../')
 CORS(app)
 
 # API Anahtarını sistem değişkenlerinden güvenli bir şekilde alıyoruz
@@ -16,8 +16,8 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 def get_map_context():
     try:
-        # kadikoy_map_data.json dosyasının aynı klasörde olduğundan emin ol
-        with open('kadikoy_map_data.json', 'r', encoding='utf-8') as f:
+        # Vercel'de kök dizine ulaşmak için '../' kullanıldı
+        with open('../kadikoy_map_data.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
             summarized = {
                 "tamir_agi": [f"{i.get('name')}" for i in data.get("tamir_agi_noktalari", [])],
@@ -27,14 +27,6 @@ def get_map_context():
             return json.dumps(summarized, ensure_ascii=False)
     except:
         return "Veri yok."
-
-@app.route('/')
-def index():
-    return send_from_directory('.', 'index.html')
-
-@app.route('/<path:path>')
-def send_static(path):
-    return send_from_directory('.', path)
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -60,7 +52,8 @@ def chat():
     }
 
     try:
-        response = requests.post("https://api.api.groq.com/openai/v1/chat/completions", headers=headers, json=payload)
+        # URL'deki api.api... hatası düzeltildi
+        response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload)
         data = response.json()
         if response.status_code == 200:
             return jsonify({"reply": data["choices"][0]["message"]["content"]})
@@ -69,6 +62,5 @@ def chat():
         return jsonify({"reply": f"Bağlantı koptu: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    # Canlı ortam port ayarı
     port = int(os.environ.get("PORT", 5001))
     app.run(host='0.0.0.0', port=port, debug=False)
