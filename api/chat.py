@@ -31,7 +31,7 @@ def get_map_context():
 def chat():
     # Tarayıcıdan test edebilmek için GET metodu ekledim
     if request.method == 'GET':
-        return jsonify({"status": "API zehir gibi calisiyor kanka!"})
+        return jsonify({"status": "API calisiyor!"})
     
     if not GROQ_API_KEY:
         return jsonify({"reply": "Sistem Hatası: Vercel ayarlarına GROQ_API_KEY eklenmemiş!"}), 500
@@ -48,7 +48,7 @@ def chat():
         "Content-Type": "application/json"
     }
 
-    system_prompt = f"Sen Kadıköy 'Tamir & Ödül' platformu asistanısın. Ilgın'a ismiyle hitap et. Veriler: {map_data}. Kısa ve öz ol."
+    system_prompt = f"Sen Kadıköy 'Tamir & Ödül' platformu asistanısın. Kişinin ismini sor hitap etmek için. Veriler: {map_data}. Kısa ve öz ol. Düzgün bir Türkçe kullan."
 
     payload = {
         "model": "llama-3.1-8b-instant",
