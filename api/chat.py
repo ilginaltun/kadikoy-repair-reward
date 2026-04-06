@@ -40,7 +40,7 @@ def chat():
     user_message = user_data.get("message", "")
     
     if not user_message: 
-        return jsonify({"reply": "Mesaj boş Ilgın!"}), 400
+        return jsonify({"reply": "Mesaj boş!"}), 400
 
     map_data = get_map_context()
     headers = {
@@ -48,7 +48,7 @@ def chat():
         "Content-Type": "application/json"
     }
 
-    system_prompt = f"Sen Kadıköy 'Tamir & Ödül' platformu asistanısın. Kişinin ismini sor hitap etmek için. Veriler: {map_data}. Kısa ve öz ol. Düzgün bir Türkçe kullan."
+    system_prompt = f"Sen Kadıköy 'Tamir & Ödül' platformu asistanısın. Kişinin ismini sor hitap etmek için. O isimle devam et. Veriler: {map_data}. Kısa ve öz ol. C1 seviyesinde bir Türkçe kullan."
 
     payload = {
         "model": "llama-3.1-8b-instant",
