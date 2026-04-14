@@ -1,76 +1,773 @@
 {
-    "tamirciler": {
+  "tamirciler": {
     "Elektronik": [
-      {"name": "elektronik tamir (gemici elektrik)", "lat": 40.985, "lon": 29.026583},
-      {"name": "elektrik tamir tadilat", "lat": 40.98875, "lon": 29.027},
-      {"name": "elektrik tamir (genç elektrik)", "lat": 40.986417, "lon": 29.023778},
-      {"name": "elektronik tamir (uğur elektronik)", "lat": 40.990167, "lon": 29.02475},
-      {"name": "Elektrikçi", "lat": 40.985778, "lon": 29.025333},
-      {"name": "elektrik tadilat (akar elektrik)", "lat": 40.985, "lon": 29.026694},
-      {"name": "elektronik tamir (televizyon, elektronik, kart tamiri)", "lat": 40.984556, "lon": 29.026306},
-      {"name": "elektrik (karaca elektrik)", "lat": 40.986028, "lon": 29.030889}
+      {
+        "name": "elektronik tamir (gemici elektrik)",
+        "lat": 40.985,
+        "lon": 29.026583
+      },
+      {
+        "name": "elektrik tamir tadilat",
+        "lat": 40.98875,
+        "lon": 29.027
+      },
+      {
+        "name": "elektrik tamir (genç elektrik)",
+        "lat": 40.986417,
+        "lon": 29.023778
+      },
+      {
+        "name": "elektronik tamir (uğur elektronik)",
+        "lat": 40.990167,
+        "lon": 29.02475
+      },
+      {
+        "name": "Elektrikçi",
+        "lat": 40.985778,
+        "lon": 29.025333
+      },
+      {
+        "name": "elektrik tadilat (akar elektrik)",
+        "lat": 40.985,
+        "lon": 29.026694
+      },
+      {
+        "name": "elektronik tamir (televizyon, elektronik, kart tamiri)",
+        "lat": 40.984556,
+        "lon": 29.026306
+      },
+      {
+        "name": "elektrik (karaca elektrik)",
+        "lat": 40.986028,
+        "lon": 29.030889
+      }
     ],
     "Mobilya": [
-      {"name": "döşeme ve mobilya atölyesi (mo de )", "lat": 40.984889, "lon": 29.023056},
-      {"name": "SIR Mobilya Marangoz", "lat": 40.988056, "lon": 29.031889},
-      {"name": "MODA MARANGOZ", "lat": 40.98625, "lon": 29.030444},
-      {"name": "mobilya tamiri koltuk döşeme (emir mobilya)", "lat": 40.985556, "lon": 29.03025},
-      {"name": "mobilya döşeme", "lat": 40.987722, "lon": 29.02625},
-      {"name": "marangoz", "lat": 40.987694, "lon": 29.026556},
-      {"name": "saat ve mobilya tamiri", "lat": 40.989528, "lon": 29.025083},
-      {"name": "mobilya gramofon tamiri", "lat": 40.989278, "lon": 29.026722},
-      {"name": "mobilya tamiri (evren mobilya)", "lat": 40.988, "lon": 29.023667},
-      {"name": "marangoz", "lat": 40.986583, "lon": 29.022861},
-      {"name": "mobilya tamiri (kadıköy antikacılar çarşısı)", "lat": 40.989556, "lon": 29.025111}
+      {
+        "name": "döşeme ve mobilya atölyesi (mo de )",
+        "lat": 40.984889,
+        "lon": 29.023056
+      },
+      {
+        "name": "SIR Mobilya Marangoz",
+        "lat": 40.988056,
+        "lon": 29.031889
+      },
+      {
+        "name": "MODA MARANGOZ",
+        "lat": 40.98625,
+        "lon": 29.030444
+      },
+      {
+        "name": "mobilya tamiri koltuk döşeme (emir mobilya)",
+        "lat": 40.985556,
+        "lon": 29.03025
+      },
+      {
+        "name": "mobilya döşeme",
+        "lat": 40.987722,
+        "lon": 29.02625
+      },
+      {
+        "name": "marangoz",
+        "lat": 40.987694,
+        "lon": 29.026556
+      },
+      {
+        "name": "saat ve mobilya tamiri",
+        "lat": 40.989528,
+        "lon": 29.025083
+      },
+      {
+        "name": "mobilya gramofon tamiri",
+        "lat": 40.989278,
+        "lon": 29.026722
+      },
+      {
+        "name": "mobilya tamiri (evren mobilya)",
+        "lat": 40.988,
+        "lon": 29.023667
+      },
+      {
+        "name": "marangoz",
+        "lat": 40.986583,
+        "lon": 29.022861
+      },
+      {
+        "name": "mobilya tamiri (kadıköy antikacılar çarşısı)",
+        "lat": 40.989556,
+        "lon": 29.025111
+      }
     ],
     "Tekstil": [
-      {"name": "terzi (roventea)", "lat": 40.982056, "lon": 29.024},
-      {"name": "terzi (terzi kemal)", "lat": 40.984583, "lon": 29.025222},
-      {"name": "terzi (terzi yakup)", "lat": 40.9845, "lon": 29.024472},
-      {"name": "rüzgar terzi", "lat": 40.98725, "lon": 29.027944},
-      {"name": "terzi, tadilat, paça düzeltme, fermuar (dry station)", "lat": 40.985361, "lon": 29.029667},
-      {"name": "terzi (yağmur terzi)", "lat": 40.987111, "lon": 29.027694},
-      {"name": "tekstil tamiri, terziler (hak pasajı)", "lat": 40.988917, "lon": 29.028889},
-      {"name": "terzi (jet terzi)", "lat": 40.988583, "lon": 29.02825},
-      {"name": "terzi (terzi hulusi)", "lat": 40.98375, "lon": 29.025639},
-      {"name": "terzi (terzi bayram)", "lat": 40.99, "lon": 29.025639}
+      {
+        "name": "terzi (roventea)",
+        "lat": 40.982056,
+        "lon": 29.024
+      },
+      {
+        "name": "terzi (terzi kemal)",
+        "lat": 40.984583,
+        "lon": 29.025222
+      },
+      {
+        "name": "terzi (terzi yakup)",
+        "lat": 40.9845,
+        "lon": 29.024472
+      },
+      {
+        "name": "rüzgar terzi",
+        "lat": 40.98725,
+        "lon": 29.027944
+      },
+      {
+        "name": "terzi, tadilat, paça düzeltme, fermuar (dry station)",
+        "lat": 40.985361,
+        "lon": 29.029667
+      },
+      {
+        "name": "terzi (yağmur terzi)",
+        "lat": 40.987111,
+        "lon": 29.027694
+      },
+      {
+        "name": "tekstil tamiri, terziler (hak pasajı)",
+        "lat": 40.988917,
+        "lon": 29.028889
+      },
+      {
+        "name": "terzi (jet terzi)",
+        "lat": 40.988583,
+        "lon": 29.02825
+      },
+      {
+        "name": "terzi (terzi hulusi)",
+        "lat": 40.98375,
+        "lon": 29.025639
+      },
+      {
+        "name": "terzi (terzi bayram)",
+        "lat": 40.99,
+        "lon": 29.025639
+      }
     ],
     "Ayakkabi": [
-      {"name": "terzi + ayakkabı, çanta tamiri (moda lostra)", "lat": 40.98175, "lon": 29.024056},
-      {"name": "kundura", "lat": 40.986306, "lon": 29.030444},
-      {"name": "Develi Lostra", "lat": 40.990083, "lon": 29.026194},
-      {"name": "ayakkabı, çanta, tamir, boya, terzi", "lat": 40.982, "lon": 29.023222},
-      {"name": "ceket, cüzdan, çanta, kemer, ayakkabı tamir (adliye çarşısı)", "lat": 40.986778, "lon": 29.028222}
+      {
+        "name": "terzi + ayakkabı, çanta tamiri (moda lostra)",
+        "lat": 40.98175,
+        "lon": 29.024056
+      },
+      {
+        "name": "kundura",
+        "lat": 40.986306,
+        "lon": 29.030444
+      },
+      {
+        "name": "Develi Lostra",
+        "lat": 40.990083,
+        "lon": 29.026194
+      },
+      {
+        "name": "ayakkabı, çanta, tamir, boya, terzi",
+        "lat": 40.982,
+        "lon": 29.023222
+      },
+      {
+        "name": "ceket, cüzdan, çanta, kemer, ayakkabı tamir (adliye çarşısı)",
+        "lat": 40.986778,
+        "lon": 29.028222
+      }
     ],
     "Diger": [
-      {"name": "lastik tamiri (durmuşoğlu otopark)", "lat": 40.980417, "lon": 29.023528},
-      {"name": "tesisat, arıza, aydınlatma, konuşma sistemleri tamir (metin elektrik)", "lat": 40.980222, "lon": 29.023083},
-      {"name": "kalorifer ve sıhhi tesisat", "lat": 40.980139, "lon": 29.022861},
-      {"name": "kalorifer çatı izolasyon tadilat ve tamir (acar tesisat)", "lat": 40.985167, "lon": 29.030667},
-      {"name": "çerçeve tamir", "lat": 40.985639, "lon": 29.028639},
-      {"name": "gözlük ve saat tamiri", "lat": 40.989833, "lon": 29.025028},
-      {"name": "saat tamiri", "lat": 40.985972, "lon": 29.025333},
-      {"name": "tesisat", "lat": 40.985667, "lon": 29.021778},
-      {"name": "saat tamiri", "lat": 40.990556, "lon": 29.022722},
-      {"name": "kalorifer, tesisat, komple tamirat ve tadilat işleri (doğan tesisat)", "lat": 40.987472, "lon": 29.024972},
-      {"name": "su arıtma cihazı tamir", "lat": 40.986306, "lon": 29.023667},
-      {"name": "pil, kayış değişimi, saat tamiri (noy saat)", "lat": 40.990056, "lon": 29.024556},
-      {"name": "saat tamiri (kadıköy saat evi)", "lat": 40.990222, "lon": 29.025139},
-      {"name": "saat tamiri (kadıköy antikacılar çarşısı)", "lat": 40.989583, "lon": 29.025111},
-      {"name": "tesisat (yılmaz su tesisatı)", "lat": 40.985389, "lon": 29.029667},
-      {"name": "gitar yapım ve onarım atölyesi (volkan özdemir)", "lat": 40.987083, "lon": 29.027667},
-      {"name": "tesisat (aykar yapı tesisat)", "lat": 40.986472, "lon": 29.027278},
-      {"name": "dekorasyon tamiri, emlak tadilat", "lat": 40.985417, "lon": 29.029083},
-      {"name": "su tesisatı tamiri (ışın apt.)", "lat": 40.984444, "lon": 29.030083},
-      {"name": "su tesisatı tamiri (doğan tesisat)", "lat": 40.986444, "lon": 29.029806},
-      {"name": "çalgı tamir ve yapım atölyesi (kafkas pasajı)", "lat": 40.986917, "lon": 29.028639},
-      {"name": "optik, gözlük tamiri (fırat pasajı)", "lat": 40.990611, "lon": 29.024389},
-      {"name": "saat tamiri (erol saat)", "lat": 40.988528, "lon": 29.0285},
-      {"name": "saat tamiri (taşçılar optiğin içi)", "lat": 40.99125, "lon": 29.024639},
-      {"name": "saat ve enstrüman tamiri (kadıköy çarşı)", "lat": 40.990083, "lon": 29.023167}
+      {
+        "name": "lastik tamiri (durmuşoğlu otopark)",
+        "lat": 40.980417,
+        "lon": 29.023528
+      },
+      {
+        "name": "tesisat, arıza, aydınlatma, konuşma sistemleri tamir (metin elektrik)",
+        "lat": 40.980222,
+        "lon": 29.023083
+      },
+      {
+        "name": "kalorifer ve sıhhi tesisat",
+        "lat": 40.980139,
+        "lon": 29.022861
+      },
+      {
+        "name": "kalorifer çatı izolasyon tadilat ve tamir (acar tesisat)",
+        "lat": 40.985167,
+        "lon": 29.030667
+      },
+      {
+        "name": "çerçeve tamir",
+        "lat": 40.985639,
+        "lon": 29.028639
+      },
+      {
+        "name": "gözlük ve saat tamiri",
+        "lat": 40.989833,
+        "lon": 29.025028
+      },
+      {
+        "name": "saat tamiri",
+        "lat": 40.985972,
+        "lon": 29.025333
+      },
+      {
+        "name": "tesisat",
+        "lat": 40.985667,
+        "lon": 29.021778
+      },
+      {
+        "name": "saat tamiri",
+        "lat": 40.990556,
+        "lon": 29.022722
+      },
+      {
+        "name": "kalorifer, tesisat, komple tamirat ve tadilat işleri (doğan tesisat)",
+        "lat": 40.987472,
+        "lon": 29.024972
+      },
+      {
+        "name": "su arıtma cihazı tamir",
+        "lat": 40.986306,
+        "lon": 29.023667
+      },
+      {
+        "name": "pil, kayış değişimi, saat tamiri (noy saat)",
+        "lat": 40.990056,
+        "lon": 29.024556
+      },
+      {
+        "name": "saat tamiri (kadıköy saat evi)",
+        "lat": 40.990222,
+        "lon": 29.025139
+      },
+      {
+        "name": "saat tamiri (kadıköy antikacılar çarşısı)",
+        "lat": 40.989583,
+        "lon": 29.025111
+      },
+      {
+        "name": "tesisat (yılmaz su tesisatı)",
+        "lat": 40.985389,
+        "lon": 29.029667
+      },
+      {
+        "name": "gitar yapım ve onarım atölyesi (volkan özdemir)",
+        "lat": 40.987083,
+        "lon": 29.027667
+      },
+      {
+        "name": "tesisat (aykar yapı tesisat)",
+        "lat": 40.986472,
+        "lon": 29.027278
+      },
+      {
+        "name": "dekorasyon tamiri, emlak tadilat",
+        "lat": 40.985417,
+        "lon": 29.029083
+      },
+      {
+        "name": "su tesisatı tamiri (ışın apt.)",
+        "lat": 40.984444,
+        "lon": 29.030083
+      },
+      {
+        "name": "su tesisatı tamiri (doğan tesisat)",
+        "lat": 40.986444,
+        "lon": 29.029806
+      },
+      {
+        "name": "çalgı tamir ve yapım atölyesi (kafkas pasajı)",
+        "lat": 40.986917,
+        "lon": 29.028639
+      },
+      {
+        "name": "optik, gözlük tamiri (fırat pasajı)",
+        "lat": 40.990611,
+        "lon": 29.024389
+      },
+      {
+        "name": "saat tamiri (erol saat)",
+        "lat": 40.988528,
+        "lon": 29.0285
+      },
+      {
+        "name": "saat tamiri (taşçılar optiğin içi)",
+        "lat": 40.99125,
+        "lon": 29.024639
+      },
+      {
+        "name": "saat ve enstrüman tamiri (kadıköy çarşı)",
+        "lat": 40.990083,
+        "lon": 29.023167
+      }
     ]
   },
-  
+  "atik": [
+    {
+      "lat": 40.9806433,
+      "lon": 29.0414313,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9833262,
+      "lon": 29.0399668,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9505137,
+      "lon": 29.107671,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9939353,
+      "lon": 29.0366563,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 41.0160833,
+      "lon": 29.0684067,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9835434,
+      "lon": 29.0611005,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9805533,
+      "lon": 29.053636,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9805259,
+      "lon": 29.0536671,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9777895,
+      "lon": 29.0731837,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9777474,
+      "lon": 29.0732185,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9876211,
+      "lon": 29.0213715,
+      "name": "Atık Ambalajj Toplama"
+    },
+    {
+      "lat": 40.9863919,
+      "lon": 29.0256089,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.985257,
+      "lon": 29.0264743,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9815445,
+      "lon": 29.0211567,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9805738,
+      "lon": 29.0237402,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.980801,
+      "lon": 29.0250719,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9866696,
+      "lon": 29.0332828,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9847952,
+      "lon": 29.0332192,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9830426,
+      "lon": 29.0328266,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9586433,
+      "lon": 29.0865321,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9924281,
+      "lon": 29.1161375,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9888364,
+      "lon": 29.1134853,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9888364,
+      "lon": 29.1135099,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9943313,
+      "lon": 29.1084631,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9969071,
+      "lon": 29.0363239,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9969161,
+      "lon": 29.0363322,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9993569,
+      "lon": 29.0362738,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9986836,
+      "lon": 29.0362307,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9986976,
+      "lon": 29.0376506,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9986783,
+      "lon": 29.0376352,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9986599,
+      "lon": 29.0376176,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9860236,
+      "lon": 29.1157495,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9903157,
+      "lon": 29.1182343,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9701929,
+      "lon": 29.0725387,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9702313,
+      "lon": 29.0725575,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9805066,
+      "lon": 29.0212618,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9858343,
+      "lon": 29.0488466,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9867449,
+      "lon": 29.0502012,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9817883,
+      "lon": 29.0457903,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9866189,
+      "lon": 29.0244987,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9760506,
+      "lon": 29.0505391,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9642752,
+      "lon": 29.0823865,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9642827,
+      "lon": 29.0824339,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9906171,
+      "lon": 29.1171844,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9869914,
+      "lon": 29.0459289,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9775069,
+      "lon": 29.0475267,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9774893,
+      "lon": 29.0475559,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 41.0010666,
+      "lon": 29.0417115,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 41.0010778,
+      "lon": 29.0416919,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 41.0083458,
+      "lon": 29.0498881,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9848482,
+      "lon": 29.0331216,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9873417,
+      "lon": 29.0254632,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9839433,
+      "lon": 29.0241298,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.979587,
+      "lon": 29.0237949,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9804959,
+      "lon": 29.0260844,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.976601,
+      "lon": 29.0512628,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9757488,
+      "lon": 29.0515734,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9696313,
+      "lon": 29.0720382,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9696526,
+      "lon": 29.0719989,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9703505,
+      "lon": 29.0704931,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9811861,
+      "lon": 29.0517294,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9640706,
+      "lon": 29.0740005,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9743559,
+      "lon": 29.0517633,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9813277,
+      "lon": 29.021118,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9807402,
+      "lon": 29.0214876,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9875194,
+      "lon": 29.0503018,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9713076,
+      "lon": 29.0604289,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 41.0185189,
+      "lon": 29.0288886,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 41.0071173,
+      "lon": 29.0858357,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9805073,
+      "lon": 29.042505,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9886028,
+      "lon": 29.0264731,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9576278,
+      "lon": 29.0813894,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9589822,
+      "lon": 29.0836164,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9571577,
+      "lon": 29.0809447,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 41.0175064,
+      "lon": 29.0425289,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9670498,
+      "lon": 29.0905878,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9585961,
+      "lon": 29.0775811,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9597939,
+      "lon": 29.0888886,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9616765,
+      "lon": 29.0880489,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9664588,
+      "lon": 29.0846296,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9678216,
+      "lon": 29.0832275,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.96504,
+      "lon": 29.0863233,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9957679,
+      "lon": 29.0246285,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.980241,
+      "lon": 29.0243033,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9656083,
+      "lon": 29.0710476,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9795968,
+      "lon": 29.0238158,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.981568,
+      "lon": 29.0211986,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9815764,
+      "lon": 29.0212389,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9929722,
+      "lon": 29.0367925,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9680933,
+      "lon": 29.0882435,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.964707,
+      "lon": 29.0725824,
+      "name": "Bilinmeyen Nokta"
+    },
+    {
+      "lat": 40.9909708,
+      "lon": 29.0760648,
+      "name": "Bilinmeyen Nokta"
+    }
+  ],
   "kamu": [
     {
       "lat": 40.9999385,

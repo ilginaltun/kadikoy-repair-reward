@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kadıköy Tamir & Ödül v4.2 - Atık Katmanı Gizlendi</title>
+  <title>Kadıköy Tamir & Ödül v4.0 - Usta Eşleşme</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -104,8 +105,10 @@
     const IconGift = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>`;
     const IconMap = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>`;
     const IconWrench = () => html`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`;
+    // Yeni Arama İkonu
     const IconSearch = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
 
+    // Chatbot Bileşeni artık state'leri dışarıdan (App'ten) alıyor
     function ChatBot({ isChatOpen, setIsChatOpen, messages, input, setInput, handleSend }) {
       return html`
         <div class="fixed bottom-10 right-5 md:right-10 z-[9999]">
@@ -139,9 +142,9 @@
 
     function Map() {
       const mapRef = useRef(null);
-      // ATIK KATMANI BURADAN KALDIRILDI
       const [layers, setLayers] = useState({
         tamirciler: { active: true, title: 'TAMİRCİLER', sub: 'Terzi / Elektronik', color: 'bg-brandYellow', shape: 'square' },
+        atik: { active: true, title: 'ATIK NOKTALARI', sub: 'Kumbara / E-Atık', color: 'bg-white', shape: 'circle' },
         kamu: { active: true, title: 'KAMU BİNALARI', sub: 'İSMEK / Kütüphane', color: 'bg-brandPink', shape: 'square' },
         buffers: { active: true, title: '400M ETKİ ALANI', sub: 'Yürüme Mesafesi', color: 'bg-brandYellow/30', shape: 'dotted' }
       });
@@ -153,32 +156,24 @@
         const map = window.L.map(mapRef.current).setView([40.988, 29.045], 14);
         window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
         mapInstance.current = map;
-        // ATIK GRUBU BURADAN KALDIRILDI
-        groupsRef.current = { tamirciler: window.L.layerGroup(), kamu: window.L.layerGroup(), buffers: window.L.layerGroup() };
+        groupsRef.current = { tamirciler: window.L.layerGroup(), atik: window.L.layerGroup(), kamu: window.L.layerGroup(), buffers: window.L.layerGroup() };
 
-        fetch('./kadikoy_map_data.json')
-          .then(res => res.json())
-          .then(data => {
-            const icon = (bg, shape) => window.L.divIcon({ className: '', html: `<div class="w-7 h-7 border-4 border-black shadow-[4px_4px_0px_#000] ${bg} ${shape === 'circle' ? 'rounded-full' : ''}"></div>`, iconSize: [28, 28] });
+        fetch('./kadikoy_map_data.json').then(res => res.json()).then(data => {
+          const icon = (bg, shape) => window.L.divIcon({ className: '', html: `<div class="w-7 h-7 border-4 border-black shadow-[4px_4px_0px_#000] ${bg} ${shape === 'circle' ? 'rounded-full' : ''}"></div>`, iconSize: [28, 28] });
 
-            if (data.tamirciler) {
-              Object.values(data.tamirciler).forEach(kategoriListesi => {
-                if (Array.isArray(kategoriListesi)) {
-                  kategoriListesi.forEach(m => {
-                    if(m.lat && m.lon) {
-                      window.L.marker([m.lat, m.lon], { icon: icon('bg-brandYellow', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.tamirciler);
-                      window.L.circle([m.lat, m.lon], { radius: 400, color: '#000', weight: 2, fillColor: '#E6FF00', fillOpacity: 0.1, dashArray: '5, 10' }).addTo(groupsRef.current.buffers);
-                    }
-                  });
-                }
+          if (data.tamirciler) {
+            // Yeni JSON yapısında tamirciler artık bir obje (kategorilere ayrılmış)
+            Object.values(data.tamirciler).forEach(kategori => {
+              kategori.forEach(m => {
+                window.L.marker([m.lat, m.lon], { icon: icon('bg-brandYellow', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.tamirciler);
+                window.L.circle([m.lat, m.lon], { radius: 400, color: '#000', weight: 2, fillColor: '#E6FF00', fillOpacity: 0.1, dashArray: '5, 10' }).addTo(groupsRef.current.buffers);
               });
-            }
-            
-            // ATIK VERİSİ ÇEKİMİ KALDIRILDI
-            data.kamu?.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-brandPink', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.kamu));
-            Object.keys(layers).forEach(k => { if (layers[k].active) groupsRef.current[k].addTo(map); });
-          })
-          .catch(err => console.error("Harita verisi çekilemedi: ", err));
+            });
+          }
+          data.atik?.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-white', 'circle') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.atik));
+          data.kamu?.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-brandPink', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.kamu));
+          Object.keys(layers).forEach(k => { if (layers[k].active) groupsRef.current[k].addTo(map); });
+        });
       }, []);
 
       useEffect(() => {
@@ -200,32 +195,35 @@
               `)}
             </div>
           </div>
-          <div ref=${mapRef} class="w-full h-[500px] md:h-[700px] brutal-card bg-white z-0 relative"></div>
+          <div ref=${mapRef} class="w-full h-[500px] md:h-[700px] brutal-card bg-white"></div>
         </div>
       `;
     }
 
     function App() {
-      const [view, setView] = useState('merkezler'); 
+      const [view, setView] = useState('panel');
       const [puan, setPuan] = useState(250);
       const [kullanilanlar, setKullanilanlar] = useState([]);
-      
+
+      // CHATBOT STATE'İ (App seviyesine taşındı)
       const [isChatOpen, setIsChatOpen] = useState(false);
       const [messages, setMessages] = useState([{ role: 'bot', text: 'Merhaba bugün neyi tamir ediyoruz! :)' }]);
       const [chatInput, setChatInput] = useState('');
 
+      // EŞLEŞME FORMU STATE'İ
       const [matchCategory, setMatchCategory] = useState('');
       const [matchDesc, setMatchDesc] = useState('');
 
       useEffect(() => { if (view === 'panel') { setTimeout(() => { const canvas = document.getElementById('user-qr-code'); if (canvas) window.QRCode.toCanvas(canvas, "TAMIR-2026-ILGIN", { width: 200, margin: 1 }); }, 100); } }, [view]);
 
+      // ANA CHAT GÖNDERME FONKSİYONU
       const handleSend = async (customMsg = null) => {
         const msgToSend = customMsg || chatInput;
         if (!msgToSend.trim()) return;
 
         const currentHistory = [...messages];
         setMessages(prev => [...prev, { role: 'user', text: msgToSend }]);
-        if(!customMsg) setChatInput('');
+        if (!customMsg) setChatInput('');
 
         try {
           const res = await fetch('/api/chat', {
@@ -239,9 +237,9 @@
               }))
             })
           });
-          
+
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          
+
           const data = await res.json();
           setMessages(prev => [...prev, { role: 'bot', text: data.reply }]);
         } catch (e) {
@@ -249,15 +247,20 @@
         }
       };
 
+      // EŞLEŞTİRME TETİKLEYİCİSİ
       const triggerMatch = () => {
-        if(!matchCategory || !matchDesc) {
+        if (!matchCategory || !matchDesc) {
           alert("Kanka lütfen bir kategori seçip sorunu kısaca anlat!");
           return;
         }
-        
+
         const query = `Kategori: ${matchCategory}. Eşyamın sorunu şu: "${matchDesc}". Bana veri tabanındaki tamircilerden en uygununu önerir misin?`;
+
+        // Chat'i aç ve mesajı gönder
         setIsChatOpen(true);
         handleSend(query);
+
+        // Formu temizle
         setMatchDesc('');
         setMatchCategory('');
       };
@@ -348,10 +351,11 @@
                 
                 <div class="max-w-4xl mx-auto brutal-card p-6 md:p-10 bg-white">
                   <div class="space-y-8">
+                    
                     <div>
                       <h3 class="text-2xl font-black uppercase mb-4">1. Neyi Tamir Edeceğiz?</h3>
                       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        ${['Elektronik', 'Mobilya', 'Tekstil', 'Ayakkabi'].map(cat => html`
+                        ${['Elektronik', 'Mobilya', 'Tekstil', 'Bisiklet'].map(cat => html`
                           <button 
                             onClick=${() => setMatchCategory(cat)} 
                             class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${matchCategory === cat ? 'bg-brandPink text-white shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-gray-100 text-black hover:bg-gray-200'}">
@@ -428,14 +432,14 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
                   ${kampanyalarData.map(k => {
-                    const isUsed = kullanilanlar.includes(k.id);
-                    const isLocked = puan < k.points;
-                    const buttonText = isUsed ? 'KULLANILDI' : (isLocked ? 'KİLİTLİ' : 'KULLAN');
-                    const buttonClass = (isUsed || isLocked)
-                      ? 'bg-[#c0c0c0] text-gray-600 cursor-not-allowed'
-                      : 'bg-brandYellow text-black active:translate-y-1 active:translate-x-1 active:shadow-none transition-all shadow-[2px_2px_0px_0px_#000] md:shadow-[3px_3px_0px_0px_#000]';
+        const isUsed = kullanilanlar.includes(k.id);
+        const isLocked = puan < k.points;
+        const buttonText = isUsed ? 'KULLANILDI' : (isLocked ? 'KİLİTLİ' : 'KULLAN');
+        const buttonClass = (isUsed || isLocked)
+          ? 'bg-[#c0c0c0] text-gray-600 cursor-not-allowed'
+          : 'bg-brandYellow text-black active:translate-y-1 active:translate-x-1 active:shadow-none transition-all shadow-[2px_2px_0px_0px_#000] md:shadow-[3px_3px_0px_0px_#000]';
 
-                    return html`
+        return html`
                       <div class="border-[4px] md:border-[6px] border-black shadow-[4px_4px_0px_0px_#000] md:shadow-[8px_8px_0px_0px_#000] p-4 md:p-6 flex flex-col relative ${k.color} transition-transform hover:-translate-y-1">
                         <div class="absolute -top-3 md:-top-4 right-2 md:right-4 bg-black text-white px-2 md:px-4 py-1 text-sm md:text-lg font-bold transform rotate-[4deg] border-2 md:border-4 border-black">
                           ${k.tag}
@@ -457,7 +461,7 @@
                         </div>
                       </div>
                     `
-                  })}
+      })}
                 </div>
               </div>
             `}
@@ -486,4 +490,5 @@
     render(html`<${App} />`, document.getElementById('root'));
   </script>
 </body>
+
 </html>
