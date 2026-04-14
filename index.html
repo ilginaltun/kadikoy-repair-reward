@@ -85,6 +85,15 @@
     .sticker-drop {
       filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 1));
     }
+
+    @keyframes pulse-marker {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0px #FF00FF; }
+      50% { transform: scale(1.5); box-shadow: 0 0 25px #FF00FF; }
+    }
+    .pulse-marker {
+      animation: pulse-marker 1.2s ease-in-out infinite;
+      border-radius: 0;
+    }
   </style>
 
   <script>
@@ -108,8 +117,35 @@
     // Yeni Arama İkonu
     const IconSearch = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
 
+    // Bot mesajlarında tamirci isimlerini tıklanabilir yap
+    function renderMessageWithShops(text, allShops, onShopClick) {
+      if (!allShops.length) return text;
+      const sortedShops = [...allShops].sort((a, b) => b.name.length - a.name.length);
+      let segments = [{ type: 'text', value: text }];
+      for (const shop of sortedShops) {
+        const newSegments = [];
+        for (const seg of segments) {
+          if (seg.type !== 'text') { newSegments.push(seg); continue; }
+          const idx = seg.value.toLowerCase().indexOf(shop.name.toLowerCase());
+          if (idx === -1) { newSegments.push(seg); continue; }
+          if (idx > 0) newSegments.push({ type: 'text', value: seg.value.slice(0, idx) });
+          newSegments.push({ type: 'shop', value: seg.value.slice(idx, idx + shop.name.length), shop });
+          const rest = seg.value.slice(idx + shop.name.length);
+          if (rest) newSegments.push({ type: 'text', value: rest });
+        }
+        segments = newSegments;
+      }
+      return segments.map(seg =>
+        seg.type === 'shop'
+          ? html`<span onClick=${(e) => { e.stopPropagation(); onShopClick(seg.shop); }}
+              class="underline decoration-2 cursor-pointer text-blue-700 hover:bg-blue-100 inline-flex items-center gap-1"
+              title="Haritada göster">📍 ${seg.value}</span>`
+          : seg.value
+      );
+    }
+
     // Chatbot Bileşeni artık state'leri dışarıdan (App'ten) alıyor
-    function ChatBot({ isChatOpen, setIsChatOpen, messages, input, setInput, handleSend }) {
+    function ChatBot({ isChatOpen, setIsChatOpen, messages, input, setInput, handleSend, allShops, onShopClick }) {
       return html`
         <div class="fixed bottom-10 right-5 md:right-10 z-[9999]">
           ${isChatOpen && html`
@@ -121,7 +157,7 @@
               <div class="flex-grow p-4 overflow-y-auto space-y-4 bg-white/60">
                 ${messages.map(m => html`
                   <div class="p-3 border-4 border-black font-bold ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
-                    ${m.text}
+                    ${m.role === 'bot' ? renderMessageWithShops(m.text, allShops, onShopClick) : m.text}
                   </div>
                 `)}
               </div>
@@ -140,8 +176,9 @@
       `;
     }
 
-    function Map() {
+    function Map({ selectedShop, setSelectedShop }) {
       const mapRef = useRef(null);
+      const highlightRef = useRef(null);
       const [layers, setLayers] = useState({
         tamirciler: { active: true, title: 'TAMİRCİLER', sub: 'Terzi / Elektronik', color: 'bg-brandYellow', shape: 'square' },
         atik: { active: true, title: 'ATIK NOKTALARI', sub: 'Kumbara / E-Atık', color: 'bg-white', shape: 'circle' },
@@ -181,10 +218,59 @@
         Object.keys(layers).forEach(k => { if (layers[k].active) mapInstance.current.addLayer(groupsRef.current[k]); else mapInstance.current.removeLayer(groupsRef.current[k]); });
       }, [layers]);
 
+      // Seçilen tamirci değiştiğinde haritada göster
+      useEffect(() => {
+        if (!mapInstance.current) return;
+        // Önceki highlight'ı kaldır
+        if (highlightRef.current) {
+          mapInstance.current.removeLayer(highlightRef.current);
+          highlightRef.current = null;
+        }
+        if (!selectedShop) return;
+
+        // Lokasyona uç
+        mapInstance.current.flyTo([selectedShop.lat, selectedShop.lon], 17, { duration: 1.5 });
+
+        // Yanıp sönen marker ekle
+        const pulseIcon = window.L.divIcon({
+          className: '',
+          html: '<div class="pulse-marker" style="width:32px;height:32px;background:#FF00FF;border:4px solid #000;"></div>',
+          iconSize: [32, 32]
+        });
+        highlightRef.current = window.L.marker([selectedShop.lat, selectedShop.lon], { icon: pulseIcon, zIndexOffset: 1000 })
+          .bindPopup('<b>' + selectedShop.name + '</b><br/>Kategori: ' + selectedShop.kategori)
+          .addTo(mapInstance.current);
+
+        // Biraz bekleyip popup aç (flyTo bitsin diye)
+        setTimeout(() => { if (highlightRef.current) highlightRef.current.openPopup(); }, 1600);
+      }, [selectedShop]);
+
       return html`
         <div class="flex flex-col lg:flex-row gap-12 relative z-10">
           <div class="w-full lg:w-[450px] brutal-card p-6 md:p-10 space-y-10 bg-white/90 backdrop-blur-sm">
             <h3 class="text-4xl md:text-6xl font-black uppercase tracking-tighter border-b-8 border-black pb-4 italic">KATMANLAR</h3>
+            ${selectedShop && html`
+              <div class="mb-6 border-b-4 border-black pb-6">
+                <h4 class="text-2xl md:text-3xl font-black uppercase tracking-tight mb-4">SEÇİLEN TAMİRCİ</h4>
+                <div
+                  onClick=${() => {
+                    if (mapInstance.current && selectedShop) {
+                      mapInstance.current.flyTo([selectedShop.lat, selectedShop.lon], 17, { duration: 1 });
+                      if (highlightRef.current) setTimeout(() => highlightRef.current.openPopup(), 1100);
+                    }
+                  }}
+                  class="cursor-pointer border-4 border-black p-4 bg-brandPink text-white shadow-[6px_6px_0px_#000] hover:translate-y-[-2px] hover:shadow-[6px_8px_0px_#000] transition-all"
+                >
+                  <div class="text-xl md:text-2xl font-black uppercase leading-tight">${selectedShop.name}</div>
+                  <div class="text-sm md:text-base font-bold mt-2 opacity-80 uppercase">${selectedShop.kategori}</div>
+                  <div class="text-xs md:text-sm font-bold mt-2 opacity-60">📍 Haritada görmek için tıkla</div>
+                </div>
+                <button
+                  onClick=${() => setSelectedShop(null)}
+                  class="mt-3 w-full bg-black text-white border-4 border-black p-2 font-black uppercase text-base hover:bg-gray-800 transition-colors"
+                >KAPAT</button>
+              </div>
+            `}
             <div class="space-y-8">
               ${Object.entries(layers).map(([key, l]) => html`
                 <div class="flex items-start gap-6 cursor-pointer" onClick=${() => setLayers(p => ({ ...p, [key]: { ...l, active: !l.active } }))}>
@@ -213,6 +299,31 @@
       // EŞLEŞME FORMU STATE'İ
       const [matchCategory, setMatchCategory] = useState('');
       const [matchDesc, setMatchDesc] = useState('');
+
+      // SEÇİLEN TAMİRCİ STATE'İ
+      const [allShops, setAllShops] = useState([]);
+      const [selectedShop, setSelectedShop] = useState(null);
+
+      // JSON'dan tamirci verilerini yükle
+      useEffect(() => {
+        fetch('./kadikoy_map_data.json')
+          .then(res => res.json())
+          .then(data => {
+            const shops = [];
+            if (data.tamirciler) {
+              Object.entries(data.tamirciler).forEach(([kategori, dukkanlar]) => {
+                dukkanlar.forEach(d => shops.push({ ...d, kategori }));
+              });
+            }
+            setAllShops(shops);
+          });
+      }, []);
+
+      // Chatbot'tan tamirci seçildiğinde
+      const handleShopSelect = (shop) => {
+        setSelectedShop(shop);
+        setView('merkezler');
+      };
 
       useEffect(() => { if (view === 'panel') { setTimeout(() => { const canvas = document.getElementById('user-qr-code'); if (canvas) window.QRCode.toCanvas(canvas, "TAMIR-2026-ILGIN", { width: 200, margin: 1 }); }, 100); } }, [view]);
 
@@ -420,7 +531,7 @@
               </div>
             `}
 
-            ${view === 'merkezler' && html`<${Map} />`}
+            ${view === 'merkezler' && html`<${Map} selectedShop=${selectedShop} setSelectedShop=${setSelectedShop} />`}
             
             ${view === 'kampanyalar' && html`
               <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
@@ -475,13 +586,15 @@
             `}
           </main>
           
-          <${ChatBot} 
-            isChatOpen=${isChatOpen} 
+          <${ChatBot}
+            isChatOpen=${isChatOpen}
             setIsChatOpen=${setIsChatOpen}
             messages=${messages}
             input=${chatInput}
             setInput=${setChatInput}
             handleSend=${handleSend}
+            allShops=${allShops}
+            onShopClick=${handleShopSelect}
           />
         </div>
       `;
