@@ -162,9 +162,12 @@
           const icon = (bg, shape) => window.L.divIcon({ className: '', html: `<div class="w-7 h-7 border-4 border-black shadow-[4px_4px_0px_#000] ${bg} ${shape === 'circle' ? 'rounded-full' : ''}"></div>`, iconSize: [28, 28] });
 
           if (data.tamirciler) {
-            data.tamirciler.forEach(m => {
-              window.L.marker([m.lat, m.lon], { icon: icon('bg-brandYellow', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.tamirciler);
-              window.L.circle([m.lat, m.lon], { radius: 400, color: '#000', weight: 2, fillColor: '#E6FF00', fillOpacity: 0.1, dashArray: '5, 10' }).addTo(groupsRef.current.buffers);
+            // Yeni JSON yapısında tamirciler artık bir obje (kategorilere ayrılmış)
+            Object.values(data.tamirciler).forEach(kategori => {
+              kategori.forEach(m => {
+                window.L.marker([m.lat, m.lon], { icon: icon('bg-brandYellow', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.tamirciler);
+                window.L.circle([m.lat, m.lon], { radius: 400, color: '#000', weight: 2, fillColor: '#E6FF00', fillOpacity: 0.1, dashArray: '5, 10' }).addTo(groupsRef.current.buffers);
+              });
             });
           }
           data.atik?.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-white', 'circle') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.atik));
