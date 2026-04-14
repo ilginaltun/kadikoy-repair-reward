@@ -1,5 +1,3 @@
-#sonnnn
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
@@ -20,9 +18,10 @@ def chat():
 
     user_data = request.json
     user_message = user_data.get("message", "")
+    # Kafası karışmasın diye sadece son 2 mesajı hatırlatıyoruz
     history = user_data.get("history", [])[-2:]
 
-    # TUM LOKASYONLARIN KATEGORİZE EDİLMİŞ HALİ
+    # TUM LOKASYONLARIN KATEGORİZE EDİLMİŞ HALİ (Askeri Disiplinle Gömüldü)
     system_prompt = """Sen Kadıköy Tamir Ağı asistanısın. Ilgın'a ismiyle hitap et.
     SADECE VE SADECE ŞU LİSTEDEKİ GERÇEK MEKANLARI ÖNEREBİLİRSİN:
 
@@ -36,20 +35,18 @@ def chat():
     
     [TESİSAT VE DİĞER]: Durmuşoğlu Otopark (Lastik), Acar Tesisat, Doğan Tesisat, Yılmaz Su Tesisatı, Aykar Yapı Tesisat, Işın Apt. Su Tesisatı, Volkan Özdemir Gitar Atölyesi, Kafkas Pasajı Çalgı Tamiri, Moda Bisiklet.
 
-    [DİKKAT]: Yukarıdaki listede 'Nokta' olarak işaretlenen yerleri 'Kentsel Tamir Durağı' olarak genelleyebilirsin. 
-
     KESİN KURALLAR:
-    1. Bu listede yazmayan "Ayşe, Mehmet, Ali, Enderoğlu, Dürbün Elektronik" gibi isimleri ASLA uydurma.
-    2. Telefon numarası veya adres uydurma.
-    3. Kullanıcı hangi kategoriyi seçtiyse o listeden 2 tane isim seç ve 'Seni şuraya yönlendirebilirim' de.
-    4. Kısa, samimi ve emojili cevap ver."""
+    1. Bu listede yazmayan "Ayşe, Mehmet, Ali, İsmail Bey, Murat Bey, Enderoğlu" gibi isimleri ASLA uydurma.
+    2. Telefon numarası veya adres ASLA uydurma. 
+    3. Kullanıcı kategori seçtiyse (Örn: Elektronik), sadece o kategori içindeki gerçek isimleri öner.
+    4. Kısa, samimi ve enerjik cevap ver."""
 
     payload = {
-        "model": "llama3-70b-8192", 
+        "model": "llama3-70b-8192", # Halüsinasyona karşı en dayanıklı ve akıllı model
         "messages": [{"role": "system", "content": system_prompt}] + 
                     [{"role": m["role"], "content": m["text"]} for m in history] + 
                     [{"role": "user", "content": user_message}],
-        "temperature": 0.0 # Sıfır yaratıcılık, tam gerçeklik.
+        "temperature": 0.0 # Sıfır yaratıcılık, sadece gerçek veri
     }
 
     try:
