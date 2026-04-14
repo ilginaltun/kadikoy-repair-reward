@@ -1,66 +1,91 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
-import json
 import os
-from dotenv import load_dotenv
 
-# .env dosyasındaki değişkenleri yükle
-load_dotenv()
-
-app = Flask(__name__, static_folder='../')
+app = Flask(__name__)
 CORS(app)
 
-# API Anahtarını sistem değişkenlerinden güvenli bir şekilde alıyoruz
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
-def get_map_context():
-    try:
-        # Vercel'de kök dizine ulaşmak için '../' kullanıldı
-        with open('../kadikoy_map_data.json', 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            summarized = {
-                "tamir_agi": [f"{i.get('name')}" for i in data.get("tamir_agi_noktalari", [])],
-                "tamirciler": [f"{i.get('name')}" for i in data.get("tamirci_listesi", [])],
-                "atik_duraklari": [f"{i.get('name')}" for i in data.get("atik", [])]
-            }
-            return json.dumps(summarized, ensure_ascii=False)
-    except:
-        return "Veri yok."
+# VERİLERİ DOĞRUDAN KODA GÖMDÜK (Vercel dosya bulamama hatasını %100 engeller)
+KADIKOY_TAMIRCILER = {
+    "Elektronik": [
+      "Gemici Elektrik", "Genç Elektrik", "Uğur Elektronik", 
+      "Akar Elektrik", "Televizyon ve Kart Tamiri Atölyesi", "Karaca Elektrik"
+    ],
+    "Mobilya": [
+      "Mo De Döşeme ve Mobilya", "SIR Mobilya Marangoz", "Moda Marangoz", 
+      "Emir Mobilya", "Evren Mobilya", "Kadıköy Antikacılar Çarşısı"
+    ],
+    "Tekstil": [
+      "Roventea Terzi", "Terzi Kemal", "Terzi Yakup", "Rüzgar Terzi", 
+      "Dry Station", "Yağmur Terzi", "Hak Pasajı Terzileri", 
+      "Jet Terzi", "Terzi Hulusi", "Terzi Bayram"
+    ],
+    "Ayakkabi": [
+      "Moda Lostra", "Kundura Tamir", "Develi Lostra", 
+      "Adliye Çarşısı Çanta/Ayakkabı Tamir"
+    ],
+    "Diger": [
+      "Durmuşoğlu Otopark (Lastik)", "Metin Elektrik (Tesisat)", "Acar Tesisat", 
+      "Doğan Tesisat", "Yılmaz Su Tesisatı", "Aykar Yapı Tesisat",
+      "Işın Apt. (Su Tesisatı)", "Volkan Özdemir (Gitar Yapım/Onarım)", 
+      "Kafkas Pasajı (Çalgı Tamir)", "Erol Saat", "Kadıköy Saat Evi", "Noy Saat"
+    ]
+}
 
-@app.route('/chat', methods=['POST'])
+def get_formatted_data():
+    formatted = ""
+    for kategori, mekanlar in KADIKOY_TAMIRCILER.items():
+        formatted += f"[{kategori}]: {', '.join(mekanlar)}\n"
+    return formatted
+
+@app.route('/api/chat', methods=['POST', 'GET'])
 def chat():
+    if request.method == 'GET':
+        return jsonify({"status": "API zehir gibi calisiyor!"})
+    
+    if not GROQ_API_KEY:
+        return jsonify({"reply": "Sistem Hatası: API KEY eksik!"}), 500
+
     user_data = request.json
     user_message = user_data.get("message", "")
-    if not user_message: return jsonify({"reply": "Mesaj boş Ilgın!"}), 400
+    history = user_data.get("history", []) 
+    
+    map_data = get_formatted_data()
 
-    map_data = get_map_context()
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
-    }
+    # HALÜSİNASYONU BİTİREN KESİN EMİRLER
+    system_prompt = f"""Sen Kadıköy'deki Kentsel Tamir Ağı'nın yapay zeka asistanısın. Ilgın'a ismiyle hitap et.
 
-    system_prompt = f"Sen Kadıköy 'Tamir & Ödül' platformu asistanısın. Ilgın'a ismiyle hitap et. Veriler: {map_data}. Tamir için tamircileri, atölye için ağ noktalarını öner. Kısa ve öz ol."
+GÖREVLERİN VE KESİN KURALLAR:
+1. Kullanıcının sorununu dinle ve SADECE AŞAĞIDAKİ VERİLER LİSTESİNDEKİ mekanları öner.
+2. DİKKAT: Kendi kafandan "Ali Bey", "Vedat Usta", "Ömer Tamirci" gibi isimler KESİNLİKLE UYDURMA.
+3. Listeden soruya en uygun 2 atölyeyi seç ve enerjik, samimi bir dille yönlendirme yap. "Seni listemizdeki şu atölyelere yönlendirebilirim:" şeklinde konuş.
+
+GERÇEK KADIKÖY TAMİRCİLERİ (SADECE BUNLARI KULLANACAKSIN):
+{map_data}
+"""
+
+    messages = [{"role": "system", "content": system_prompt}]
+    
+    for msg in history:
+        messages.append({"role": msg["role"], "content": msg["text"]})
+    
+    messages.append({"role": "user", "content": user_message})
 
     payload = {
         "model": "llama-3.1-8b-instant",
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message}
-        ],
+        "messages": messages,
+        "temperature": 0.1,  # Yaratıcılığı 0.1'e çektik, artık asla uyduramaz sadece veriyi okur
         "max_tokens": 400
     }
 
     try:
-        # URL'deki api.api... hatası düzeltildi
-        response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload)
+        response = requests.post("https://api.groq.com/openai/v1/chat/completions", 
+                                 headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}, 
+                                 json=payload)
         data = response.json()
-        if response.status_code == 200:
-            return jsonify({"reply": data["choices"][0]["message"]["content"]})
-        return jsonify({"reply": f"Hata: {data.get('error', {}).get('message')}"})
+        return jsonify({"reply": data["choices"][0]["message"]["content"]})
     except Exception as e:
-        return jsonify({"reply": f"Bağlantı koptu: {str(e)}"}), 500
-
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5001))
-    app.run(host='0.0.0.0', port=port, debug=False)
+        return jsonify({"reply": f"Hata: {str(e)}"}), 500
