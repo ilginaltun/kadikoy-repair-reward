@@ -42,11 +42,12 @@ def chat():
     4. Kısa, samimi ve enerjik cevap ver."""
 
     payload = {
-        "model": "llama3-70b-8192", # Halüsinasyona karşı en dayanıklı ve akıllı model
+        "model": "llama-3.3-70b-versatile", # Modeli bi tık daha güncelledim
         "messages": [{"role": "system", "content": system_prompt}] + 
                     [{"role": m["role"], "content": m["text"]} for m in history] + 
                     [{"role": "user", "content": user_message}],
-        "temperature": 0.0 # Sıfır yaratıcılık, sadece gerçek veri
+        "temperature": 0.0, # Bu 0.0 olduğu sürece uydurma imkansız kanka
+        "max_tokens": 300
     }
 
     try:
