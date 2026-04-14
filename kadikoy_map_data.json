@@ -1,279 +1,299 @@
 {
   "tamirciler": [
     {
-      "lat": 40.9741876,
-      "lon": 29.0553567,
-      "name": "Bosch"
+      "name": "lastik tamiri (durmuşoğlu otopark)",
+      "lat": 40.980417,
+      "lon": 29.023528
     },
     {
-      "lat": 41.0012845,
-      "lon": 29.0548736,
-      "name": "Apple Store"
+      "name": "tesisat, arıza, aydınlatma, konuşma sistemleri tamir (metin elektrik)",
+      "lat": 40.980222,
+      "lon": 29.023083
     },
     {
-      "lat": 40.9915311,
-      "lon": 29.0265804,
-      "name": "ALTUĞ ELEKTRONİK"
+      "name": "kalorifer ve sıhhi tesisat",
+      "lat": 40.980139,
+      "lon": 29.022861
     },
     {
-      "lat": 41.0109494,
-      "lon": 29.0833867,
-      "name": "porzec(Tuna)"
+      "name": "terzi (roventea)",
+      "lat": 40.982056,
+      "lon": 29.024
     },
     {
-      "lat": 40.9580655,
-      "lon": 29.0954888,
-      "name": "Bosch"
+      "name": "terzi + ayakkabı, çanta tamiri (moda lostra)",
+      "lat": 40.98175,
+      "lon": 29.024056
     },
     {
-      "lat": 40.9546756,
-      "lon": 29.0919532,
-      "name": "Cumali Terzi"
+      "name": "elektronik tamir (gemici elektrik)",
+      "lat": 40.985,
+      "lon": 29.026583
     },
     {
-      "lat": 40.9561055,
-      "lon": 29.094627,
-      "name": "Terzi Gülden"
+      "name": "terzi (terzi kemal)",
+      "lat": 40.984583,
+      "lon": 29.025222
     },
     {
-      "lat": 40.9619972,
-      "lon": 29.0922631,
-      "name": "Bilinmeyen Nokta"
+      "name": "terzi (terzi yakup)",
+      "lat": 40.9845,
+      "lon": 29.024472
     },
     {
-      "lat": 40.9610316,
-      "lon": 29.0930353,
-      "name": "Apple Teknik Servis"
+      "name": "döşeme ve mobilya atölyesi (mo de )",
+      "lat": 40.984889,
+      "lon": 29.023056
     },
     {
-      "lat": 40.9618212,
-      "lon": 29.0847331,
-      "name": "Siemens"
+      "name": "SIR Mobilya Marangoz",
+      "lat": 40.988056,
+      "lon": 29.031889
     },
     {
-      "lat": 40.9618007,
-      "lon": 29.0847072,
-      "name": "İphone Aksesuar"
+      "name": "MODA MARANGOZ",
+      "lat": 40.98625,
+      "lon": 29.030444
     },
     {
-      "lat": 40.9788428,
-      "lon": 29.1186976,
-      "name": "Bosch"
+      "name": "mobilya tamiri koltuk döşeme (emir mobilya)",
+      "lat": 40.985556,
+      "lon": 29.03025
     },
     {
-      "lat": 41.017912,
-      "lon": 29.101222,
-      "name": "Bilinmeyen Nokta"
+      "name": "kalorifer çatı izolasyon tadilat ve tamir (acar tesisat)",
+      "lat": 40.985167,
+      "lon": 29.030667
     },
     {
-      "lat": 40.991528,
-      "lon": 29.0409009,
-      "name": "Haikon"
+      "name": "çerçeve tamir",
+      "lat": 40.985639,
+      "lon": 29.028639
     },
     {
-      "lat": 40.9666665,
-      "lon": 29.0865382,
-      "name": "LG"
+      "name": "mobilya döşeme",
+      "lat": 40.987722,
+      "lon": 29.02625
     },
     {
-      "lat": 40.9893151,
-      "lon": 29.0854994,
-      "name": "MediaMarkt"
+      "name": "marangoz",
+      "lat": 40.987694,
+      "lon": 29.026556
     },
     {
-      "lat": 40.9900452,
-      "lon": 29.1059533,
-      "name": "Miele"
+      "name": "saat ve mobilya tamiri",
+      "lat": 40.989528,
+      "lon": 29.025083
     },
     {
-      "lat": 40.9781733,
-      "lon": 29.1192494,
-      "name": "Samsung"
+      "name": "mobilya gramofon tamiri",
+      "lat": 40.989278,
+      "lon": 29.026722
     },
     {
-      "lat": 40.982336,
-      "lon": 29.0786179,
-      "name": "Bilinmeyen Nokta"
+      "name": "rüzgar terzi",
+      "lat": 40.98725,
+      "lon": 29.027944
     },
     {
-      "lat": 40.9700129,
-      "lon": 29.0846875,
-      "name": "Bosch"
+      "name": "kundura",
+      "lat": 40.986306,
+      "lon": 29.030444
     },
     {
-      "lat": 40.976474,
-      "lon": 29.0488477,
-      "name": "Bosch"
+      "name": "elektrik tamir tadilat",
+      "lat": 40.98875,
+      "lon": 29.027
     },
     {
-      "lat": 40.9811099,
-      "lon": 29.0412632,
-      "name": "Vestel"
+      "name": "Develi Lostra",
+      "lat": 40.990083,
+      "lon": 29.026194
     },
     {
-      "lat": 40.9796309,
-      "lon": 29.1147556,
-      "name": "Vestel"
+      "name": "gözlük ve saat tamiri",
+      "lat": 40.989833,
+      "lon": 29.025028
     },
     {
-      "lat": 40.9504082,
-      "lon": 29.1036984,
-      "name": "Yalı Saat"
+      "name": "saat tamiri",
+      "lat": 40.985972,
+      "lon": 29.025333
     },
     {
-      "lat": 40.9805119,
-      "lon": 29.0751819,
-      "name": "LG"
+      "name": "tesisat",
+      "lat": 40.985667,
+      "lon": 29.021778
     },
     {
-      "lat": 40.9810885,
-      "lon": 29.0789382,
-      "name": "Vestel"
+      "name": "saat tamiri",
+      "lat": 40.990556,
+      "lon": 29.022722
     },
     {
-      "lat": 40.9712717,
-      "lon": 29.052617,
-      "name": "Miele"
+      "name": "kalorifer, tesisat, komple tamirat ve tadilat işleri (doğan tesisat)",
+      "lat": 40.987472,
+      "lon": 29.024972
     },
     {
-      "lat": 40.9817161,
-      "lon": 29.0679209,
-      "name": "Vestel"
+      "name": "mobilya tamiri (evren mobilya)",
+      "lat": 40.988,
+      "lon": 29.023667
     },
     {
-      "lat": 40.9828707,
-      "lon": 29.0632836,
-      "name": "Bosch"
+      "name": "marangoz",
+      "lat": 40.986583,
+      "lon": 29.022861
     },
     {
-      "lat": 40.9893597,
-      "lon": 29.0259167,
-      "name": "Antik Teknik"
+      "name": "su arıtma cihazı tamir",
+      "lat": 40.986306,
+      "lon": 29.023667
     },
     {
-      "lat": 40.9739642,
-      "lon": 29.0545945,
-      "name": "Pioneer"
+      "name": "elektrik tamir (genç elektrik)",
+      "lat": 40.986417,
+      "lon": 29.023778
     },
     {
-      "lat": 41.0037261,
-      "lon": 29.0814246,
-      "name": "Bosch"
+      "name": "ayakkabı, çanta, tamir, boya, terzi",
+      "lat": 40.982,
+      "lon": 29.023222
     },
     {
-      "lat": 40.9799979,
-      "lon": 29.0812951,
-      "name": "Bosch"
+      "name": "elektronik tamir (uğur elektronik)",
+      "lat": 40.990167,
+      "lon": 29.02475
     },
     {
-      "lat": 40.9802937,
-      "lon": 29.1125987,
-      "name": "Anıl Elektronik"
+      "name": "pil, kayış değişimi, saat tamiri (noy saat)",
+      "lat": 40.990056,
+      "lon": 29.024556
     },
     {
-      "lat": 40.9942017,
-      "lon": 29.0300049,
-      "name": "İlker İletişim"
+      "name": "saat tamiri (kadıköy saat evi)",
+      "lat": 40.990222,
+      "lon": 29.025139
     },
     {
-      "lat": 40.9979224,
-      "lon": 29.0284874,
-      "name": "Yazıcı Kirala"
+      "name": "mobilya tamiri (kadıköy antikacılar çarşısı)",
+      "lat": 40.989556,
+      "lon": 29.025111
     },
     {
-      "lat": 40.9674858,
-      "lon": 29.1040753,
-      "name": "Vatan Bilgisayar"
+      "name": "saat tamiri (kadıköy antikacılar çarşısı)",
+      "lat": 40.989583,
+      "lon": 29.025111
     },
     {
-      "lat": 40.9608374,
-      "lon": 29.0788971,
-      "name": "Miele"
+      "name": "terzi, tadilat, paça düzeltme, fermuar (dry station)",
+      "lat": 40.985361,
+      "lon": 29.029667
     },
     {
-      "lat": 40.9898791,
-      "lon": 29.0263919,
-      "name": "Bosch"
+      "name": "tesisat (yılmaz su tesisatı) (tamirat, tadilat, dekorasyon)",
+      "lat": 40.985389,
+      "lon": 29.029667
     },
     {
-      "lat": 40.9783427,
-      "lon": 29.1140002,
-      "name": "Ulusal Elektronik"
+      "name": "gitar yapım ve onarım atölyesi (volkan özdemir)",
+      "lat": 40.987083,
+      "lon": 29.027667
     },
     {
-      "lat": 40.9768664,
-      "lon": 29.0491543,
-      "name": "Vestel"
+      "name": "terzi (yağmur terzi)",
+      "lat": 40.987111,
+      "lon": 29.027694
     },
     {
-      "lat": 40.9681535,
-      "lon": 29.0665482,
-      "name": "Miele"
+      "name": "tesisat (aykar yapı tesisat)",
+      "lat": 40.986472,
+      "lon": 29.027278
     },
     {
-      "lat": 40.9637023,
-      "lon": 29.0878908,
-      "name": "Suadiye Terzi"
+      "name": "ceket, cüzdan, çanta, kemer, ayakkabı tamir (adliye çarşısı)",
+      "lat": 40.986778,
+      "lon": 29.028222
     },
     {
-      "lat": 40.9803914,
-      "lon": 29.0673902,
-      "name": "Bosch"
+      "name": "Elektrikçi",
+      "lat": 40.985778,
+      "lon": 29.025333
     },
     {
-      "lat": 40.9830584,
-      "lon": 29.0401452,
-      "name": "Bosch"
+      "name": "elektrik tadilat (akar elektrik)",
+      "lat": 40.985,
+      "lon": 29.026694
     },
     {
-      "lat": 40.9725634,
-      "lon": 29.0833825,
-      "name": "Vestel"
+      "name": "elektronik tamir (televizyon, elektronik, kart tamiri)",
+      "lat": 40.984556,
+      "lon": 29.026306
     },
     {
-      "lat": 41.0095648,
-      "lon": 29.0800499,
-      "name": "Terzi Bay Bayan Tadilat"
+      "name": "dekorasyon tamiri, emlak tadilat",
+      "lat": 40.985417,
+      "lon": 29.029083
     },
     {
-      "lat": 41.0018499,
-      "lon": 29.0544202,
-      "name": "Teknosa"
+      "name": "su tesisatı tamiri (ışın apt.)",
+      "lat": 40.984444,
+      "lon": 29.030083
     },
     {
-      "lat": 41.0187373,
-      "lon": 29.0705874,
-      "name": "Koska Terzi"
+      "name": "tekstil tamiri, terziler (hak pasajı)",
+      "lat": 40.988917,
+      "lon": 29.028889
     },
     {
-      "lat": 41.0177182,
-      "lon": 29.0721991,
-      "name": "Elif Yorgan Dikim Evi"
+      "name": "elektrik (karaca elektrik)",
+      "lat": 40.986028,
+      "lon": 29.030889
     },
     {
-      "lat": 41.0172038,
-      "lon": 29.0807755,
-      "name": "Bilinmeyen Nokta"
+      "name": "su tesisatı tamiri (doğan tesisat)",
+      "lat": 40.986444,
+      "lon": 29.029806
     },
     {
-      "lat": 41.017426,
-      "lon": 29.0779158,
-      "name": "Vestel"
+      "name": "çalgı tamir ve yapım atölyesi (kafkas pasajı)",
+      "lat": 40.986917,
+      "lon": 29.028639
     },
     {
-      "lat": 40.9815498,
-      "lon": 29.0843345,
-      "name": "Bosch"
+      "name": "terzi (jet terzi)",
+      "lat": 40.988583,
+      "lon": 29.02825
     },
     {
-      "lat": 40.9791221,
-      "lon": 29.1009562,
-      "name": "Teknosa"
+      "name": "optik, gözlük tamiri (fırat pasajı)",
+      "lat": 40.990611,
+      "lon": 29.024389
     },
     {
-      "lat": 40.9646326,
-      "lon": 29.071943,
-      "name": "Apple Store"
+      "name": "saat tamiri (erol saat)",
+      "lat": 40.988528,
+      "lon": 29.0285
+    },
+    {
+      "name": "terzi (terzi hulusi)",
+      "lat": 40.98375,
+      "lon": 29.025639
+    },
+    {
+      "name": "terzi (terzi bayram)",
+      "lat": 40.99,
+      "lon": 29.025639
+    },
+    {
+      "name": "saat tamiri (taşçılar optiğin içi)",
+      "lat": 40.99125,
+      "lon": 29.024639
+    },
+    {
+      "name": "saat ve enstrüman tamiri (kadıköy çarşı)",
+      "lat": 40.990083,
+      "lon": 29.023167
     }
   ],
   "atik": [
@@ -736,1878 +756,6 @@
       "lat": 40.9909708,
       "lon": 29.0760648,
       "name": "Bilinmeyen Nokta"
-    }
-  ],
-  "parklar": [
-    {
-      "lat": 40.987703,
-      "lon": 29.0608133,
-      "name": "tanzim"
-    },
-    {
-      "lat": 41.0199993,
-      "lon": 29.0076855,
-      "name": "Harem-Üsküdar Arası Sahil Parkları"
-    },
-    {
-      "lat": 41.0034089,
-      "lon": 29.1165886,
-      "name": "Sinpaş Time ve Park Sitesi"
-    },
-    {
-      "lat": 41.0195305,
-      "lon": 29.1103366,
-      "name": "Gençlik Parkı"
-    },
-    {
-      "lat": 41.0188481,
-      "lon": 29.0132946,
-      "name": "Doğancılar Parkı"
-    },
-    {
-      "lat": 41.0108534,
-      "lon": 29.0193876,
-      "name": "Selimiye Parkı"
-    },
-    {
-      "lat": 41.0175927,
-      "lon": 29.0158699,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9798894,
-      "lon": 29.0381372,
-      "name": "Kalamış Parkı"
-    },
-    {
-      "lat": 40.9695088,
-      "lon": 29.0579647,
-      "name": "Göztepe 60. Yıl Parkı"
-    },
-    {
-      "lat": 40.980198,
-      "lon": 29.0280827,
-      "name": "Moda Sahil Parkı"
-    },
-    {
-      "lat": 40.9852942,
-      "lon": 29.0337078,
-      "name": "Yoğurtçu Parkı"
-    },
-    {
-      "lat": 40.9735872,
-      "lon": 29.0512878,
-      "name": "Çamlık Parkı"
-    },
-    {
-      "lat": 41.0163687,
-      "lon": 29.0805999,
-      "name": "Dostluk Parkı"
-    },
-    {
-      "lat": 41.0163493,
-      "lon": 29.08401,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0158012,
-      "lon": 29.0840899,
-      "name": "Altınköy Parkı"
-    },
-    {
-      "lat": 40.9829029,
-      "lon": 29.0980185,
-      "name": "Park"
-    },
-    {
-      "lat": 40.97928,
-      "lon": 29.0564448,
-      "name": "Selamiçeşme Özgürlük Parkı"
-    },
-    {
-      "lat": 40.9805686,
-      "lon": 29.11166,
-      "name": "3 Mayıs Çocuk Parkı"
-    },
-    {
-      "lat": 40.993938,
-      "lon": 29.1090113,
-      "name": "Cumhuriyet Parkı"
-    },
-    {
-      "lat": 41.0202105,
-      "lon": 29.0423492,
-      "name": "Aydın Demir Park"
-    },
-    {
-      "lat": 41.0195026,
-      "lon": 29.0448419,
-      "name": "Barış Manço Parkı"
-    },
-    {
-      "lat": 40.9765574,
-      "lon": 29.0937067,
-      "name": "Prof. Dr. Kriton Curi Parkı"
-    },
-    {
-      "lat": 40.9717084,
-      "lon": 29.0903906,
-      "name": "Zübeyde Hanım Parkı"
-    },
-    {
-      "lat": 40.9664715,
-      "lon": 29.0988605,
-      "name": "Barış Manço Parkı"
-    },
-    {
-      "lat": 40.9871267,
-      "lon": 29.1021183,
-      "name": "Bülent Ecevit Parkı"
-    },
-    {
-      "lat": 40.9706676,
-      "lon": 29.115138,
-      "name": "içerenköy parkı"
-    },
-    {
-      "lat": 40.9719622,
-      "lon": 29.1180489,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9766039,
-      "lon": 29.1189256,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9707694,
-      "lon": 29.1129262,
-      "name": "Dut Ağacı Parkı"
-    },
-    {
-      "lat": 40.9776986,
-      "lon": 29.1181792,
-      "name": "Meskenler Parkı"
-    },
-    {
-      "lat": 40.9662096,
-      "lon": 29.0553347,
-      "name": "Dalyan Parkı"
-    },
-    {
-      "lat": 40.9678065,
-      "lon": 29.0345506,
-      "name": "Fenerbahçe Parkı"
-    },
-    {
-      "lat": 40.9548526,
-      "lon": 29.0876091,
-      "name": "Park"
-    },
-    {
-      "lat": 40.955045,
-      "lon": 29.0855581,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9632614,
-      "lon": 29.0657086,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9616868,
-      "lon": 29.0691926,
-      "name": "Park"
-    },
-    {
-      "lat": 40.958324,
-      "lon": 29.0733369,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9554263,
-      "lon": 29.0797273,
-      "name": "Caddebostan Sahil Parkı"
-    },
-    {
-      "lat": 40.9535335,
-      "lon": 29.089108,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9873235,
-      "lon": 29.0339204,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9694891,
-      "lon": 29.03475,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9694717,
-      "lon": 29.0355736,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9701441,
-      "lon": 29.0375718,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9683883,
-      "lon": 29.0559051,
-      "name": "Gül Bahçesi"
-    },
-    {
-      "lat": 40.9807094,
-      "lon": 29.0371629,
-      "name": "Kadıköy Belediyesi Gençlik Merkezi"
-    },
-    {
-      "lat": 40.9528077,
-      "lon": 29.0915529,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9528037,
-      "lon": 29.0938542,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9573057,
-      "lon": 29.0772544,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9578961,
-      "lon": 29.0759432,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9552896,
-      "lon": 29.0844006,
-      "name": "Park"
-    },
-    {
-      "lat": 40.954575,
-      "lon": 29.0881654,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9493298,
-      "lon": 29.1002408,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9528931,
-      "lon": 29.0932466,
-      "name": "Park"
-    },
-    {
-      "lat": 40.952749,
-      "lon": 29.0953042,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9792019,
-      "lon": 29.080022,
-      "name": "Millî Hakimiyet Parkı"
-    },
-    {
-      "lat": 41.0073619,
-      "lon": 29.017924,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0054321,
-      "lon": 29.0168083,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0062564,
-      "lon": 29.02197,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0067804,
-      "lon": 29.0203311,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0066378,
-      "lon": 29.0229697,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0050689,
-      "lon": 29.0145012,
-      "name": "Gümrük Parkı"
-    },
-    {
-      "lat": 41.0079863,
-      "lon": 29.0131943,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0060887,
-      "lon": 29.0349695,
-      "name": "Manolya Parkı"
-    },
-    {
-      "lat": 40.9969729,
-      "lon": 29.1152948,
-      "name": "Ertruğrul Adası"
-    },
-    {
-      "lat": 40.9967943,
-      "lon": 29.118206,
-      "name": "Merkez Adası"
-    },
-    {
-      "lat": 40.9963691,
-      "lon": 29.1207139,
-      "name": "Mesire Adası"
-    },
-    {
-      "lat": 40.9978893,
-      "lon": 29.1168702,
-      "name": "Park"
-    },
-    {
-      "lat": 40.997235,
-      "lon": 29.1133914,
-      "name": "İstanbul Adası"
-    },
-    {
-      "lat": 40.967584,
-      "lon": 29.112954,
-      "name": "Huzur Hoca Parkı"
-    },
-    {
-      "lat": 40.9682184,
-      "lon": 29.1174263,
-      "name": "Pir Sultan Parkı"
-    },
-    {
-      "lat": 40.963805,
-      "lon": 29.1155031,
-      "name": "Çınar Parkı"
-    },
-    {
-      "lat": 41.0095328,
-      "lon": 29.0436821,
-      "name": "Atıfbey Parkı"
-    },
-    {
-      "lat": 41.0099376,
-      "lon": 29.0492586,
-      "name": "Erdem Parkı"
-    },
-    {
-      "lat": 41.0087756,
-      "lon": 29.0400075,
-      "name": "Koşuyolu Parkı"
-    },
-    {
-      "lat": 41.0128938,
-      "lon": 29.0519042,
-      "name": "Menekşe Parkı"
-    },
-    {
-      "lat": 40.9705736,
-      "lon": 29.0843151,
-      "name": "Park"
-    },
-    {
-      "lat": 40.999876,
-      "lon": 29.0946203,
-      "name": "Deniz Gezmiş Parkı"
-    },
-    {
-      "lat": 41.0126474,
-      "lon": 29.0682438,
-      "name": "Hüdayi Parkı"
-    },
-    {
-      "lat": 40.9929242,
-      "lon": 29.0860182,
-      "name": "Kutlubahçe Parkı"
-    },
-    {
-      "lat": 40.9961676,
-      "lon": 29.0852703,
-      "name": "İsmet inönü Parkı"
-    },
-    {
-      "lat": 40.9918763,
-      "lon": 29.0793181,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9926458,
-      "lon": 29.0839461,
-      "name": "Örnek Parkı"
-    },
-    {
-      "lat": 40.99195,
-      "lon": 29.086926,
-      "name": "Park"
-    },
-    {
-      "lat": 40.998012,
-      "lon": 29.1019084,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9988077,
-      "lon": 29.1030418,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9997339,
-      "lon": 29.1043973,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0026798,
-      "lon": 29.095852,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9846703,
-      "lon": 29.083379,
-      "name": "23 Nisan Parkı"
-    },
-    {
-      "lat": 40.9764773,
-      "lon": 29.0918064,
-      "name": "Hürriyet Parkı"
-    },
-    {
-      "lat": 40.9784743,
-      "lon": 29.0904468,
-      "name": "Ekin Parkı"
-    },
-    {
-      "lat": 40.9760646,
-      "lon": 29.0970058,
-      "name": "Sarı Kanarya Parkı"
-    },
-    {
-      "lat": 41.0163164,
-      "lon": 29.0499041,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0146751,
-      "lon": 29.0497029,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0172753,
-      "lon": 29.0523799,
-      "name": "Şehitler Parkı"
-    },
-    {
-      "lat": 41.018399,
-      "lon": 29.0485697,
-      "name": "Park"
-    },
-    {
-      "lat": 41.015703,
-      "lon": 29.0248727,
-      "name": "Zeynep Kamil Parkı"
-    },
-    {
-      "lat": 41.0099972,
-      "lon": 29.0640743,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0185874,
-      "lon": 29.1162249,
-      "name": "Çakmak Parkı"
-    },
-    {
-      "lat": 41.0111975,
-      "lon": 29.0917079,
-      "name": "Lokman Hekim Parkı - Bilgi Evleri"
-    },
-    {
-      "lat": 41.0001623,
-      "lon": 29.0860371,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9975683,
-      "lon": 29.0869375,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9974981,
-      "lon": 29.0889559,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9565479,
-      "lon": 29.0794146,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9567616,
-      "lon": 29.0785261,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9555625,
-      "lon": 29.0810366,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9550994,
-      "lon": 29.0821011,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9556384,
-      "lon": 29.0865042,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9555229,
-      "lon": 29.0878225,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9541809,
-      "lon": 29.0898503,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9529817,
-      "lon": 29.0904787,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9977877,
-      "lon": 29.0651941,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0048402,
-      "lon": 29.0832777,
-      "name": "Esatpaşa Parkı"
-    },
-    {
-      "lat": 41.0052491,
-      "lon": 29.0885028,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9989438,
-      "lon": 29.0363039,
-      "name": "Acıbadem Parkı"
-    },
-    {
-      "lat": 40.9777523,
-      "lon": 29.0571808,
-      "name": "Çetin Emeç ve Demokrasi Parkı"
-    },
-    {
-      "lat": 40.9515188,
-      "lon": 29.1011003,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9875198,
-      "lon": 29.1204947,
-      "name": "Erguvan Barış Parkı"
-    },
-    {
-      "lat": 40.9783011,
-      "lon": 29.1164689,
-      "name": "Türk-İş Parkı"
-    },
-    {
-      "lat": 40.9850533,
-      "lon": 29.0846456,
-      "name": "Doga Park"
-    },
-    {
-      "lat": 40.9714392,
-      "lon": 29.0924106,
-      "name": "Ahmet Taner Kışlalı Parkı"
-    },
-    {
-      "lat": 40.9802368,
-      "lon": 29.0617267,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9891157,
-      "lon": 29.0768738,
-      "name": "Eylül Parkı"
-    },
-    {
-      "lat": 40.9904171,
-      "lon": 29.1143315,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9845105,
-      "lon": 29.0272907,
-      "name": "Mehmet Ayvalıtaş Parkı"
-    },
-    {
-      "lat": 40.9685458,
-      "lon": 29.0400337,
-      "name": "Park"
-    },
-    {
-      "lat": 40.995968,
-      "lon": 29.0280181,
-      "name": "Ali İsmail Korkmaz Parkı"
-    },
-    {
-      "lat": 41.0113051,
-      "lon": 29.1189993,
-      "name": "Park"
-    },
-    {
-      "lat": 41.012337,
-      "lon": 29.098425,
-      "name": "Hacı Arif Şimşek Parkı"
-    },
-    {
-      "lat": 41.0168539,
-      "lon": 29.1022814,
-      "name": "Muhtar Seyfi Semiz Parkı"
-    },
-    {
-      "lat": 41.0179788,
-      "lon": 29.120488,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0142368,
-      "lon": 29.1168718,
-      "name": "Park"
-    },
-    {
-      "lat": 40.995021,
-      "lon": 29.1167145,
-      "name": "Meşe Adası"
-    },
-    {
-      "lat": 40.9962998,
-      "lon": 29.0952708,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0086815,
-      "lon": 29.0316808,
-      "name": "Bahar Parkı"
-    },
-    {
-      "lat": 40.9806947,
-      "lon": 29.0855826,
-      "name": "Dostluk Parkı"
-    },
-    {
-      "lat": 40.9810593,
-      "lon": 29.1091299,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9850924,
-      "lon": 29.0742057,
-      "name": "Sahrayıcedit Park"
-    },
-    {
-      "lat": 40.9996561,
-      "lon": 29.0460069,
-      "name": "Muhterem Evcil Parkı"
-    },
-    {
-      "lat": 40.9849196,
-      "lon": 29.0600793,
-      "name": "Çınar Parkı"
-    },
-    {
-      "lat": 40.9873953,
-      "lon": 29.0791312,
-      "name": "Sahrayıcedit Korusu"
-    },
-    {
-      "lat": 40.9885903,
-      "lon": 29.0786093,
-      "name": "Dostlar Parkı"
-    },
-    {
-      "lat": 40.9783877,
-      "lon": 29.0826347,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9785406,
-      "lon": 29.0767095,
-      "name": "Kardelen Çocuk Parkı"
-    },
-    {
-      "lat": 41.0077017,
-      "lon": 29.0353121,
-      "name": "koşuyolu parkı"
-    },
-    {
-      "lat": 40.9828883,
-      "lon": 29.0458327,
-      "name": "26 Mart Parkı"
-    },
-    {
-      "lat": 40.9861181,
-      "lon": 29.0881363,
-      "name": "Defne Parkı"
-    },
-    {
-      "lat": 40.9852343,
-      "lon": 29.0876633,
-      "name": "Erguvan Parkı"
-    },
-    {
-      "lat": 41.0110154,
-      "lon": 29.0964655,
-      "name": "Yüksel Parkı"
-    },
-    {
-      "lat": 40.9799859,
-      "lon": 29.071083,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9797203,
-      "lon": 29.0709011,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9752206,
-      "lon": 29.0428598,
-      "name": "Behiçe Yazgan Parkı"
-    },
-    {
-      "lat": 40.992195,
-      "lon": 29.1021479,
-      "name": "Zeytinlik Cafe"
-    },
-    {
-      "lat": 40.9526079,
-      "lon": 29.104363,
-      "name": "Sude Lal Ünlü Parkı"
-    },
-    {
-      "lat": 40.9838233,
-      "lon": 29.0845407,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9764337,
-      "lon": 29.0840604,
-      "name": "Kuşluk Parkı"
-    },
-    {
-      "lat": 40.976751,
-      "lon": 29.0846261,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9761822,
-      "lon": 29.0853685,
-      "name": "19 Mayıs Parkı"
-    },
-    {
-      "lat": 40.9915723,
-      "lon": 29.1177822,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0197113,
-      "lon": 29.1129459,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0185013,
-      "lon": 29.0942719,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0185939,
-      "lon": 29.0950055,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0182773,
-      "lon": 29.0950681,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0179986,
-      "lon": 29.0952243,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9786976,
-      "lon": 29.0795222,
-      "name": "Sahrayıcedit Minik Park"
-    },
-    {
-      "lat": 40.9808441,
-      "lon": 29.0219802,
-      "name": "Moda Sahil Park"
-    },
-    {
-      "lat": 40.9897791,
-      "lon": 29.0791867,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9526937,
-      "lon": 29.110088,
-      "name": "Çocuk Parkı"
-    },
-    {
-      "lat": 40.9527558,
-      "lon": 29.1101972,
-      "name": "çocuk parkı"
-    },
-    {
-      "lat": 40.9871785,
-      "lon": 29.0850607,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9883083,
-      "lon": 29.0612208,
-      "name": "Dumlupınar Parkı"
-    },
-    {
-      "lat": 40.9894319,
-      "lon": 29.0620457,
-      "name": "Dumlupınar Parkı"
-    },
-    {
-      "lat": 40.9896559,
-      "lon": 29.0679923,
-      "name": "Çamlık Parkı"
-    },
-    {
-      "lat": 40.9836275,
-      "lon": 29.088455,
-      "name": "Halk Sokak Parkı"
-    },
-    {
-      "lat": 40.9841627,
-      "lon": 29.0870996,
-      "name": "Arapgirli Parkı"
-    },
-    {
-      "lat": 40.9830841,
-      "lon": 29.0890687,
-      "name": "Park"
-    },
-    {
-      "lat": 41.007093,
-      "lon": 29.0741626,
-      "name": "Libadiye Parkı"
-    },
-    {
-      "lat": 40.9955594,
-      "lon": 29.111833,
-      "name": "Mimar Sinan Parkı"
-    },
-    {
-      "lat": 41.0179726,
-      "lon": 29.1019398,
-      "name": "Çimen Parkı"
-    },
-    {
-      "lat": 40.9870785,
-      "lon": 29.0843434,
-      "name": "Park"
-    },
-    {
-      "lat": 41.019636,
-      "lon": 29.0327583,
-      "name": "Fıstık Bayır Parkı"
-    },
-    {
-      "lat": 40.9833655,
-      "lon": 29.09671,
-      "name": "Park"
-    },
-    {
-      "lat": 41.010131,
-      "lon": 29.1049587,
-      "name": "Atakent Parkı"
-    },
-    {
-      "lat": 40.9752709,
-      "lon": 29.096991,
-      "name": "Afet Eğitim ve Bilinçlendirme Parkı"
-    },
-    {
-      "lat": 40.9734076,
-      "lon": 29.0979711,
-      "name": "Ilgın Parkı"
-    },
-    {
-      "lat": 40.9739332,
-      "lon": 29.0923036,
-      "name": "Dilara Parkı"
-    },
-    {
-      "lat": 41.0154869,
-      "lon": 29.0852737,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9805509,
-      "lon": 29.0777938,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9974921,
-      "lon": 29.123274,
-      "name": "Anadolu Adası"
-    },
-    {
-      "lat": 41.0188026,
-      "lon": 29.0355914,
-      "name": "Huzur Parkı"
-    },
-    {
-      "lat": 41.0170911,
-      "lon": 29.0358052,
-      "name": "Hacı Emin Parkı"
-    },
-    {
-      "lat": 40.9619058,
-      "lon": 29.1044873,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0032243,
-      "lon": 29.0300071,
-      "name": "Öğretmenler Parkı"
-    },
-    {
-      "lat": 41.0098262,
-      "lon": 29.0321141,
-      "name": "Karayolları Parkı"
-    },
-    {
-      "lat": 41.0098768,
-      "lon": 29.03273,
-      "name": "Gökyüzü Parkı"
-    },
-    {
-      "lat": 41.0105789,
-      "lon": 29.0177644,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0088372,
-      "lon": 29.0175264,
-      "name": "Park"
-    },
-    {
-      "lat": 41.017713,
-      "lon": 29.013818,
-      "name": "Öğretmenler Parkı"
-    },
-    {
-      "lat": 40.9846117,
-      "lon": 29.0485435,
-      "name": "Feneryolu Park"
-    },
-    {
-      "lat": 40.9586469,
-      "lon": 29.1058905,
-      "name": "Menekşe Sokağı Parkı"
-    },
-    {
-      "lat": 41.0146209,
-      "lon": 29.0764904,
-      "name": "Mimoza Parkı"
-    },
-    {
-      "lat": 41.0166763,
-      "lon": 29.0738207,
-      "name": "Nezih Uzel Parkı"
-    },
-    {
-      "lat": 41.016273,
-      "lon": 29.0761952,
-      "name": "Bulgurlu Parkı"
-    },
-    {
-      "lat": 41.016608,
-      "lon": 29.0771882,
-      "name": "Saransk Parkı"
-    },
-    {
-      "lat": 41.0099231,
-      "lon": 29.1000103,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0032857,
-      "lon": 29.0548743,
-      "name": "Akasya Koru Evleri Parkı"
-    },
-    {
-      "lat": 41.0042108,
-      "lon": 29.0468532,
-      "name": "Hukukçular Sitesi Parkı"
-    },
-    {
-      "lat": 41.0130261,
-      "lon": 29.034557,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0145076,
-      "lon": 29.0317588,
-      "name": "Barbaros Parkı"
-    },
-    {
-      "lat": 41.0148341,
-      "lon": 29.0356241,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9870208,
-      "lon": 29.0224453,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0183354,
-      "lon": 29.0166512,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0166955,
-      "lon": 29.0189411,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0183138,
-      "lon": 29.0291723,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9986587,
-      "lon": 29.0858404,
-      "name": "Aşık Veysel Parkı"
-    },
-    {
-      "lat": 40.9949055,
-      "lon": 29.1034982,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9946306,
-      "lon": 29.1056296,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0013213,
-      "lon": 29.0758647,
-      "name": "Açelya Park"
-    },
-    {
-      "lat": 41.0019013,
-      "lon": 29.0737999,
-      "name": "Buhara Parkı"
-    },
-    {
-      "lat": 41.0039034,
-      "lon": 29.0729306,
-      "name": "Fetih Parkı"
-    },
-    {
-      "lat": 40.9890824,
-      "lon": 29.0886521,
-      "name": "Park"
-    },
-    {
-      "lat": 40.990662,
-      "lon": 29.1059899,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9869176,
-      "lon": 29.0192773,
-      "name": "Moda İnceburun Parkı"
-    },
-    {
-      "lat": 40.9904224,
-      "lon": 29.1172767,
-      "name": "8 Mart Kadın Eli Parkı"
-    },
-    {
-      "lat": 40.9904406,
-      "lon": 29.1193621,
-      "name": "8 Mart Kadın Eli Parkı"
-    },
-    {
-      "lat": 41.0071653,
-      "lon": 29.1188782,
-      "name": "Şelale Parkı"
-    },
-    {
-      "lat": 41.0095586,
-      "lon": 29.1089585,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0109331,
-      "lon": 29.1096306,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0162638,
-      "lon": 29.1100495,
-      "name": "Akdeniz Parkı"
-    },
-    {
-      "lat": 41.0172841,
-      "lon": 29.1091466,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0158492,
-      "lon": 29.1073923,
-      "name": "Özkonak Parkı"
-    },
-    {
-      "lat": 41.0147044,
-      "lon": 29.1078397,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0146931,
-      "lon": 29.1065326,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0192598,
-      "lon": 29.107028,
-      "name": "Misak-i Milli Parkı"
-    },
-    {
-      "lat": 41.0125157,
-      "lon": 29.1052366,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0198903,
-      "lon": 29.0991784,
-      "name": "Necati Çelik Parkı"
-    },
-    {
-      "lat": 41.0120051,
-      "lon": 29.102451,
-      "name": "Akşemsettin Parkı"
-    },
-    {
-      "lat": 41.0182284,
-      "lon": 29.1063651,
-      "name": "Kalfatoğlu Parkı"
-    },
-    {
-      "lat": 41.0178953,
-      "lon": 29.1117865,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0145078,
-      "lon": 29.1085019,
-      "name": "Park"
-    },
-    {
-      "lat": 41.013287,
-      "lon": 29.0993983,
-      "name": "Hacı Arif Şimşek Parkı"
-    },
-    {
-      "lat": 41.014477,
-      "lon": 29.0882164,
-      "name": "Ertuvam Parkı"
-    },
-    {
-      "lat": 41.0134727,
-      "lon": 29.0890453,
-      "name": "Safiye Akçasoy Parkı"
-    },
-    {
-      "lat": 41.012775,
-      "lon": 29.0877517,
-      "name": "Süleyman Kule Parkı"
-    },
-    {
-      "lat": 41.0133546,
-      "lon": 29.0875579,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0165876,
-      "lon": 29.0818808,
-      "name": "Zambak Parkı"
-    },
-    {
-      "lat": 41.0146057,
-      "lon": 29.080533,
-      "name": "Karlıdere Parkı"
-    },
-    {
-      "lat": 41.0117901,
-      "lon": 29.0808551,
-      "name": "Adem Yavuz Parkı"
-    },
-    {
-      "lat": 41.0090782,
-      "lon": 29.0792068,
-      "name": "Şehit Recep Büyük Parkı"
-    },
-    {
-      "lat": 41.0190228,
-      "lon": 29.090809,
-      "name": "Hacivat Parkı"
-    },
-    {
-      "lat": 40.9998755,
-      "lon": 29.03345,
-      "name": "Sokullu Parkı"
-    },
-    {
-      "lat": 40.9825691,
-      "lon": 29.0868837,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9721113,
-      "lon": 29.0659321,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9725919,
-      "lon": 29.0652731,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9727824,
-      "lon": 29.065779,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0006097,
-      "lon": 29.1201625,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9858983,
-      "lon": 29.1156093,
-      "name": "Ataşehir Belediyesi Nergis Parkı"
-    },
-    {
-      "lat": 40.9864907,
-      "lon": 29.1197637,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9867419,
-      "lon": 29.1184587,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9874588,
-      "lon": 29.1156432,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9919652,
-      "lon": 29.1167487,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0119566,
-      "lon": 29.0801821,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9828451,
-      "lon": 29.1141911,
-      "name": "Rotary Parkı"
-    },
-    {
-      "lat": 40.9899252,
-      "lon": 29.0432425,
-      "name": "Kemal Sunal Parkı"
-    },
-    {
-      "lat": 40.9643874,
-      "lon": 29.0948894,
-      "name": "Füruzan Toprak Parkı"
-    },
-    {
-      "lat": 41.0014925,
-      "lon": 29.0400692,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9986335,
-      "lon": 29.03733,
-      "name": "Mehtap Bülbül Parkı"
-    },
-    {
-      "lat": 41.0013022,
-      "lon": 29.0339539,
-      "name": "Şehir Er Cemal Tüfekçioğlu Parkı"
-    },
-    {
-      "lat": 41.0061718,
-      "lon": 29.0486577,
-      "name": "Şehit Mete Sertbaş"
-    },
-    {
-      "lat": 41.0072024,
-      "lon": 29.023383,
-      "name": "Park"
-    },
-    {
-      "lat": 41.007469,
-      "lon": 29.0385542,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9917064,
-      "lon": 29.0396056,
-      "name": "Park"
-    },
-    {
-      "lat": 40.998205,
-      "lon": 29.0485377,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9975726,
-      "lon": 29.0496289,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0053738,
-      "lon": 29.0540913,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0101692,
-      "lon": 29.0700031,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0090131,
-      "lon": 29.0435163,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0091662,
-      "lon": 29.0426064,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0119035,
-      "lon": 29.0451846,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9891141,
-      "lon": 29.0385091,
-      "name": "23 nisan çocuk parkı"
-    },
-    {
-      "lat": 40.9571759,
-      "lon": 29.1128,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0152954,
-      "lon": 29.0406999,
-      "name": "Sevgi Parkı"
-    },
-    {
-      "lat": 40.9680928,
-      "lon": 29.0443774,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9696793,
-      "lon": 29.0448691,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9810224,
-      "lon": 29.061173,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0173466,
-      "lon": 29.0940405,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0193234,
-      "lon": 29.0928616,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0053449,
-      "lon": 29.0742469,
-      "name": "Yazgülü Parkı"
-    },
-    {
-      "lat": 41.0210097,
-      "lon": 29.0075721,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0085924,
-      "lon": 29.0127094,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0083353,
-      "lon": 29.033259,
-      "name": "Şeker Parkı"
-    },
-    {
-      "lat": 41.0086172,
-      "lon": 29.1157385,
-      "name": "Palmiye Evleri Parkı"
-    },
-    {
-      "lat": 41.0076393,
-      "lon": 29.1155082,
-      "name": "Çocuk Parkı"
-    },
-    {
-      "lat": 41.0195514,
-      "lon": 29.1196051,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9823755,
-      "lon": 29.1182377,
-      "name": "Ataşehir Belediyesi Sardunya Parkı"
-    },
-    {
-      "lat": 41.0119853,
-      "lon": 29.0371785,
-      "name": "Mimoza Parkı"
-    },
-    {
-      "lat": 41.0107593,
-      "lon": 29.034968,
-      "name": "Park"
-    },
-    {
-      "lat": 40.989926,
-      "lon": 29.0297319,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9738902,
-      "lon": 29.106397,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9753505,
-      "lon": 29.1105066,
-      "name": "Şekerevler Parkı"
-    },
-    {
-      "lat": 40.9763341,
-      "lon": 29.1080799,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9912227,
-      "lon": 29.0422766,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9785861,
-      "lon": 29.1188669,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0014032,
-      "lon": 29.0689752,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9842264,
-      "lon": 29.0635629,
-      "name": "Leylak Parkı"
-    },
-    {
-      "lat": 40.9748922,
-      "lon": 29.0433864,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9934618,
-      "lon": 29.0434458,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9947799,
-      "lon": 29.0420603,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9929532,
-      "lon": 29.117929,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9930705,
-      "lon": 29.1206719,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9740562,
-      "lon": 29.0592464,
-      "name": "Özgecan Aslan Parkı"
-    },
-    {
-      "lat": 40.9798362,
-      "lon": 29.1094516,
-      "name": "Ataşehir Belediyesi Osmanağa Parkı"
-    },
-    {
-      "lat": 40.9607278,
-      "lon": 29.0840119,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0000146,
-      "lon": 29.0487786,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9832156,
-      "lon": 29.0259381,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0071961,
-      "lon": 29.0961777,
-      "name": "Emre İncemollaoğlu Parkı"
-    },
-    {
-      "lat": 40.9785428,
-      "lon": 29.0867093,
-      "name": "Akasya Parkı"
-    },
-    {
-      "lat": 40.979586,
-      "lon": 29.0870364,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0179648,
-      "lon": 29.1075744,
-      "name": "Arif Nihat Asya Parkı"
-    },
-    {
-      "lat": 41.0125134,
-      "lon": 29.1033994,
-      "name": "Duru Parkı"
-    },
-    {
-      "lat": 41.0102937,
-      "lon": 29.1029164,
-      "name": "Alparslan Parkı"
-    },
-    {
-      "lat": 41.0140575,
-      "lon": 29.1045096,
-      "name": "Çalıkuşu Parkı"
-    },
-    {
-      "lat": 41.0155259,
-      "lon": 29.0999852,
-      "name": "Ali Vercetti Parkı"
-    },
-    {
-      "lat": 40.9856146,
-      "lon": 29.0487067,
-      "name": "Park"
-    },
-    {
-      "lat": 40.969563,
-      "lon": 29.1117243,
-      "name": "Çeşme Parkı"
-    },
-    {
-      "lat": 40.9875543,
-      "lon": 29.0436673,
-      "name": "Sanat Parkı"
-    },
-    {
-      "lat": 40.9546876,
-      "lon": 29.1202603,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0052175,
-      "lon": 29.0758298,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0039546,
-      "lon": 29.0789067,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9745539,
-      "lon": 29.0987119,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9911378,
-      "lon": 29.0542009,
-      "name": "Şehit Jandarma Er Çağlar Mengü Parkı"
-    },
-    {
-      "lat": 41.0200583,
-      "lon": 29.1028721,
-      "name": "Aşık Veysel Parkı"
-    },
-    {
-      "lat": 40.9969569,
-      "lon": 29.079572,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9984163,
-      "lon": 29.077093,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0177689,
-      "lon": 29.0250853,
-      "name": "Kasımağa Parkı"
-    },
-    {
-      "lat": 41.0162382,
-      "lon": 29.0263033,
-      "name": "Cahit Zarifoğlu Parkı"
-    },
-    {
-      "lat": 41.0166524,
-      "lon": 29.0249129,
-      "name": "Divitçiler Parkı"
-    },
-    {
-      "lat": 40.9605629,
-      "lon": 29.0978744,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9669571,
-      "lon": 29.0431641,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0081436,
-      "lon": 29.1164403,
-      "name": "Adacık"
-    },
-    {
-      "lat": 40.9779499,
-      "lon": 29.0520276,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9809587,
-      "lon": 29.021295,
-      "name": "Moda Parkı"
-    },
-    {
-      "lat": 41.0186896,
-      "lon": 29.0199868,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9989998,
-      "lon": 29.0649369,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9992269,
-      "lon": 29.063022,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0126827,
-      "lon": 29.099346,
-      "name": "Kasımpatı Parkı"
-    },
-    {
-      "lat": 41.0114138,
-      "lon": 29.0974731,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9526016,
-      "lon": 29.0959154,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9517003,
-      "lon": 29.0959282,
-      "name": "Çamaşırcıdere Yaşam Vadisi"
-    },
-    {
-      "lat": 40.9674379,
-      "lon": 29.1002067,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9786804,
-      "lon": 29.1117012,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9499167,
-      "lon": 29.0981796,
-      "name": "Çamaşırcıdere Yaşam Vadisi"
-    },
-    {
-      "lat": 41.0018412,
-      "lon": 29.085806,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0061726,
-      "lon": 29.0852378,
-      "name": "Çeşmeli Parkı"
-    },
-    {
-      "lat": 41.0075504,
-      "lon": 29.0383005,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0100296,
-      "lon": 29.0405909,
-      "name": "Saklı Bahçe Parkı"
-    },
-    {
-      "lat": 41.0170282,
-      "lon": 29.0851969,
-      "name": "Piri Reis Park"
-    },
-    {
-      "lat": 41.0192893,
-      "lon": 29.0710626,
-      "name": "Gaziler Parkı"
-    },
-    {
-      "lat": 41.019041,
-      "lon": 29.0728444,
-      "name": "Çamlık Parkı"
-    },
-    {
-      "lat": 41.0102587,
-      "lon": 29.0781906,
-      "name": "Dutdibi parkı"
-    },
-    {
-      "lat": 40.9772119,
-      "lon": 29.1170202,
-      "name": "Meskenler Parkı"
-    },
-    {
-      "lat": 40.9928757,
-      "lon": 29.0782242,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0137129,
-      "lon": 29.0235036,
-      "name": "Servili Park"
-    },
-    {
-      "lat": 40.9803906,
-      "lon": 29.0764969,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0197201,
-      "lon": 29.0520151,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9606145,
-      "lon": 29.1039155,
-      "name": "Menekşe Parkı"
-    },
-    {
-      "lat": 40.9548535,
-      "lon": 29.0819997,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0069378,
-      "lon": 29.0380398,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9787926,
-      "lon": 29.1177212,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9787312,
-      "lon": 29.1181098,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9819942,
-      "lon": 29.0324215,
-      "name": "Kurbagalidere Parki"
-    },
-    {
-      "lat": 40.9963551,
-      "lon": 29.0553793,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0113607,
-      "lon": 29.0949127,
-      "name": "Park"
-    },
-    {
-      "lat": 40.9905527,
-      "lon": 29.0457834,
-      "name": "Park"
-    },
-    {
-      "lat": 41.0192028,
-      "lon": 29.0575716,
-      "name": "Park"
     }
   ],
   "kamu": [
