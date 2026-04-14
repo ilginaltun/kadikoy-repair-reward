@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kadıköy Tamir & Ödül v4.1 - Harita Fix</title>
+  <title>Kadıköy Tamir & Ödül v4.2 - Atık Katmanı Gizlendi</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -139,9 +139,9 @@
 
     function Map() {
       const mapRef = useRef(null);
+      // ATIK KATMANI BURADAN KALDIRILDI
       const [layers, setLayers] = useState({
         tamirciler: { active: true, title: 'TAMİRCİLER', sub: 'Terzi / Elektronik', color: 'bg-brandYellow', shape: 'square' },
-        atik: { active: true, title: 'ATIK NOKTALARI', sub: 'Kumbara / E-Atık', color: 'bg-white', shape: 'circle' },
         kamu: { active: true, title: 'KAMU BİNALARI', sub: 'İSMEK / Kütüphane', color: 'bg-brandPink', shape: 'square' },
         buffers: { active: true, title: '400M ETKİ ALANI', sub: 'Yürüme Mesafesi', color: 'bg-brandYellow/30', shape: 'dotted' }
       });
@@ -153,14 +153,14 @@
         const map = window.L.map(mapRef.current).setView([40.988, 29.045], 14);
         window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
         mapInstance.current = map;
-        groupsRef.current = { tamirciler: window.L.layerGroup(), atik: window.L.layerGroup(), kamu: window.L.layerGroup(), buffers: window.L.layerGroup() };
+        // ATIK GRUBU BURADAN KALDIRILDI
+        groupsRef.current = { tamirciler: window.L.layerGroup(), kamu: window.L.layerGroup(), buffers: window.L.layerGroup() };
 
         fetch('./kadikoy_map_data.json')
           .then(res => res.json())
           .then(data => {
             const icon = (bg, shape) => window.L.divIcon({ className: '', html: `<div class="w-7 h-7 border-4 border-black shadow-[4px_4px_0px_#000] ${bg} ${shape === 'circle' ? 'rounded-full' : ''}"></div>`, iconSize: [28, 28] });
 
-            // HARİTA FİXİ: Kategorize edilmiş yeni JSON'u okumak için döngü güncellendi
             if (data.tamirciler) {
               Object.values(data.tamirciler).forEach(kategoriListesi => {
                 if (Array.isArray(kategoriListesi)) {
@@ -174,7 +174,7 @@
               });
             }
             
-            data.atik?.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-white', 'circle') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.atik));
+            // ATIK VERİSİ ÇEKİMİ KALDIRILDI
             data.kamu?.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-brandPink', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.kamu));
             Object.keys(layers).forEach(k => { if (layers[k].active) groupsRef.current[k].addTo(map); });
           })
@@ -206,7 +206,7 @@
     }
 
     function App() {
-      const [view, setView] = useState('merkezler'); // Sayfa açılışta haritayı göstersin
+      const [view, setView] = useState('merkezler'); 
       const [puan, setPuan] = useState(250);
       const [kullanilanlar, setKullanilanlar] = useState([]);
       

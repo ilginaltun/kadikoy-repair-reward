@@ -1,301 +1,76 @@
 {
-  "tamirciler": [
-    {
-      "name": "lastik tamiri (durmuşoğlu otopark)",
-      "lat": 40.980417,
-      "lon": 29.023528
-    },
-    {
-      "name": "tesisat, arıza, aydınlatma, konuşma sistemleri tamir (metin elektrik)",
-      "lat": 40.980222,
-      "lon": 29.023083
-    },
-    {
-      "name": "kalorifer ve sıhhi tesisat",
-      "lat": 40.980139,
-      "lon": 29.022861
-    },
-    {
-      "name": "terzi (roventea)",
-      "lat": 40.982056,
-      "lon": 29.024
-    },
-    {
-      "name": "terzi + ayakkabı, çanta tamiri (moda lostra)",
-      "lat": 40.98175,
-      "lon": 29.024056
-    },
-    {
-      "name": "elektronik tamir (gemici elektrik)",
-      "lat": 40.985,
-      "lon": 29.026583
-    },
-    {
-      "name": "terzi (terzi kemal)",
-      "lat": 40.984583,
-      "lon": 29.025222
-    },
-    {
-      "name": "terzi (terzi yakup)",
-      "lat": 40.9845,
-      "lon": 29.024472
-    },
-    {
-      "name": "döşeme ve mobilya atölyesi (mo de )",
-      "lat": 40.984889,
-      "lon": 29.023056
-    },
-    {
-      "name": "SIR Mobilya Marangoz",
-      "lat": 40.988056,
-      "lon": 29.031889
-    },
-    {
-      "name": "MODA MARANGOZ",
-      "lat": 40.98625,
-      "lon": 29.030444
-    },
-    {
-      "name": "mobilya tamiri koltuk döşeme (emir mobilya)",
-      "lat": 40.985556,
-      "lon": 29.03025
-    },
-    {
-      "name": "kalorifer çatı izolasyon tadilat ve tamir (acar tesisat)",
-      "lat": 40.985167,
-      "lon": 29.030667
-    },
-    {
-      "name": "çerçeve tamir",
-      "lat": 40.985639,
-      "lon": 29.028639
-    },
-    {
-      "name": "mobilya döşeme",
-      "lat": 40.987722,
-      "lon": 29.02625
-    },
-    {
-      "name": "marangoz",
-      "lat": 40.987694,
-      "lon": 29.026556
-    },
-    {
-      "name": "saat ve mobilya tamiri",
-      "lat": 40.989528,
-      "lon": 29.025083
-    },
-    {
-      "name": "mobilya gramofon tamiri",
-      "lat": 40.989278,
-      "lon": 29.026722
-    },
-    {
-      "name": "rüzgar terzi",
-      "lat": 40.98725,
-      "lon": 29.027944
-    },
-    {
-      "name": "kundura",
-      "lat": 40.986306,
-      "lon": 29.030444
-    },
-    {
-      "name": "elektrik tamir tadilat",
-      "lat": 40.98875,
-      "lon": 29.027
-    },
-    {
-      "name": "Develi Lostra",
-      "lat": 40.990083,
-      "lon": 29.026194
-    },
-    {
-      "name": "gözlük ve saat tamiri",
-      "lat": 40.989833,
-      "lon": 29.025028
-    },
-    {
-      "name": "saat tamiri",
-      "lat": 40.985972,
-      "lon": 29.025333
-    },
-    {
-      "name": "tesisat",
-      "lat": 40.985667,
-      "lon": 29.021778
-    },
-    {
-      "name": "saat tamiri",
-      "lat": 40.990556,
-      "lon": 29.022722
-    },
-    {
-      "name": "kalorifer, tesisat, komple tamirat ve tadilat işleri (doğan tesisat)",
-      "lat": 40.987472,
-      "lon": 29.024972
-    },
-    {
-      "name": "mobilya tamiri (evren mobilya)",
-      "lat": 40.988,
-      "lon": 29.023667
-    },
-    {
-      "name": "marangoz",
-      "lat": 40.986583,
-      "lon": 29.022861
-    },
-    {
-      "name": "su arıtma cihazı tamir",
-      "lat": 40.986306,
-      "lon": 29.023667
-    },
-    {
-      "name": "elektrik tamir (genç elektrik)",
-      "lat": 40.986417,
-      "lon": 29.023778
-    },
-    {
-      "name": "ayakkabı, çanta, tamir, boya, terzi",
-      "lat": 40.982,
-      "lon": 29.023222
-    },
-    {
-      "name": "elektronik tamir (uğur elektronik)",
-      "lat": 40.990167,
-      "lon": 29.02475
-    },
-    {
-      "name": "pil, kayış değişimi, saat tamiri (noy saat)",
-      "lat": 40.990056,
-      "lon": 29.024556
-    },
-    {
-      "name": "saat tamiri (kadıköy saat evi)",
-      "lat": 40.990222,
-      "lon": 29.025139
-    },
-    {
-      "name": "mobilya tamiri (kadıköy antikacılar çarşısı)",
-      "lat": 40.989556,
-      "lon": 29.025111
-    },
-    {
-      "name": "saat tamiri (kadıköy antikacılar çarşısı)",
-      "lat": 40.989583,
-      "lon": 29.025111
-    },
-    {
-      "name": "terzi, tadilat, paça düzeltme, fermuar (dry station)",
-      "lat": 40.985361,
-      "lon": 29.029667
-    },
-    {
-      "name": "tesisat (yılmaz su tesisatı) (tamirat, tadilat, dekorasyon)",
-      "lat": 40.985389,
-      "lon": 29.029667
-    },
-    {
-      "name": "gitar yapım ve onarım atölyesi (volkan özdemir)",
-      "lat": 40.987083,
-      "lon": 29.027667
-    },
-    {
-      "name": "terzi (yağmur terzi)",
-      "lat": 40.987111,
-      "lon": 29.027694
-    },
-    {
-      "name": "tesisat (aykar yapı tesisat)",
-      "lat": 40.986472,
-      "lon": 29.027278
-    },
-    {
-      "name": "ceket, cüzdan, çanta, kemer, ayakkabı tamir (adliye çarşısı)",
-      "lat": 40.986778,
-      "lon": 29.028222
-    },
-    {
-      "name": "Elektrikçi",
-      "lat": 40.985778,
-      "lon": 29.025333
-    },
-    {
-      "name": "elektrik tadilat (akar elektrik)",
-      "lat": 40.985,
-      "lon": 29.026694
-    },
-    {
-      "name": "elektronik tamir (televizyon, elektronik, kart tamiri)",
-      "lat": 40.984556,
-      "lon": 29.026306
-    },
-    {
-      "name": "dekorasyon tamiri, emlak tadilat",
-      "lat": 40.985417,
-      "lon": 29.029083
-    },
-    {
-      "name": "su tesisatı tamiri (ışın apt.)",
-      "lat": 40.984444,
-      "lon": 29.030083
-    },
-    {
-      "name": "tekstil tamiri, terziler (hak pasajı)",
-      "lat": 40.988917,
-      "lon": 29.028889
-    },
-    {
-      "name": "elektrik (karaca elektrik)",
-      "lat": 40.986028,
-      "lon": 29.030889
-    },
-    {
-      "name": "su tesisatı tamiri (doğan tesisat)",
-      "lat": 40.986444,
-      "lon": 29.029806
-    },
-    {
-      "name": "çalgı tamir ve yapım atölyesi (kafkas pasajı)",
-      "lat": 40.986917,
-      "lon": 29.028639
-    },
-    {
-      "name": "terzi (jet terzi)",
-      "lat": 40.988583,
-      "lon": 29.02825
-    },
-    {
-      "name": "optik, gözlük tamiri (fırat pasajı)",
-      "lat": 40.990611,
-      "lon": 29.024389
-    },
-    {
-      "name": "saat tamiri (erol saat)",
-      "lat": 40.988528,
-      "lon": 29.0285
-    },
-    {
-      "name": "terzi (terzi hulusi)",
-      "lat": 40.98375,
-      "lon": 29.025639
-    },
-    {
-      "name": "terzi (terzi bayram)",
-      "lat": 40.99,
-      "lon": 29.025639
-    },
-    {
-      "name": "saat tamiri (taşçılar optiğin içi)",
-      "lat": 40.99125,
-      "lon": 29.024639
-    },
-    {
-      "name": "saat ve enstrüman tamiri (kadıköy çarşı)",
-      "lat": 40.990083,
-      "lon": 29.023167
-    }
-  ],
+    "tamirciler": {
+    "Elektronik": [
+      {"name": "elektronik tamir (gemici elektrik)", "lat": 40.985, "lon": 29.026583},
+      {"name": "elektrik tamir tadilat", "lat": 40.98875, "lon": 29.027},
+      {"name": "elektrik tamir (genç elektrik)", "lat": 40.986417, "lon": 29.023778},
+      {"name": "elektronik tamir (uğur elektronik)", "lat": 40.990167, "lon": 29.02475},
+      {"name": "Elektrikçi", "lat": 40.985778, "lon": 29.025333},
+      {"name": "elektrik tadilat (akar elektrik)", "lat": 40.985, "lon": 29.026694},
+      {"name": "elektronik tamir (televizyon, elektronik, kart tamiri)", "lat": 40.984556, "lon": 29.026306},
+      {"name": "elektrik (karaca elektrik)", "lat": 40.986028, "lon": 29.030889}
+    ],
+    "Mobilya": [
+      {"name": "döşeme ve mobilya atölyesi (mo de )", "lat": 40.984889, "lon": 29.023056},
+      {"name": "SIR Mobilya Marangoz", "lat": 40.988056, "lon": 29.031889},
+      {"name": "MODA MARANGOZ", "lat": 40.98625, "lon": 29.030444},
+      {"name": "mobilya tamiri koltuk döşeme (emir mobilya)", "lat": 40.985556, "lon": 29.03025},
+      {"name": "mobilya döşeme", "lat": 40.987722, "lon": 29.02625},
+      {"name": "marangoz", "lat": 40.987694, "lon": 29.026556},
+      {"name": "saat ve mobilya tamiri", "lat": 40.989528, "lon": 29.025083},
+      {"name": "mobilya gramofon tamiri", "lat": 40.989278, "lon": 29.026722},
+      {"name": "mobilya tamiri (evren mobilya)", "lat": 40.988, "lon": 29.023667},
+      {"name": "marangoz", "lat": 40.986583, "lon": 29.022861},
+      {"name": "mobilya tamiri (kadıköy antikacılar çarşısı)", "lat": 40.989556, "lon": 29.025111}
+    ],
+    "Tekstil": [
+      {"name": "terzi (roventea)", "lat": 40.982056, "lon": 29.024},
+      {"name": "terzi (terzi kemal)", "lat": 40.984583, "lon": 29.025222},
+      {"name": "terzi (terzi yakup)", "lat": 40.9845, "lon": 29.024472},
+      {"name": "rüzgar terzi", "lat": 40.98725, "lon": 29.027944},
+      {"name": "terzi, tadilat, paça düzeltme, fermuar (dry station)", "lat": 40.985361, "lon": 29.029667},
+      {"name": "terzi (yağmur terzi)", "lat": 40.987111, "lon": 29.027694},
+      {"name": "tekstil tamiri, terziler (hak pasajı)", "lat": 40.988917, "lon": 29.028889},
+      {"name": "terzi (jet terzi)", "lat": 40.988583, "lon": 29.02825},
+      {"name": "terzi (terzi hulusi)", "lat": 40.98375, "lon": 29.025639},
+      {"name": "terzi (terzi bayram)", "lat": 40.99, "lon": 29.025639}
+    ],
+    "Ayakkabi": [
+      {"name": "terzi + ayakkabı, çanta tamiri (moda lostra)", "lat": 40.98175, "lon": 29.024056},
+      {"name": "kundura", "lat": 40.986306, "lon": 29.030444},
+      {"name": "Develi Lostra", "lat": 40.990083, "lon": 29.026194},
+      {"name": "ayakkabı, çanta, tamir, boya, terzi", "lat": 40.982, "lon": 29.023222},
+      {"name": "ceket, cüzdan, çanta, kemer, ayakkabı tamir (adliye çarşısı)", "lat": 40.986778, "lon": 29.028222}
+    ],
+    "Diger": [
+      {"name": "lastik tamiri (durmuşoğlu otopark)", "lat": 40.980417, "lon": 29.023528},
+      {"name": "tesisat, arıza, aydınlatma, konuşma sistemleri tamir (metin elektrik)", "lat": 40.980222, "lon": 29.023083},
+      {"name": "kalorifer ve sıhhi tesisat", "lat": 40.980139, "lon": 29.022861},
+      {"name": "kalorifer çatı izolasyon tadilat ve tamir (acar tesisat)", "lat": 40.985167, "lon": 29.030667},
+      {"name": "çerçeve tamir", "lat": 40.985639, "lon": 29.028639},
+      {"name": "gözlük ve saat tamiri", "lat": 40.989833, "lon": 29.025028},
+      {"name": "saat tamiri", "lat": 40.985972, "lon": 29.025333},
+      {"name": "tesisat", "lat": 40.985667, "lon": 29.021778},
+      {"name": "saat tamiri", "lat": 40.990556, "lon": 29.022722},
+      {"name": "kalorifer, tesisat, komple tamirat ve tadilat işleri (doğan tesisat)", "lat": 40.987472, "lon": 29.024972},
+      {"name": "su arıtma cihazı tamir", "lat": 40.986306, "lon": 29.023667},
+      {"name": "pil, kayış değişimi, saat tamiri (noy saat)", "lat": 40.990056, "lon": 29.024556},
+      {"name": "saat tamiri (kadıköy saat evi)", "lat": 40.990222, "lon": 29.025139},
+      {"name": "saat tamiri (kadıköy antikacılar çarşısı)", "lat": 40.989583, "lon": 29.025111},
+      {"name": "tesisat (yılmaz su tesisatı)", "lat": 40.985389, "lon": 29.029667},
+      {"name": "gitar yapım ve onarım atölyesi (volkan özdemir)", "lat": 40.987083, "lon": 29.027667},
+      {"name": "tesisat (aykar yapı tesisat)", "lat": 40.986472, "lon": 29.027278},
+      {"name": "dekorasyon tamiri, emlak tadilat", "lat": 40.985417, "lon": 29.029083},
+      {"name": "su tesisatı tamiri (ışın apt.)", "lat": 40.984444, "lon": 29.030083},
+      {"name": "su tesisatı tamiri (doğan tesisat)", "lat": 40.986444, "lon": 29.029806},
+      {"name": "çalgı tamir ve yapım atölyesi (kafkas pasajı)", "lat": 40.986917, "lon": 29.028639},
+      {"name": "optik, gözlük tamiri (fırat pasajı)", "lat": 40.990611, "lon": 29.024389},
+      {"name": "saat tamiri (erol saat)", "lat": 40.988528, "lon": 29.0285},
+      {"name": "saat tamiri (taşçılar optiğin içi)", "lat": 40.99125, "lon": 29.024639},
+      {"name": "saat ve enstrüman tamiri (kadıköy çarşı)", "lat": 40.990083, "lon": 29.023167}
+    ]
+  },
+  
   "kamu": [
     {
       "lat": 40.9999385,
