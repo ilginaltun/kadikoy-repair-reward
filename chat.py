@@ -8,7 +8,7 @@ CORS(app)
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
-# VERİLERİ DOĞRUDAN KODA GÖMDÜK (Vercel dosya bulamama hatasını %100 engeller)
+# VERİLERİ DOĞRUDAN KODA GÖMDÜK
 KADIKOY_TAMIRCILER = {
     "Elektronik": [
       "Gemici Elektrik", "Genç Elektrik", "Uğur Elektronik", 
@@ -55,15 +55,17 @@ def chat():
     
     map_data = get_formatted_data()
 
-    # HALÜSİNASYONU BİTİREN KESİN EMİRLER
-    system_prompt = f"""Sen Kadıköy'deki Kentsel Tamir Ağı'nın yapay zeka asistanısın. Ilgın'a ismiyle hitap et.
+    # HALÜSİNASYONU BİTİREN ASKERİ DÜZEYDE PROMPT
+    system_prompt = f"""Sen Kadıköy Kentsel Tamir Ağı asistanısın. Ilgın'a ismiyle hitap et.
 
-GÖREVLERİN VE KESİN KURALLAR:
-1. Kullanıcının sorununu dinle ve SADECE AŞAĞIDAKİ VERİLER LİSTESİNDEKİ mekanları öner.
-2. DİKKAT: Kendi kafandan "Ali Bey", "Vedat Usta", "Ömer Tamirci" gibi isimler KESİNLİKLE UYDURMA.
-3. Listeden soruya en uygun 2 atölyeyi seç ve enerjik, samimi bir dille yönlendirme yap. "Seni listemizdeki şu atölyelere yönlendirebilirim:" şeklinde konuş.
+ÇOK KRİTİK VE KESİN KURALLAR (BUNLARA UYMAZSAN SİSTEM ÇÖKER):
+1. KESİNLİKLE kendi kafandan bir tamirci ismi uydurma.
+2. SANA VERİLEN AŞAĞIDAKİ LİSTEDE OLMAYAN HİÇBİR İSMİ KULLANMA YASAKTIR.
+3. Kullanıcı "Elektronik" diyorsa, SADECE Elektronik kategorisindeki isimleri kullan (Örn: Uğur Elektronik, Gemici Elektrik). 
+4. "Enderoğlu", "Tamirat Dünyası", "Tekno Tamir", "Ali Bey", "Vedat Usta" gibi isimler YASAKTIR.
+5. Sadece samimi bir şekilde, listedeki GEREKÇELİ 2 mekanı öner. 
 
-GERÇEK KADIKÖY TAMİRCİLERİ (SADECE BUNLARI KULLANACAKSIN):
+İŞTE SENİN TEK BİLGİ KAYNAĞIN (KADIKÖY TAMİRCİLERİ - SADECE BUNLARI KULLAN):
 {map_data}
 """
 
@@ -77,7 +79,7 @@ GERÇEK KADIKÖY TAMİRCİLERİ (SADECE BUNLARI KULLANACAKSIN):
     payload = {
         "model": "llama-3.1-8b-instant",
         "messages": messages,
-        "temperature": 0.1,  # Yaratıcılığı 0.1'e çektik, artık asla uyduramaz sadece veriyi okur
+        "temperature": 0.0,  # YARATICILIK SIFIRLANDI. ARTIK UYDURAMAZ.
         "max_tokens": 400
     }
 
