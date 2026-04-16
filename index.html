@@ -181,8 +181,9 @@
       const highlightRef = useRef(null);
       const [layers, setLayers] = useState({
         tamirciler: { active: true, title: 'TAMİRCİLER', sub: 'Terzi / Elektronik', color: 'bg-brandYellow', shape: 'square' },
+        atik: { active: true, title: 'ATIK NOKTALARI', sub: 'Kumbara / E-Atık', color: 'bg-white', shape: 'circle' },
         kamu: { active: true, title: 'KAMU BİNALARI', sub: 'İSMEK / Kütüphane', color: 'bg-brandPink', shape: 'square' },
-        buffers: { active: false, title: '400M ETKİ ALANI', sub: 'Yürüme Mesafesi', color: 'bg-brandYellow/30', shape: 'dotted' }
+        buffers: { active: true, title: '400M ETKİ ALANI', sub: 'Yürüme Mesafesi', color: 'bg-brandYellow/30', shape: 'dotted' }
       });
       const groupsRef = useRef(null);
       const mapInstance = useRef(null);
@@ -192,7 +193,7 @@
         const map = window.L.map(mapRef.current).setView([40.988, 29.045], 14);
         window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
         mapInstance.current = map;
-        groupsRef.current = { tamirciler: window.L.layerGroup(), kamu: window.L.layerGroup(), buffers: window.L.layerGroup() };L.layerGroup() };
+        groupsRef.current = { tamirciler: window.L.layerGroup(), atik: window.L.layerGroup(), kamu: window.L.layerGroup(), buffers: window.L.layerGroup() };
 
         fetch('./kadikoy_map_data.json').then(res => res.json()).then(data => {
           const icon = (bg, shape) => window.L.divIcon({ className: '', html: `<div class="w-7 h-7 border-4 border-black shadow-[4px_4px_0px_#000] ${bg} ${shape === 'circle' ? 'rounded-full' : ''}"></div>`, iconSize: [28, 28] });
@@ -206,6 +207,7 @@
               });
             });
           }
+          data.atik?.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-white', 'circle') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.atik));
           data.kamu?.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-brandPink', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.kamu));
           Object.keys(layers).forEach(k => { if (layers[k].active) groupsRef.current[k].addTo(map); });
         });
@@ -232,7 +234,7 @@
         // Yanıp sönen marker ekle
         const pulseIcon = window.L.divIcon({
           className: '',
-          html: '<div class="pulse-marker" style="width:32px;height:32px;background:#FF8800;border:4px solid #000;"></div>',
+          html: '<div class="pulse-marker" style="width:32px;height:32px;background:#FF00FF;border:4px solid #000;"></div>',
           iconSize: [32, 32]
         });
         highlightRef.current = window.L.marker([selectedShop.lat, selectedShop.lon], { icon: pulseIcon, zIndexOffset: 1000 })
