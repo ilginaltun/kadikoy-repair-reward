@@ -3,319 +3,239 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kadıköy Tamir & Ödül - Brutalist Edition</title>
+  <title>Kadıköy Tamir & Ödül - Restore Edition</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      /* YENİ RENK PALETİ */
-      --bg-color: #fcf7f5;
+      --background: #fcf7f5;
       --brand-blue: #054ff0;
       --brand-lime: #dcfc75;
       --brand-lavender: #e1d2f3;
       --black: #000000;
       --white: #ffffff;
-      
-      --shadow-brutal: 10px 10px 0px 0px var(--black);
     }
 
     body {
-      background-color: var(--bg-color);
+      background-color: var(--background);
       color: var(--black);
-      font-family: 'Poppins', sans-serif; /* Font güncellendi */
-      
-      /* KARELİ DEFTER (GRID) ARKA PLAN */
-      background-image: 
-        linear-gradient(var(--brand-lavender) 2px, transparent 2px),
-        linear-gradient(90deg, var(--brand-lavender) 2px, transparent 2px);
-      background-size: 40px 40px;
-      background-position: center center;
-      overflow-x: hidden;
+      font-family: 'Poppins', sans-serif;
+      background-image: linear-gradient(var(--brand-lavender) 1px, transparent 1px), linear-gradient(90deg, var(--brand-lavender) 1px, transparent 1px);
+      background-size: 30px 30px;
     }
 
-    /* Sunumdaki gibi ultra kalın brutalist kartlar */
-    .brutal-card { 
-      background: var(--white); 
-      border: 6px solid var(--black); 
-      box-shadow: var(--shadow-brutal); 
-      transition: all 0.15s ease; 
+    .brutal-card { background: var(--white); border: 5px solid var(--black); box-shadow: 10px 10px 0px 0px var(--black); transition: all 0.15s ease; }
+    .brutal-btn { border: 4px solid var(--black); box-shadow: 5px 5px 0px 0px var(--black); transition: all 0.1s ease; font-weight: 900; text-transform: uppercase; }
+    .brutal-btn:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0px 0px var(--black); }
+    
+    /* Harita Yanıp Sönme Animasyonu */
+    @keyframes pulse-highlight {
+      0% { transform: scale(1); filter: brightness(1); }
+      50% { transform: scale(1.5); filter: brightness(1.5); box-shadow: 0 0 20px var(--brand-blue); }
+      100% { transform: scale(1); filter: brightness(1); }
     }
+    .highlight-marker { animation: pulse-highlight 1s ease-in-out infinite; z-index: 1000 !important; }
 
-    .brutal-btn { 
-      border: 5px solid var(--black); 
-      box-shadow: 6px 6px 0px 0px var(--black); 
-      transition: all 0.1s ease; 
-      text-transform: uppercase;
-      font-weight: 900;
-    }
-
-    .brutal-btn:active { 
-      transform: translate(4px, 4px); 
-      box-shadow: 2px 2px 0px 0px var(--black); 
-    }
-
-    .leaflet-container { 
-      border: 6px solid var(--black) !important; 
-      background: var(--bg-color) !important; 
-    }
-
-    .map-checkbox { 
-      appearance: none; 
-      background: var(--white); 
-      width: 2.5rem; 
-      height: 2.5rem; 
-      border: 5px solid var(--black); 
-      display: grid; 
-      place-content: center; 
-      cursor: pointer; 
-    }
-
-    .map-checkbox:checked::before { 
-      content: ""; 
-      width: 1.4rem; 
-      height: 1.4rem; 
-      background: var(--brand-blue); /* İşaret rengi mavi yapıldı */
-      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); 
-    }
-
+    .leaflet-container { border: 5px solid var(--black) !important; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .sticker-drop { filter: drop-shadow(6px 6px 0px rgba(0, 0, 0, 1)); }
   </style>
 
   <script>
-    tailwind.config = { 
-      theme: { 
-        extend: { 
-          colors: { 
-            brandLime: '#dcfc75', 
-            brandBlue: '#054ff0', 
-            brandLavender: '#e1d2f3',
-            brandBg: '#fcf7f5'
-          } 
-        } 
-      } 
-    }
+    tailwind.config = { theme: { extend: { colors: { brandLime: '#dcfc75', brandBlue: '#054ff0', brandLavender: '#e1d2f3' } } } }
   </script>
 </head>
 
-<body class="p-4 md:p-10 relative min-h-screen">
+<body class="p-4 md:p-8 min-h-screen">
   <div id="root"></div>
+
   <script type="module">
     import { h, render } from 'https://esm.sh/preact@10.19.6';
     import { useState, useEffect, useRef } from 'https://esm.sh/preact@10.19.6/hooks';
     import htm from 'https://esm.sh/htm@3.1.1';
     const html = htm.bind(h);
 
-    const IconHome = () => html`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
-    const IconGift = () => html`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>`;
-    const IconMap = () => html`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>`;
-    const IconSearch = () => html`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
-
-    function ChatBot({ isChatOpen, setIsChatOpen, messages, input, setInput, handleSend }) {
-      return html`
-        <div class="fixed bottom-10 right-5 md:right-10 z-[9999]">
-          ${isChatOpen && html`
-            <div class="w-[90vw] md:w-[400px] h-[550px] brutal-card flex flex-col mb-6 overflow-hidden bg-white max-w-sm">
-              <div class="bg-brandBlue text-white p-5 font-black uppercase flex justify-between items-center border-b-[6px] border-black">
-                <span class="text-2xl tracking-widest">TAMİR AI</span>
-                <button onClick=${() => setIsChatOpen(false)} class="text-3xl hover:scale-125 transition-transform leading-none">×</button>
-              </div>
-              <div class="flex-grow p-5 overflow-y-auto space-y-5 bg-[#fcf7f5] hide-scrollbar">
-                ${messages.map(m => html`
-                  <div class="p-4 border-[4px] border-black font-bold text-lg ${m.role === 'bot' ? 'bg-brandLime' : 'bg-white shadow-[4px_4px_0px_#000] ml-6'}">
-                    ${m.text}
-                  </div>
-                `)}
-              </div>
-              <div class="p-4 border-t-[6px] border-black flex gap-3 bg-white">
-                <input value=${input} onInput=${e => setInput(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSend()} class="flex-grow p-3 border-[4px] border-black outline-none font-bold bg-[#fcf7f5]" placeholder="Buraya yaz..." />
-                <button onClick=${handleSend} class="bg-black text-brandLime px-6 border-[4px] border-black font-black text-xl hover:bg-brandBlue hover:text-white transition-colors">SOR</button>
-              </div>
-            </div>
-          `}
-          <button onClick=${() => setIsChatOpen(!isChatOpen)} class="bg-brandBlue text-brandLime w-20 h-20 md:w-24 md:h-24 brutal-card flex items-center justify-center hover:scale-110 transition-transform text-4xl md:text-5xl font-black shadow-[10px_10px_0px_#000] ml-auto rounded-none">
-            ?
-          </button>
-        </div>
-      `;
-    }
-
-    function Map() {
-      const mapRef = useRef(null);
-      const [layers, setLayers] = useState({
-        tamirciler: { active: true, title: 'TAMİRCİLER', sub: 'Terzi / Elektronik', color: 'bg-brandLime', shape: 'square' },
-        kamu: { active: true, title: 'KAMU BİNALARI', sub: 'İSMEK / Kütüphane', color: 'bg-brandLavender', shape: 'square' },
-        buffers: { active: true, title: '400M ETKİ ALANI', sub: 'Yürüme Mesafesi', color: 'bg-brandLime/40', shape: 'dotted' }
-      });
-      const groupsRef = useRef(null);
-      const mapInstance = useRef(null);
-
-      useEffect(() => {
-        if (!mapRef.current || mapInstance.current) return;
-        const map = window.L.map(mapRef.current).setView([40.988, 29.045], 14);
-        window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-        mapInstance.current = map;
-        groupsRef.current = { tamirciler: window.L.layerGroup(), kamu: window.L.layerGroup(), buffers: window.L.layerGroup() };
-
-        fetch('./kadikoy_map_data.json').then(res => res.json()).then(data => {
-          const icon = (bg) => window.L.divIcon({ className: '', html: `<div class="w-8 h-8 border-[4px] border-black shadow-[4px_4px_0px_#000] ${bg}"></div>`, iconSize: [32, 32] });
-          if (data.tamirciler) {
-            Object.values(data.tamirciler).forEach(cat => cat.forEach(m => {
-              window.L.marker([m.lat, m.lon], { icon: icon('bg-brandLime') }).bindPopup(`<b class="font-bold text-lg">${m.name}</b>`).addTo(groupsRef.current.tamirciler);
-              window.L.circle([m.lat, m.lon], { radius: 400, color: '#000', weight: 3, fillColor: '#dcfc75', fillOpacity: 0.15, dashArray: '6, 12' }).addTo(groupsRef.current.buffers);
-            }));
-          }
-          data.kamu?.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-brandLavender') }).bindPopup(`<b class="font-bold text-lg">${m.name}</b>`).addTo(groupsRef.current.kamu));
-          Object.keys(layers).forEach(k => { if (layers[k].active) groupsRef.current[k].addTo(map); });
-        });
-      }, []);
-
-      useEffect(() => {
-        if (!mapInstance.current || !groupsRef.current) return;
-        Object.keys(layers).forEach(k => { if (layers[k].active) mapInstance.current.addLayer(groupsRef.current[k]); else mapInstance.current.removeLayer(groupsRef.current[k]); });
-      }, [layers]);
-
-      return html`
-        <div class="flex flex-col lg:flex-row gap-12 relative z-10">
-          <div class="w-full lg:w-[500px] brutal-card p-8 md:p-12 space-y-12 bg-white/95 backdrop-blur-md">
-            <h3 class="text-5xl md:text-7xl font-black uppercase tracking-tighter border-b-[8px] border-black pb-6 text-brandBlue">KATMANLAR</h3>
-            <div class="space-y-10">
-              ${Object.entries(layers).map(([key, l]) => html`
-                <div class="flex items-start gap-6 cursor-pointer" onClick=${() => setLayers(p => ({ ...p, [key]: { ...l, active: !l.active } }))}>
-                  <div class="map-checkbox mt-1">${l.active && html`<div class="w-5 h-5 bg-brandBlue" style="clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%)"></div>`}</div>
-                  <div class="w-12 h-12 border-[5px] border-black shrink-0 shadow-[4px_4px_0px_#000] ${l.color} ${l.shape === 'dotted' ? 'border-dashed' : ''}"></div>
-                  <div class="flex flex-col"><span class="text-3xl md:text-4xl font-black uppercase leading-none text-black">${l.title}</span><span class="text-xl font-bold text-gray-500 uppercase mt-2">${l.sub}</span></div>
-                </div>
-              `)}
-            </div>
-          </div>
-          <div ref=${mapRef} class="w-full h-[600px] md:h-[800px] brutal-card bg-white"></div>
-        </div>
-      `;
-    }
+    // Ikonlar
+    const IconHome = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+    const IconSearch = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
+    const IconGift = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/></svg>`;
+    const IconMap = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>`;
 
     function App() {
       const [view, setView] = useState('merkezler');
-      const [puan, setPuan] = useState(250);
-      const [isChatOpen, setIsChatOpen] = useState(false);
-      const [messages, setMessages] = useState([{ role: 'bot', text: 'Merhaba bugün neyi tamir ediyoruz! :)' }]);
+      const [puan, setPuan] = useState(450);
+      const [messages, setMessages] = useState([{ role: 'bot', text: 'Merhaba Ilgın! Bugün Kadıköy\'de neyi tamir ediyoruz?' }]);
       const [chatInput, setChatInput] = useState('');
+      const [isChatOpen, setIsChatOpen] = useState(false);
       const [matchCategory, setMatchCategory] = useState('');
       const [matchDesc, setMatchDesc] = useState('');
+      
+      const mapInstance = useRef(null);
+      const markersRef = useRef({});
 
-      useEffect(() => { if (view === 'panel') { setTimeout(() => { const canvas = document.getElementById('user-qr-code'); if (canvas) window.QRCode.toCanvas(canvas, "TAMIR-2026-ILGIN", { width: 220, margin: 2, color: { dark: '#000000', light: '#ffffff' } }); }, 100); } }, [view]);
+      // Feature 3: 12 Adet Ödül Verisi
+      const kampanyalarData = [
+        { id: 1, title: 'KADIKÖY SİNEMASI', desc: 'Ücretsiz Sinema Bileti', points: 300, color: 'bg-brandLavender' },
+        { id: 2, title: 'STORY COFFEE', desc: 'Ücretsiz V60 Kahve', points: 100, color: 'bg-brandLime' },
+        { id: 3, title: 'MODA BİSİKLET', desc: 'Tam Kapsamlı Bakım', points: 250, color: 'bg-brandBlue', text: 'text-white' },
+        { id: 4, title: 'DÜKKAN KADIKÖY', desc: 'Sıfır Atık Başlangıç Seti', points: 200, color: 'bg-brandLavender' },
+        { id: 5, title: 'BİNA CAFE', desc: 'Akşam Yemeği Menüsü', points: 400, color: 'bg-brandLime' },
+        { id: 6, title: 'SÜREYYA OPERASI', desc: 'İki Kişilik Konser Bileti', points: 500, color: 'bg-brandBlue', text: 'text-white' },
+        { id: 7, title: 'NAZIM HİKMET K.M.', desc: 'Tiyatro Atölyesi Katılımı', points: 150, color: 'bg-brandLavender' },
+        { id: 8, title: 'TASARIM ATÖLYESİ', desc: '3D Baskı Kontörü (10 saat)', points: 350, color: 'bg-brandLime' },
+        { id: 9, title: 'MEPHISTO KİTABEVİ', desc: '150 TL Kitap Çeki', points: 220, color: 'bg-brandBlue', text: 'text-white' },
+        { id: 10, title: 'KADIKÖY SAHNE', desc: '%50 İndirimli Giriş', points: 180, color: 'bg-brandLavender' },
+        { id: 11, title: 'GORA TERZİ', desc: 'Pantolon Paça/Daraltma', points: 80, color: 'bg-brandLime' },
+        { id: 12, title: 'YELDEĞİRMENİ SANAT', desc: 'Seramik Atölyesi Bileti', points: 280, color: 'bg-brandBlue', text: 'text-white' }
+      ];
 
-      const handleSend = async (customMsg = null) => {
-        const msgToSend = customMsg || chatInput;
-        if (!msgToSend.trim()) return;
-        const currentHistory = [...messages];
-        setMessages(prev => [...prev, { role: 'user', text: msgToSend }]);
-        if(!customMsg) setChatInput('');
-        try {
-          const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msgToSend, history: currentHistory.map(m => ({ role: m.role === 'bot' ? 'assistant' : 'user', text: m.text })) }) });
-          const data = await res.json();
-          setMessages(prev => [...prev, { role: 'bot', text: data.reply }]);
-        } catch (e) { setMessages(prev => [...prev, { role: 'bot', text: "Bağlantı koptu!" }]); }
+      // Feature 2: Puan Geçmişi Verisi
+      const sonTamirlerData = [
+        { isim: 'TOST MAKİNESİ', tarih: '12.04.2026', puan: '+50' },
+        { isim: 'KOT PANTOLON', tarih: '08.04.2026', puan: '+30' },
+        { isim: 'BİSİKLET ZİNCİRİ', tarih: '02.04.2026', puan: '+120' },
+        { isim: 'GİTAR AMFİSİ', tarih: '25.03.2026', puan: '+200' }
+      ];
+
+      useEffect(() => {
+        if (view === 'merkezler' && !mapInstance.current) {
+          const map = L.map('map-container').setView([40.988, 29.045], 14);
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+          mapInstance.current = map;
+
+          fetch('./kadikoy_map_data.json').then(res => res.json()).then(data => {
+            Object.values(data.tamirciler).flat().forEach(m => {
+              const marker = L.marker([m.lat, m.lon], {
+                icon: L.divIcon({ className: 'brutal-marker', html: `<div style="background:white; border:3px solid black; width:20px; height:20px;"></div>` })
+              }).bindPopup(`<b>${m.name}</b>`).addTo(map);
+              markersRef.current[m.name.toLowerCase()] = marker;
+            });
+          });
+        }
+      }, [view]);
+
+      // Feature 1: Harita Yanıp Sönme & Linkleme Mantığı
+      const highlightShopOnMap = (text) => {
+        Object.keys(markersRef.current).forEach(shopName => {
+          if (text.toLowerCase().includes(shopName)) {
+            const marker = markersRef.current[shopName];
+            setView('merkezler');
+            setTimeout(() => {
+              mapInstance.current.flyTo(marker.getLatLng(), 16);
+              const element = marker.getElement();
+              if (element) {
+                element.classList.add('highlight-marker');
+                setTimeout(() => element.classList.remove('highlight-marker'), 5000);
+              }
+            }, 500);
+          }
+        });
       };
 
-      const triggerMatch = () => {
-        if(!matchCategory || !matchDesc) { alert("Lütfen kategori seç ve sorunu yaz!"); return; }
-        setIsChatOpen(true); handleSend(`Kategori: ${matchCategory}. Sorun: ${matchDesc}`);
-        setMatchDesc(''); setMatchCategory('');
+      const handleSend = async (customMsg = null) => {
+        const msg = customMsg || chatInput;
+        if (!msg.trim()) return;
+        setMessages(prev => [...prev, { role: 'user', text: msg }]);
+        setChatInput('');
+        
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg, history: messages.map(m => ({ role: m.role === 'bot' ? 'assistant' : 'user', text: m.text })) })
+          });
+          const data = await res.json();
+          setMessages(prev => [...prev, { role: 'bot', text: data.reply }]);
+          highlightShopOnMap(data.reply); // Otomatik Harita Tetikleyici
+        } catch (e) {
+          setMessages(prev => [...prev, { role: 'bot', text: "Bağlantı hatası kanka!" }]);
+        }
       };
 
       return html`
-        <div class="max-w-[1400px] mx-auto space-y-12 md:space-y-16 relative z-10 py-10">
-          <header class="flex flex-col gap-10 border-b-[10px] border-black pb-10">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center w-full gap-10">
-              <h1 class="text-[5rem] md:text-[8rem] lg:text-[10rem] font-black tracking-tighter uppercase leading-[0.85] text-black">
-                TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL
-              </h1>
-              <div class="bg-brandLime border-[6px] border-black shadow-[12px_12px_0px_0px_#000] p-6 md:p-10 transform -rotate-2 w-full lg:max-w-lg">
-                <p class="text-4xl md:text-5xl font-black uppercase text-black leading-tight text-center">TAMİRİ YAP<br/>İNDİRİMİ KAP!</p>
-              </div>
-            </div>
-            
-            <nav class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-              <button onClick=${() => setView('panel')} class="flex flex-col items-center justify-center gap-3 p-6 brutal-btn font-black text-2xl md:text-3xl ${view === 'panel' ? 'bg-black text-brandLime' : 'bg-white'}"><${IconHome}/> PANEL</button>
-              <button onClick=${() => setView('ustalar')} class="flex flex-col items-center justify-center gap-3 p-6 brutal-btn font-black text-2xl md:text-3xl ${view === 'ustalar' ? 'bg-black text-brandLime' : 'bg-brandLavender'}"><${IconSearch}/> USTA BUL</button>
-              <button onClick=${() => setView('kampanyalar')} class="flex flex-col items-center justify-center gap-3 p-6 brutal-btn font-black text-2xl md:text-3xl ${view === 'kampanyalar' ? 'bg-black text-brandLime' : 'bg-white'}"><${IconGift}/> ÖDÜLLER</button>
-              <button onClick=${() => setView('merkezler')} class="flex flex-col items-center justify-center gap-3 p-6 brutal-btn font-black text-2xl md:text-3xl ${view === 'merkezler' ? 'bg-black text-brandLime' : 'bg-brandBlue text-white'}"><${IconMap}/> HARİTA</button>
+        <div class="max-w-6xl mx-auto space-y-8">
+          <header class="border-b-8 border-black pb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <h1 class="text-7xl font-black italic tracking-tighter">TAMİR <span class="text-brandBlue">&</span> ÖDÜL</h1>
+            <nav class="grid grid-cols-4 gap-2 w-full md:w-auto">
+              <button onClick=${() => setView('panel')} class="p-3 brutal-btn ${view === 'panel' ? 'bg-black text-white' : 'bg-white'}"><${IconHome}/></button>
+              <button onClick=${() => setView('ustalar')} class="p-3 brutal-btn ${view === 'ustalar' ? 'bg-black text-white' : 'bg-brandLime'}"><${IconSearch}/></button>
+              <button onClick=${() => setView('kampanyalar')} class="p-3 brutal-btn ${view === 'kampanyalar' ? 'bg-black text-white' : 'bg-white'}"><${IconGift}/></button>
+              <button onClick=${() => setView('merkezler')} class="p-3 brutal-btn ${view === 'merkezler' ? 'bg-black text-white' : 'bg-brandBlue text-white'}"><${IconMap}/></button>
             </nav>
           </header>
 
           <main>
-            ${view === 'merkezler' && html`<${Map} />`}
-            
-            ${view === 'ustalar' && html`
-              <div class="max-w-5xl mx-auto brutal-card p-10 md:p-16 bg-white">
-                <div class="bg-black text-brandLime inline-block px-6 py-3 mb-10 border-[5px] border-black transform -rotate-1">
-                  <h2 class="text-4xl md:text-6xl font-black uppercase tracking-widest">USTANLA EŞLEŞ</h2>
-                </div>
-                <div class="space-y-12">
-                  <div>
-                    <h3 class="text-3xl font-black uppercase mb-6 text-brandBlue">1. KATEGORİ SEÇ</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                      ${['Elektronik', 'Mobilya', 'Tekstil', 'Ayakkabi'].map(c => html`
-                        <button onClick=${() => setMatchCategory(c)} class="border-[5px] border-black p-5 font-black text-xl uppercase transition-transform ${matchCategory === c ? 'bg-brandBlue text-white shadow-[6px_6px_0px_#000] -translate-y-2' : 'bg-[#fcf7f5] hover:bg-brandLavender'}">${c}</button>
-                      `)}
-                    </div>
-                  </div>
-                  <div>
-                    <h3 class="text-3xl font-black uppercase mb-6 text-brandBlue">2. SORUNU ANLAT</h3>
-                    <textarea value=${matchDesc} onInput=${e => setMatchDesc(e.target.value)} class="w-full border-[6px] border-black p-6 font-bold text-2xl h-40 bg-[#fcf7f5] outline-none focus:bg-brandLime transition-colors" placeholder="Cihazının nesi var?"></textarea>
-                  </div>
-                  <button onClick=${triggerMatch} class="w-full bg-brandLime text-black border-[6px] border-black p-6 font-black text-4xl uppercase hover:bg-black hover:text-brandLime transition-colors shadow-[8px_8px_0px_#000]">EN İYİ USTAYI BUL</button>
-                </div>
-              </div>
-            `}
-            
             ${view === 'panel' && html`
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12">
-                <div class="brutal-card p-12 bg-brandBlue text-white flex flex-col justify-center items-center transform rotate-1">
-                  <h2 class="text-5xl md:text-6xl font-black mb-4 uppercase tracking-widest text-brandLime border-b-8 border-brandLime pb-2">PUANIN</h2>
-                  <div class="text-[10rem] md:text-[12rem] font-black leading-none drop-shadow-[8px_8px_0px_#000]">${puan}</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="brutal-card p-10 bg-brandBlue text-white text-center">
+                  <h2 class="text-4xl font-black mb-4">MEVCUT PUANIN</h2>
+                  <div class="text-[120px] leading-none font-black">${puan}</div>
                 </div>
-                <div class="brutal-card p-12 bg-brandLime flex flex-col items-center justify-center transform -rotate-1">
-                  <div class="bg-white p-4 border-[6px] border-black shadow-[8px_8px_0px_#000] mb-8">
-                     <canvas id="user-qr-code"></canvas>
-                  </div>
-                  <p class="text-3xl font-black uppercase bg-black text-white px-8 py-4 shadow-[6px_6px_0px_#000]">TAMIR-2026-ILGIN</p>
+                <div class="brutal-card p-6 bg-white overflow-y-auto max-h-[400px]">
+                  <h3 class="text-2xl font-black border-b-4 border-black mb-4">SON KAZANILAN PUANLAR</h3>
+                  <table class="w-full text-left font-bold uppercase">
+                    ${sonTamirlerData.map(item => html`
+                      <tr class="border-b-2 border-black/10">
+                        <td class="py-3">${item.isim}</td>
+                        <td class="text-gray-500">${item.tarih}</td>
+                        <td class="text-right text-green-600">${item.puan}</td>
+                      </tr>
+                    `)}
+                  </table>
                 </div>
               </div>
             `}
-            
+
+            ${view === 'ustalar' && html`
+              <div class="max-w-3xl mx-auto brutal-card p-8 space-y-6">
+                <h2 class="text-4xl font-black uppercase bg-black text-brandLime px-4 inline-block">Ustanla Eşleş</h2>
+                <div class="grid grid-cols-2 gap-4">
+                  ${['Elektronik', 'Mobilya', 'Tekstil', 'Ayakkabı'].map(c => html`
+                    <button onClick=${() => setMatchCategory(c)} class="p-4 border-4 border-black font-black uppercase ${matchCategory === c ? 'bg-brandBlue text-white' : 'bg-gray-100'}">${c}</button>
+                  `)}
+                </div>
+                <textarea onInput=${e => setMatchDesc(e.target.value)} class="w-full border-4 border-black p-4 font-bold h-32" placeholder="Cihazın nesi var?"></textarea>
+                <button onClick=${() => { setIsChatOpen(true); handleSend(`Kategori: ${matchCategory}. Sorun: ${matchDesc}`); }} class="w-full bg-brandLime p-5 border-4 border-black font-black text-2xl uppercase">USTA BUL</button>
+              </div>
+            `}
+
             ${view === 'kampanyalar' && html`
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                <div class="brutal-card p-8 bg-brandLavender flex flex-col">
-                  <h3 class="text-3xl font-black uppercase leading-tight mb-6">SİNEMA BİLETİ</h3>
-                  <div class="bg-white border-[4px] border-black p-6 flex-grow flex items-center justify-center text-center font-bold text-xl mb-6">Kadıköy Sineması'nda ücretsiz seans!</div>
-                  <button class="w-full bg-black text-brandLime border-[5px] border-black font-black text-2xl p-4 hover:bg-brandBlue hover:text-white transition-colors">300 PUAN</button>
+              <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                ${kampanyalarData.map(k => html`
+                  <div class="brutal-card p-4 ${k.color} ${k.text || 'text-black'} flex flex-col justify-between h-64">
+                    <h3 class="text-xl font-black leading-tight">${k.title}</h3>
+                    <p class="font-bold opacity-80">${k.desc}</p>
+                    <div class="bg-black text-white text-center py-2 font-black text-lg">${k.points} PUAN</div>
+                  </div>
+                `)}
+              </div>
+            `}
+
+            ${view === 'merkezler' && html`<div id="map-container" class="w-full h-[600px] border-8 border-black shadow-[15px_15px_0px_0px_#000]"></div>`}
+          </main>
+
+          <div class="fixed bottom-8 right-8 z-[1000]">
+            ${isChatOpen && html`
+              <div class="w-80 h-[500px] brutal-card bg-white flex flex-col mb-4 overflow-hidden">
+                <div class="bg-black text-brandLime p-4 font-black flex justify-between">TAMİR AI <button onClick=${() => setIsChatOpen(false)}>X</button></div>
+                <div class="flex-grow p-4 overflow-y-auto space-y-4 bg-gray-50">
+                  ${messages.map(m => html`<div class="p-3 border-2 border-black font-bold ${m.role === 'bot' ? 'bg-brandLime' : 'bg-white shadow-[3px_3px_0px_#000]'}">${m.text}</div>`)}
                 </div>
-                <div class="brutal-card p-8 bg-brandBlue text-white flex flex-col transform scale-105 shadow-[12px_12px_0px_#000] z-10">
-                  <h3 class="text-3xl font-black uppercase leading-tight mb-6 text-brandLime">KONSER BİLETİ</h3>
-                  <div class="bg-black border-[4px] border-brandLime p-6 flex-grow flex items-center justify-center text-center font-bold text-xl mb-6">Kadıköy Sahne'de %50 İndirim!</div>
-                  <button class="w-full bg-brandLime text-black border-[5px] border-black font-black text-2xl p-4 hover:bg-white transition-colors">200 PUAN</button>
-                </div>
-                <div class="brutal-card p-8 bg-brandLime flex flex-col">
-                  <h3 class="text-3xl font-black uppercase leading-tight mb-6">TAMİR SETİ</h3>
-                  <div class="bg-white border-[4px] border-black p-6 flex-grow flex items-center justify-center text-center font-bold text-xl mb-6">Dükkan Kadıköy'den başlangıç kiti.</div>
-                  <button class="w-full bg-black text-brandLime border-[5px] border-black font-black text-2xl p-4 hover:bg-brandLavender hover:text-black transition-colors">150 PUAN</button>
+                <div class="p-2 border-t-4 border-black flex gap-2">
+                  <input value=${chatInput} onInput=${e => setChatInput(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSend()} class="flex-grow p-2 border-2 border-black outline-none font-bold" />
+                  <button onClick=${() => handleSend()} class="bg-black text-white px-4 font-black">SOR</button>
                 </div>
               </div>
             `}
-          </main>
-          
-          <${ChatBot} isChatOpen=${isChatOpen} setIsChatOpen=${setIsChatOpen} messages=${messages} input=${chatInput} setInput=${setChatInput} handleSend=${handleSend} />
+            <button onClick=${() => setIsChatOpen(!isChatOpen)} class="w-20 h-20 bg-brandBlue text-white border-8 border-black text-5xl font-black shadow-[10px_10px_0px_#000]">?</button>
+          </div>
         </div>
       `;
     }
+
     render(html`<${App} />`, document.getElementById('root'));
   </script>
 </body>
