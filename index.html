@@ -634,6 +634,28 @@
                       </textarea>
                     </div>
 
+                    ${matchCategory && customerLocation && html`
+                      <div>
+                        <h3 class="text-2xl font-black uppercase mb-4 text-black">3. En Yakın ${matchCategory} Ustaları</h3>
+                        <div class="space-y-4">
+                          ${allShops
+                            .filter(shop => shop.kategori === matchCategory)
+                            .map(shop => ({ ...shop, distance: getDistance(customerLocation.lat, customerLocation.lon, shop.lat, shop.lon) }))
+                            .sort((a, b) => a.distance - b.distance)
+                            .slice(0, 3)
+                            .map(shop => html`
+                              <div class="border-4 border-black p-4 bg-mainBg flex justify-between items-center cursor-pointer hover:bg-brandPink/50 transition-colors" onClick=${() => { setSelectedShop(shop); setView('merkezler'); }}>
+                                <div>
+                                  <div class="text-xl font-black uppercase">${shop.name}</div>
+                                  <div class="text-sm font-bold text-gray-600">${shop.kategori} • ${(shop.distance / 1000).toFixed(1)} km uzaklıkta</div>
+                                </div>
+                                <div class="text-2xl">📍</div>
+                              </div>
+                            `)}
+                        </div>
+                      </div>
+                    `}
+
                     <button 
                       onClick=${triggerMatch} 
                       class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl md:text-3xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-center items-center gap-3">
