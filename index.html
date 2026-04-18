@@ -23,17 +23,15 @@
       background-color: var(--background);
       color: var(--foreground);
       font-family: 'Poppins', sans-serif;
-      /* Kareli arka plan */
       background-image: 
         linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px), 
         linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
       background-size: 20px 20px;
-      overflow-x: hidden;
     }
 
     .brutal-card {
       background: #ffffff;
-      border: 4px solid var(--border);
+      border: 5px solid var(--border);
       box-shadow: var(--shadow);
       transition: all 0.1s ease;
     }
@@ -49,18 +47,7 @@
       box-shadow: 2px 2px 0px 0px #000;
     }
 
-    .leaflet-container { border: 4px solid #000 !important; }
-
     .sticker-drop { filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 1)); }
-
-    @keyframes pulse-marker {
-      0%, 100% { transform: scale(1); box-shadow: 0 0 0px #054ff0; }
-      50% { transform: scale(1.5); box-shadow: 0 0 25px #054ff0; }
-    }
-    .pulse-marker { animation: pulse-marker 1.2s ease-in-out infinite; }
-
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 
   <script>
@@ -74,7 +61,7 @@
   </script>
 </head>
 
-<body class="p-4 md:p-10 relative min-h-screen">
+<body class="p-4 md:p-10 min-h-screen">
   <div id="root"></div>
 
   <script type="module">
@@ -82,13 +69,6 @@
     import { useState, useEffect, useRef } from 'https://esm.sh/preact@10.19.6/hooks';
     import htm from 'https://esm.sh/htm@3.1.1';
     const html = htm.bind(h);
-
-    // --- ICONLAR ---
-    const IconHome = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
-    const IconGift = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>`;
-    const IconMap = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>`;
-    const IconWrench = () => html`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`;
-    const IconSearch = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
 
     // --- COMPONENTLER ---
     function ChatBot({ isChatOpen, setIsChatOpen, messages, input, setInput, handleSend }) {
@@ -98,60 +78,24 @@
             <div class="w-[90vw] md:w-[400px] h-[500px] brutal-card flex flex-col mb-6 overflow-hidden bg-white max-w-sm">
               <div class="bg-black text-brandYellow p-5 font-black uppercase flex justify-between items-center border-b-4 border-black">
                 <span>TAMİR AI</span>
-                <button onClick=${() => setIsChatOpen(false)} class="text-2xl hover:scale-125 transition-transform text-white">×</button>
+                <button onClick=${() => setIsChatOpen(false)} class="text-2xl text-white">×</button>
               </div>
-              <div class="flex-grow p-4 overflow-y-auto space-y-4 bg-white/60">
+              <div class="flex-grow p-4 overflow-y-auto space-y-4">
                 ${messages.map(m => html`
-                  <div class="p-3 border-4 border-black font-bold text-black ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
+                  <div class="p-3 border-4 border-black font-bold ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
                     ${m.text}
                   </div>
                 `)}
               </div>
-              <div class="p-4 border-t-4 border-black flex gap-2 bg-white">
+              <div class="p-4 border-t-4 border-black flex gap-2">
                 <input value=${input} onInput=${e => setInput(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSend()} 
-                       class="flex-grow p-2 border-4 border-black outline-none font-bold" placeholder="Buraya yaz..." />
+                       class="flex-grow p-2 border-4 border-black outline-none font-bold" />
                 <button onClick=${() => handleSend()} class="bg-black text-white px-4 border-4 border-black font-black">SOR</button>
               </div>
             </div>
           `}
           <button onClick=${() => setIsChatOpen(!isChatOpen)} 
-                  class="bg-brandBlue text-white w-16 h-16 md:w-20 md:h-20 brutal-card flex items-center justify-center hover:scale-110 transition-transform text-3xl md:text-4xl font-black shadow-[6px_6px_0px_#000] md:shadow-[10px_10px_0px_#000] ml-auto">
-            ?
-          </button>
-        </div>
-      `;
-    }
-
-    function Map({ selectedShop, setSelectedShop }) {
-      const mapRef = useRef(null);
-      const highlightRef = useRef(null);
-      const [layers, setLayers] = useState({
-        tamirciler: { active: true, title: 'TAMİRCİLER', color: 'bg-brandYellow' },
-        kamu: { active: true, title: 'KAMU BİNALARI', color: 'bg-brandPink' }
-      });
-      const mapInstance = useRef(null);
-
-      useEffect(() => {
-        if (!mapRef.current || mapInstance.current) return;
-        const map = window.L.map(mapRef.current).setView([40.988, 29.045], 14);
-        window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-        mapInstance.current = map;
-      }, []);
-
-      return html`
-        <div class="flex flex-col lg:flex-row gap-12 relative z-10">
-          <div class="w-full lg:w-[400px] brutal-card p-6 md:p-10 bg-white">
-            <h3 class="text-4xl font-black uppercase border-b-4 border-black pb-4 mb-6">KATMANLAR</h3>
-            <div class="space-y-6">
-               ${Object.entries(layers).map(([key, l]) => html`
-                 <div class="flex items-center gap-4 cursor-pointer" onClick=${() => setLayers(p => ({...p, [key]: {...l, active: !l.active}}))}>
-                   <div class="w-8 h-8 border-4 border-black ${l.active ? l.color : 'bg-gray-200'}"></div>
-                   <span class="text-xl font-black uppercase">${l.title}</span>
-                 </div>
-               `)}
-            </div>
-          </div>
-          <div ref=${mapRef} class="w-full h-[500px] md:h-[600px] brutal-card"></div>
+                  class="bg-brandBlue text-white w-20 h-20 brutal-card flex items-center justify-center text-4xl font-black">?</button>
         </div>
       `;
     }
@@ -159,87 +103,65 @@
     function App() {
       const [auth, setAuth] = useState({ loggedIn: false, role: null });
       const [view, setView] = useState('panel');
-      const [puan, setPuan] = useState(250);
       const [isChatOpen, setIsChatOpen] = useState(false);
-      const [messages, setMessages] = useState([{ role: 'bot', text: 'Merhaba bugün neyi tamir ediyoruz! :)' }]);
+      const [messages, setMessages] = useState([{ role: 'bot', text: 'Merhaba! Bugün neyi tamir ediyoruz?' }]);
       const [chatInput, setChatInput] = useState('');
-      
-      const [matchCategory, setMatchCategory] = useState('');
-      const [matchDesc, setMatchDesc] = useState('');
 
       const tamirciIsleri = [
-        { id: 1, baslik: 'Kırık Ekran', kategori: 'Elektronik', musteri: 'Ahmet Y.', konum: 'Moda Sahil (300m)', aciliyet: 'Yüksek', ucret: '500 Puan', img: 'telefon.png' },
-        { id: 2, baslik: 'Fermuar Değişimi', kategori: 'Tekstil', musteri: 'Zeynep K.', konum: 'Yeldeğirmeni (1.2km)', aciliyet: 'Orta', ucret: '150 Puan', img: 'dikiş makinesi.png' },
-        { id: 3, baslik: 'Vites Ayarı', kategori: 'Bisiklet', musteri: 'Can B.', konum: 'Osmanağa (800m)', aciliyet: 'Düşük', ucret: '200 Puan', img: 'bisiklet.png' }
+        { id: 1, baslik: 'Kırık Ekran', kategori: 'Elektronik', musteri: 'Ahmet Y.', konum: 'Moda Sahil', aciliyet: 'Yüksek', ucret: '500 Puan', img: 'telefon.png' },
+        { id: 2, baslik: 'Fermuar Değişimi', kategori: 'Tekstil', musteri: 'Zeynep K.', konum: 'Yeldeğirmeni', aciliyet: 'Orta', ucret: '150 Puan', img: 'dikiş makinesi.png' },
+        { id: 3, baslik: 'Vites Ayarı', kategori: 'Bisiklet', musteri: 'Can B.', konum: 'Osmanağa', aciliyet: 'Düşük', ucret: '200 Puan', img: 'bisiklet.png' }
       ];
 
-      const sonTamirlerData = [
-        { id: 1, isim: 'TOST MAKİNESİ', konum: 'Moda Merkezi', tarih: '2026-03-25', puan: 50, bg: 'bg-mainBg' },
-        { id: 2, isim: 'SANDALYE', konum: 'Yeldeğirmeni Merkezi', tarih: '2026-03-12', puan: 150, bg: 'bg-brandPink' }
-      ];
-
-      const handleSend = async (customMsg = null) => {
-        const msgToSend = customMsg || chatInput;
-        if (!msgToSend.trim()) return;
-        setMessages(prev => [...prev, { role: 'user', text: msgToSend }]);
+      const handleSend = () => {
+        if (!chatInput.trim()) return;
+        setMessages([...messages, { role: 'user', text: chatInput }]);
         setChatInput('');
-        // API çağrısı buraya eklenebilir
-        setTimeout(() => setMessages(prev => [...prev, { role: 'bot', text: "Harika! Kadıköy'deki en iyi ustayı senin için araştırıyorum." }]), 1000);
       };
 
-      // --- LOGIN EKRANI ---
       if (!auth.loggedIn) {
         return html`
-          <div class="min-h-screen flex flex-col items-center justify-center p-4">
-             <h1 class="text-6xl md:text-8xl font-black uppercase tracking-tighter text-center mb-12">TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL</h1>
-             <div class="brutal-card p-8 bg-white max-w-md w-full text-center space-y-6">
-                <h2 class="text-3xl font-black uppercase bg-brandYellow inline-block px-4 py-1 border-4 border-black">GİRİŞ YAP</h2>
-                <div class="space-y-4 pt-4">
-                  <button onClick=${() => setAuth({loggedIn: true, role: 'musteri'})} class="w-full brutal-btn bg-brandPink p-5 font-black text-2xl uppercase flex justify-between items-center">MÜŞTERİ 🙋🏻‍♀️</button>
-                  <button onClick=${() => setAuth({loggedIn: true, role: 'tamirci'})} class="w-full brutal-btn bg-brandBlue text-white p-5 font-black text-2xl uppercase flex justify-between items-center">TAMİRCİ 🔧</button>
-                </div>
+          <div class="min-h-screen flex flex-col items-center justify-center">
+             <h1 class="text-7xl md:text-9xl font-black uppercase tracking-tighter text-center mb-12">TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL</h1>
+             <div class="brutal-card p-10 bg-white max-w-md w-full text-center space-y-6">
+                <button onClick=${() => setAuth({loggedIn: true, role: 'musteri'})} class="w-full brutal-btn bg-brandPink p-6 font-black text-2xl uppercase">MÜŞTERİ 🙋🏻‍♀️</button>
+                <button onClick=${() => setAuth({loggedIn: true, role: 'tamirci'})} class="w-full brutal-btn bg-brandBlue text-white p-6 font-black text-2xl uppercase">TAMİRCİ 🔧</button>
              </div>
           </div>
         `;
       }
 
-      // --- USTA PANELİ ---
       if (auth.role === 'tamirci') {
         return html`
           <div class="max-w-7xl mx-auto space-y-12">
-            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b-8 border-black pb-8">
-              <h1 class="text-5xl md:text-7xl font-black uppercase leading-none">USTA<br/><span class="text-brandBlue">PANELİ</span></h1>
-              <div class="flex gap-4">
-                <div class="bg-brandYellow border-4 border-black px-6 py-3 font-black uppercase text-xl">AKTİF</div>
-                <button onClick=${() => setAuth({loggedIn: false, role: null})} class="bg-white border-4 border-black px-6 py-3 font-black uppercase text-xl brutal-btn">ÇIKIŞ</button>
-              </div>
+            <header class="flex justify-between items-center border-b-8 border-black pb-8">
+              <h1 class="text-6xl font-black uppercase leading-none">USTA<br/><span class="text-brandBlue">PANELİ</span></h1>
+              <button onClick=${() => setAuth({loggedIn: false, role: null})} class="bg-white border-4 border-black px-6 py-3 font-black uppercase text-xl brutal-btn">ÇIKIŞ</button>
             </header>
 
             <main class="space-y-10">
-              <div class="inline-block bg-black text-white px-6 py-3 text-3xl font-black uppercase border-4 border-black shadow-[4px_4px_0px_#e1d2f3]">YAKINDAKİ İŞLER</div>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <h2 class="inline-block bg-black text-white px-6 py-3 text-3xl font-black uppercase border-4 border-black">YAKINDAKİ İŞLER</h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                 ${tamirciIsleri.map(is => html`
-                  <div class="brutal-card p-6 flex flex-col justify-between h-full bg-white">
-                    <div>
-                      <div class="flex justify-between items-start mb-6">
-                        <span class="bg-brandPink border-2 border-black px-3 py-1 font-black text-xs uppercase">${is.kategori}</span>
-                        <span class="bg-white border-2 border-black px-2 py-1 font-bold text-[10px]">${is.konum}</span>
-                      </div>
-                      <div class="flex gap-4 items-center mb-6">
-                        <img src="${is.img}" class="w-20 h-20 object-contain drop-shadow-[4px_4px_0px_#000]" />
-                        <h3 class="text-2xl font-black uppercase leading-tight">${is.baslik}</h3>
-                      </div>
-                      <p class="font-bold border-b-4 border-dotted border-black pb-4 mb-6 uppercase text-sm">Müşteri: ${is.musteri}</p>
+                  <div class="brutal-card p-8 flex flex-col bg-white">
+                    <div class="flex justify-between mb-8">
+                      <span class="bg-brandPink border-2 border-black px-4 py-1 font-black text-xs uppercase">${is.kategori}</span>
+                      <span class="bg-mainBg border-2 border-black px-2 py-1 font-bold text-[10px] uppercase">${is.konum}</span>
                     </div>
-                    <div class="space-y-4">
-                      <div class="flex justify-between items-center bg-mainBg border-4 border-black p-3">
-                        <span class="font-black text-xl text-brandBlue">${is.ucret}</span>
+                    
+                    <div class="flex flex-col items-center text-center mb-8 gap-6">
+                      <img src="${is.img}" class="w-48 h-48 md:w-56 md:h-56 object-contain sticker-drop" />
+                      <h3 class="text-3xl md:text-4xl font-black uppercase leading-none">${is.baslik}</h3>
+                    </div>
+
+                    <p class="font-bold border-b-4 border-dotted border-black pb-4 mb-6 text-center uppercase">Müşteri: ${is.musteri}</p>
+                    
+                    <div class="mt-auto space-y-4">
+                      <div class="flex justify-between items-center bg-brandYellow border-4 border-black p-4">
+                        <span class="font-black text-2xl text-brandBlue italic">${is.ucret}</span>
                         <span class="font-black uppercase text-xs ${is.aciliyet === 'Yüksek' ? 'text-red-600 animate-pulse' : ''}">${is.aciliyet} ACİL</span>
                       </div>
-                      <div class="flex gap-2">
-                        <button class="w-2/3 bg-brandYellow border-4 border-black p-3 font-black uppercase brutal-btn">İŞİ AL</button>
-                        <button class="w-1/3 bg-white border-4 border-black p-3 font-black uppercase brutal-btn">PAS</button>
-                      </div>
+                      <button class="w-full bg-black text-white border-4 border-black p-4 font-black text-xl uppercase brutal-btn">İŞİ AL</button>
                     </div>
                   </div>
                 `)}
@@ -250,93 +172,33 @@
         `;
       }
 
-      // --- MÜŞTERİ PANELİ ---
+      // Varsayılan Müşteri Paneli
       return html`
-        <img src="1.png" class="absolute sticker-drop w-28 top-5 left-[5%] rotate-[-15deg] z-50 opacity-90" />
-        <img src="3.png" class="absolute sticker-drop w-64 top-64 right-[-40px] rotate-[-5deg] z-50 transition-opacity" />
-        
-        <div class="max-w-7xl mx-auto space-y-12 relative z-10">
-          <header class="flex flex-col gap-8 border-b-8 border-black pb-8">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
-              <h1 class="text-6xl md:text-9xl font-black uppercase leading-[0.8] text-black">TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL</h1>
-              <div class="bg-brandYellow border-4 border-black shadow-[8px_8px_0px_0px_#000] p-8 transform rotate-1 -skew-x-6 w-full md:max-w-2xl">
-                <p class="text-3xl md:text-5xl font-black uppercase leading-tight whitespace-nowrap">TAMİRİ YAP <br class="md:hidden" /> İNDİRİMİ KAP!</p>
-              </div>
-            </div>
-
-            <nav class="flex flex-wrap gap-4 justify-start md:justify-end">
-              <button onClick=${() => setView('panel')} class="px-6 py-4 brutal-btn font-black text-xl uppercase ${view === 'panel' ? 'bg-black text-white' : 'bg-white'}"><${IconHome} /> PANEL</button>
-              <button onClick=${() => setView('ustalar')} class="px-6 py-4 brutal-btn font-black text-xl uppercase ${view === 'ustalar' ? 'bg-black text-white' : 'bg-brandYellow'}"><${IconSearch} /> USTA BUL</button>
-              <button onClick=${() => setView('merkezler')} class="px-6 py-4 brutal-btn font-black text-xl uppercase ${view === 'merkezler' ? 'bg-black text-white' : 'bg-white'}"><${IconMap} /> HARİTA</button>
-              <button onClick=${() => setAuth({loggedIn: false, role: null})} class="px-6 py-4 brutal-btn font-black text-xl uppercase bg-white text-red-600">ÇIKIŞ</button>
-            </nav>
+        <div class="max-w-7xl mx-auto space-y-12">
+          <header class="flex justify-between items-center border-b-8 border-black pb-8">
+            <h1 class="text-7xl font-black uppercase text-black">PANEL</h1>
+            <button onClick=${() => setAuth({loggedIn: false, role: null})} class="px-6 py-4 brutal-btn font-black text-xl uppercase bg-white">ÇIKIŞ</button>
           </header>
-
-          <main>
-            ${view === 'ustalar' && html`
-              <div class="max-w-4xl mx-auto brutal-card p-10 bg-white space-y-8">
-                <h2 class="text-5xl font-black uppercase text-center mb-8">USTANLA EŞLEŞ</h2>
-                <div>
-                  <h3 class="text-2xl font-black mb-4 uppercase">1. Kategori Seç</h3>
-                  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    ${['Elektronik', 'Mobilya', 'Tekstil', 'Bisiklet'].map(cat => html`
-                      <button onClick=${() => setMatchCategory(cat)} class="border-4 border-black p-4 font-black uppercase ${matchCategory === cat ? 'bg-brandPink' : 'bg-mainBg'}">${cat}</button>
-                    `)}
-                  </div>
-                </div>
-                <div>
-                  <h3 class="text-2xl font-black mb-4 uppercase">2. Sorunu Anlat</h3>
-                  <textarea onInput=${e => setMatchDesc(e.target.value)} class="w-full border-4 border-black p-4 h-32 outline-none font-bold" placeholder="Neyi tamir ediyoruz?"></textarea>
-                </div>
-                <button onClick=${() => handleSend(`Kategori: ${matchCategory}, Sorun: ${matchDesc}`)} class="w-full bg-brandYellow border-4 border-black p-6 font-black text-3xl uppercase brutal-btn flex justify-center items-center gap-4"><${IconWrench} /> USTA BUL</button>
-              </div>
-            `}
-
-            ${view === 'panel' && html`
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div class="space-y-8">
-                  <div class="brutal-card p-10 bg-brandBlue text-white text-center">
-                    <h2 class="text-4xl font-black uppercase italic mb-2">PUANIN</h2>
-                    <div class="text-9xl font-black leading-none">${puan}</div>
-                  </div>
-                  <div class="brutal-card p-10 bg-white flex flex-col items-center">
-                    <canvas id="user-qr-code" class="border-4 border-black mb-6"></canvas>
-                    <p class="bg-black text-white px-6 py-2 font-black text-2xl uppercase shadow-[4px_4px_0px_#dcfc75]">TAMIR-2026-ILGIN</p>
-                  </div>
-                </div>
-                <div class="brutal-card p-10 bg-white space-y-8">
-                  <div class="bg-brandYellow border-4 border-black px-6 py-3 font-black text-3xl uppercase inline-block italic">🔧 SON TAMİRLER</div>
-                  <div class="space-y-6">
-                    ${sonTamirlerData.map(item => html`
-                      <div class="border-4 border-black p-5 flex justify-between items-center ${item.bg}">
-                        <div>
-                          <h4 class="text-2xl font-black uppercase">${item.isim}</h4>
-                          <span class="text-sm font-bold opacity-60 uppercase">${item.konum} • ${item.tarih}</span>
-                        </div>
-                        <div class="bg-brandYellow border-4 border-black px-4 py-2 font-black text-2xl">+${item.puan}</div>
-                      </div>
-                    `)}
-                  </div>
-                </div>
-              </div>
-            `}
-
-            ${view === 'merkezler' && html`<${Map} />`}
-          </main>
-
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div class="brutal-card p-10 bg-brandBlue text-white text-center">
+              <h2 class="text-4xl font-black uppercase mb-2">PUANIN</h2>
+              <div class="text-9xl font-black leading-none">250</div>
+            </div>
+            <div class="brutal-card p-10 bg-white flex flex-col items-center">
+              <canvas id="user-qr-code" class="border-4 border-black"></canvas>
+            </div>
+          </div>
           <${ChatBot} isChatOpen=${isChatOpen} setIsChatOpen=${setIsChatOpen} messages=${messages} input=${chatInput} setInput=${setChatInput} handleSend=${handleSend} />
         </div>
       `;
     }
 
     render(html`<${App} />`, document.getElementById('root'));
-    
-    // QR Kodu oluşturmak için ufak bir yardımcı
+
     setTimeout(() => {
       const canvas = document.getElementById('user-qr-code');
       if (canvas) window.QRCode.toCanvas(canvas, "TAMIR-2026-ILGIN", { width: 220, margin: 1 });
     }, 500);
   </script>
 </body>
-
 </html>
