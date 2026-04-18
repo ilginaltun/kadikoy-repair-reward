@@ -460,14 +460,15 @@
                           <span class="bg-mainBg font-bold text-xs px-2 py-1 border-2 border-black">${is.konum}</span>
                         </div>
                         <div class="flex gap-4 items-center mb-4">
-                          <div class="flex gap-4 items-center mb-4">
-                          <img src="${is.img}" alt="${is.baslik}" class="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]" />
-                          <h3 class="text-2xl md:text-3xl font-black uppercase leading-none">${is.baslik}</h3>
+                          <img 
+                            src="${is.img}" 
+                            alt="${is.baslik}" 
+                            class="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]" 
+                          />
+                          <h3 class="text-2xl md:text-3xl font-black uppercase leading-none text-black">
+                            ${is.baslik}
+                          </h3>
                         </div>
-                          <h3 class="text-2xl md:text-3xl font-black uppercase leading-none">${is.baslik}</h3>
-                        </div>
-                        <p class="font-bold text-gray-600 mb-6 border-b-2 border-dashed border-gray-300 pb-4">Müşteri: ${is.musteri}</p>
-                      </div>
                       <div class="space-y-4">
                         <div class="flex justify-between items-center bg-mainBg p-3 border-4 border-black">
                           <span class="font-black text-xl text-brandBlue">${is.ucret}</span>
