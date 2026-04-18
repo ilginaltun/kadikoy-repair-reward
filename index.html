@@ -23,16 +23,13 @@
       background-color: var(--background);
       color: var(--foreground);
       font-family: 'Poppins', sans-serif;
-      background-image: 
-        linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px), 
-        linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+      background-image: linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
       background-size: 20px 20px;
-      overflow-x: hidden;
     }
 
     .brutal-card {
       background: #ffffff;
-      border: 4px solid var(--border);
+      border: 5px solid var(--border);
       box-shadow: var(--shadow);
       transition: all 0.1s ease;
     }
@@ -50,22 +47,19 @@
     }
 
     .sticker-drop { filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 1)); }
+    .custom-marker { border: 3px solid #000; box-shadow: 3px 3px 0px #000; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 
   <script>
     tailwind.config = { 
-      theme: { 
-        extend: { 
-          colors: { brandYellow: '#dcfc75', brandPink: '#e1d2f3', brandBlue: '#054ff0', mainBg: '#fcf7f5' } 
-        } 
-      } 
+      theme: { extend: { colors: { brandYellow: '#dcfc75', brandPink: '#e1d2f3', brandBlue: '#054ff0', mainBg: '#fcf7f5' } } } 
     }
   </script>
 </head>
 
-<body class="p-4 md:p-10 relative min-h-screen">
+<body class="p-4 md:p-10 min-h-screen">
   <div id="root"></div>
 
   <script type="module">
@@ -76,7 +70,6 @@
 
     const IconHome = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
     const IconMap = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>`;
-    const IconWrench = () => html`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`;
     const IconSearch = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
 
     function ChatBot({ isChatOpen, setIsChatOpen, messages, input, setInput, handleSend }) {
@@ -86,35 +79,79 @@
             <div class="w-[90vw] md:w-[400px] h-[500px] brutal-card flex flex-col mb-6 overflow-hidden bg-white max-w-sm">
               <div class="bg-black text-brandYellow p-5 font-black uppercase flex justify-between items-center border-b-4 border-black">
                 <span>TAMİR AI</span>
-                <button onClick=${() => setIsChatOpen(false)} class="text-2xl hover:scale-125 transition-transform text-white">×</button>
+                <button onClick=${() => setIsChatOpen(false)} class="text-2xl text-white">×</button>
               </div>
-              <div class="flex-grow p-4 overflow-y-auto space-y-4 bg-white/60">
-                ${messages.map(m => html`
-                  <div class="p-3 border-4 border-black font-bold text-black ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
-                    ${m.text}
-                  </div>
-                `)}
+              <div class="flex-grow p-4 overflow-y-auto space-y-4">
+                ${messages.map(m => html`<div class="p-3 border-4 border-black font-bold ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">${m.text}</div>`)}
               </div>
-              <div class="p-4 border-t-4 border-black flex gap-2 bg-white">
-                <input value=${input} onInput=${e => setInput(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSend()} class="flex-grow p-2 border-4 border-black outline-none font-bold" placeholder="Buraya yaz..." />
-                <button onClick=${() => handleSend()} class="bg-black text-white px-4 border-4 border-black font-black">SOR</button>
+              <div class="p-4 border-t-4 border-black flex gap-2">
+                <input value=${input} onInput=${e => setInput(e.target.value)} class="flex-grow p-2 border-4 border-black outline-none font-bold" />
+                <button onClick=${handleSend} class="bg-black text-white px-4 border-4 border-black font-black">SOR</button>
               </div>
             </div>
           `}
-          <button onClick=${() => setIsChatOpen(!isChatOpen)} class="bg-brandBlue text-white w-16 h-16 md:w-20 md:h-20 brutal-card flex items-center justify-center hover:scale-110 transition-transform text-3xl md:text-4xl font-black shadow-[6px_6px_0px_#000] md:shadow-[10px_10px_0px_#000] ml-auto">
-            ?
-          </button>
+          <button onClick=${() => setIsChatOpen(!isChatOpen)} class="bg-brandBlue text-white w-20 h-20 brutal-card flex items-center justify-center text-4xl font-black shadow-[10px_10px_0px_#000]">?</button>
         </div>
       `;
     }
 
-    function Map() {
+    function MapView() {
       const mapRef = useRef(null);
+      const mapInstance = useRef(null);
+      const [layers, setLayers] = useState({
+        tamirciler: { active: true, title: 'TAMİRCİLER', color: 'bg-brandYellow' },
+        kamu: { active: true, title: 'KAMU BİNALARI', color: 'bg-brandPink' }
+      });
+      const groupsRef = useRef({ tamirciler: null, kamu: null });
+
       useEffect(() => {
-        const map = window.L.map(mapRef.current).setView([40.988, 29.045], 14);
-        window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        if (!mapRef.current) return;
+        mapInstance.current = window.L.map(mapRef.current).setView([40.988, 29.045], 14);
+        window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapInstance.current);
+        
+        groupsRef.current.tamirciler = window.L.layerGroup().addTo(mapInstance.current);
+        groupsRef.current.kamu = window.L.layerGroup().addTo(mapInstance.current);
+
+        fetch('./kadikoy_map_data.json').then(res => res.json()).then(data => {
+          const createIcon = (color) => window.L.divIcon({ className: `custom-marker ${color} w-6 h-6`, iconSize: [24, 24] });
+          if (data.tamirciler) {
+            Object.entries(data.tamirciler).forEach(([cat, shops]) => {
+              shops.forEach(s => {
+                window.L.marker([s.lat, s.lon], { icon: createIcon('bg-brandYellow') })
+                  .bindPopup(`<b class="uppercase font-black">${s.name}</b><br/><span class="text-xs uppercase font-bold">${cat}</span>`).addTo(groupsRef.current.tamirciler);
+              });
+            });
+          }
+          data.kamu?.forEach(k => {
+            window.L.marker([k.lat, k.lon], { icon: createIcon('bg-brandPink') }).bindPopup(`<b class="uppercase font-black">${k.name}</b>`).addTo(groupsRef.current.kamu);
+          });
+        }).catch(err => console.error("Harita verisi yuklenemedi:", err));
+
+        return () => mapInstance.current.remove();
       }, []);
-      return html`<div ref=${mapRef} class="w-full h-[600px] brutal-card"></div>`;
+
+      useEffect(() => {
+        if (!mapInstance.current) return;
+        layers.tamirciler.active ? mapInstance.current.addLayer(groupsRef.current.tamirciler) : mapInstance.current.removeLayer(groupsRef.current.tamirciler);
+        layers.kamu.active ? mapInstance.current.addLayer(groupsRef.current.kamu) : mapInstance.current.removeLayer(groupsRef.current.kamu);
+      }, [layers]);
+
+      return html`
+        <div class="flex flex-col lg:flex-row gap-8 relative z-10">
+          <div class="w-full lg:w-[350px] brutal-card p-8 bg-white h-fit">
+            <h3 class="text-3xl font-black uppercase border-b-4 border-black pb-4 mb-8 italic">KATMANLAR</h3>
+            <div class="space-y-6">
+               ${Object.entries(layers).map(([key, l]) => html`
+                 <div class="flex items-center gap-6 cursor-pointer group" onClick=${() => setLayers(p => ({...p, [key]: {...l, active: !l.active}}))}>
+                   <div class="w-10 h-10 border-4 border-black shadow-[3px_3px_0px_#000] ${l.active ? l.color : 'bg-gray-200'}"></div>
+                   <span class="text-2xl font-black uppercase tracking-tighter">${l.title}</span>
+                 </div>
+               `)}
+            </div>
+          </div>
+          <div ref=${mapRef} class="w-full h-[600px] brutal-card overflow-hidden"></div>
+        </div>
+      `;
     }
 
     function App() {
@@ -122,15 +159,13 @@
       const [view, setView] = useState('panel');
       const [puan, setPuan] = useState(250);
       const [isChatOpen, setIsChatOpen] = useState(false);
-      const [messages, setMessages] = useState([{ role: 'bot', text: 'Merhaba bugün neyi tamir ediyoruz! :)' }]);
+      const [messages, setMessages] = useState([{ role: 'bot', text: 'Merhaba! Bugün neyi tamir ediyoruz?' }]);
       const [chatInput, setChatInput] = useState('');
-      const [matchCategory, setMatchCategory] = useState('');
-      const [matchDesc, setMatchDesc] = useState('');
 
       const tamirciIsleri = [
-        { id: 1, baslik: 'Kırık Ekran', kategori: 'Elektronik', musteri: 'Ahmet Y.', konum: 'Moda Sahil (300m)', aciliyet: 'Yüksek', ucret: '500 Puan', img: 'telefon.png' },
-        { id: 2, baslik: 'Fermuar Değişimi', kategori: 'Tekstil', musteri: 'Zeynep K.', konum: 'Yeldeğirmeni (1.2km)', aciliyet: 'Orta', ucret: '150 Puan', img: 'dikiş makinesi.png' },
-        { id: 3, baslik: 'Vites Ayarı', kategori: 'Bisiklet', musteri: 'Can B.', konum: 'Osmanağa (800m)', aciliyet: 'Düşük', ucret: '200 Puan', img: 'bisiklet.png' }
+        { id: 1, baslik: 'Kırık Ekran', kategori: 'Elektronik', musteri: 'Ahmet Y.', konum: 'Moda Sahil', aciliyet: 'Yüksek', ucret: '500 Puan', img: 'telefon.png' },
+        { id: 2, baslik: 'Fermuar Değişimi', kategori: 'Tekstil', musteri: 'Zeynep K.', konum: 'Yeldeğirmeni', aciliyet: 'Orta', ucret: '150 Puan', img: 'dikiş makinesi.png' },
+        { id: 3, baslik: 'Vites Ayarı', kategori: 'Bisiklet', musteri: 'Can B.', konum: 'Osmanağa', aciliyet: 'Düşük', ucret: '200 Puan', img: 'bisiklet.png' }
       ];
 
       const sonTamirlerData = [
@@ -157,13 +192,10 @@
       if (!auth.loggedIn) {
         return html`
           <div class="min-h-screen flex flex-col items-center justify-center p-4">
-             <h1 class="text-6xl md:text-8xl font-black uppercase tracking-tighter text-center mb-12">TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL</h1>
+             <h1 class="text-7xl md:text-9xl font-black uppercase tracking-tighter text-center mb-12">TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL</h1>
              <div class="brutal-card p-10 bg-white max-w-md w-full text-center space-y-6">
-                <h2 class="text-3xl font-black uppercase bg-brandYellow inline-block px-4 py-1 border-4 border-black">GİRİŞ YAP</h2>
-                <div class="space-y-4 pt-4">
-                  <button onClick=${() => setAuth({loggedIn: true, role: 'musteri'})} class="w-full brutal-btn bg-brandPink p-6 font-black text-2xl uppercase flex justify-between items-center group">MÜŞTERİ <span class="group-hover:scale-125 transition-transform">🙋🏻‍♀️</span></button>
-                  <button onClick=${() => setAuth({loggedIn: true, role: 'tamirci'})} class="w-full brutal-btn bg-brandBlue text-white p-6 font-black text-2xl uppercase flex justify-between items-center group">TAMİRCİ <span class="group-hover:scale-125 transition-transform">🔧</span></button>
-                </div>
+                <button onClick=${() => setAuth({loggedIn: true, role: 'musteri'})} class="w-full brutal-btn bg-brandPink p-6 font-black text-2xl uppercase group">MÜŞTERİ <span class="group-hover:scale-125 transition-transform">🙋🏻‍♀️</span></button>
+                <button onClick=${() => setAuth({loggedIn: true, role: 'tamirci'})} class="w-full brutal-btn bg-brandBlue text-white p-6 font-black text-2xl uppercase group">TAMİRCİ <span class="group-hover:scale-125 transition-transform">🔧</span></button>
              </div>
           </div>
         `;
@@ -172,12 +204,12 @@
       if (auth.role === 'tamirci') {
         return html`
           <div class="max-w-7xl mx-auto space-y-12">
-            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b-8 border-black pb-8 mt-4">
-              <h1 class="text-5xl md:text-7xl font-black uppercase leading-[0.8]">USTA<br/><span class="text-brandBlue">PANELİ</span></h1>
-              <button onClick=${() => setAuth({loggedIn: false, role: null})} class="bg-white border-4 border-black px-6 py-3 font-black uppercase text-xl brutal-btn">ÇIKIŞ YAP</button>
+            <header class="flex justify-between items-center border-b-8 border-black pb-8 mt-4">
+              <h1 class="text-6xl font-black uppercase leading-[0.8]">USTA<br/><span class="text-brandBlue">PANELİ</span></h1>
+              <button onClick=${() => setAuth({loggedIn: false, role: null})} class="bg-white border-4 border-black px-6 py-3 font-black uppercase text-xl brutal-btn">ÇIKIŞ</button>
             </header>
             <main class="space-y-10">
-              <div class="inline-block bg-black text-white px-6 py-3 text-3xl font-black uppercase border-4 border-black shadow-[4px_4px_0px_#e1d2f3]">YAKINDAKİ İŞLER</div>
+              <h2 class="inline-block bg-black text-white px-6 py-3 text-3xl font-black uppercase border-4 border-black">YAKINDAKİ İŞLER</h2>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                 ${tamirciIsleri.map(is => html`
                   <div class="brutal-card p-8 flex flex-col bg-white border-[5px]">
@@ -185,11 +217,11 @@
                       <span class="bg-brandPink border-2 border-black px-4 py-1 font-black text-xs uppercase">${is.kategori}</span>
                       <span class="bg-mainBg border-2 border-black px-2 py-1 font-bold text-[10px] uppercase">${is.konum}</span>
                     </div>
-                    <div class="flex flex-row items-center mb-8 gap-6 border-b-4 border-black pb-6">
+                    <div class="flex flex-row items-center mb-8 gap-4 border-b-4 border-black pb-6">
                       <img src="${is.img}" class="w-32 h-32 object-contain sticker-drop shrink-0" />
-                      <h3 class="text-3xl font-black uppercase leading-tight">${is.baslik}</h3>
+                      <h3 class="text-2xl md:text-3xl font-black uppercase leading-tight">${is.baslik}</h3>
                     </div>
-                    <p class="font-bold mb-6 uppercase">Müşteri: ${is.musteri}</p>
+                    <p class="font-bold mb-6 uppercase text-sm">Müşteri: ${is.musteri}</p>
                     <div class="mt-auto space-y-4">
                       <div class="flex justify-between items-center bg-brandYellow border-4 border-black p-4">
                         <span class="font-black text-2xl text-brandBlue italic">${is.ucret}</span>
@@ -231,22 +263,16 @@
                     <div class="text-[8rem] md:text-[10rem] font-black leading-none italic">${puan}</div>
                   </div>
                   <div class="brutal-card p-10 bg-white flex flex-col items-center justify-center border-[6px]">
-                     <div class="bg-white border-4 border-black p-4 mb-6 shadow-[6px_6px_0px_#000]">
-                        <canvas id="user-qr-code"></canvas>
-                     </div>
+                     <div class="bg-white border-4 border-black p-4 mb-6 shadow-[6px_6px_0px_#000]"><canvas id="user-qr-code"></canvas></div>
                      <p class="bg-black text-white px-6 py-3 font-black text-xl md:text-2xl uppercase shadow-[6px_6px_0px_#dcfc75]">TAMIR-2026-ILGIN</p>
                   </div>
                 </div>
-
                 <div class="brutal-card p-10 bg-white space-y-8 flex flex-col border-[6px]">
                   <div class="bg-brandYellow border-4 border-black px-6 py-3 font-black text-3xl uppercase inline-block italic shadow-[4px_4px_0px_#000]">🔧 SON TAMİRLER</div>
                   <div class="flex-grow space-y-6">
                     ${sonTamirlerData.map(item => html`
                       <div class="border-4 border-black p-5 flex justify-between items-center ${item.bg} shadow-[4px_4px_0px_#000]">
-                        <div>
-                          <h4 class="text-2xl font-black uppercase text-black leading-tight">${item.isim}</h4>
-                          <span class="text-sm font-bold opacity-60 uppercase text-black">${item.konum} • ${item.tarih}</span>
-                        </div>
+                        <div><h4 class="text-2xl font-black uppercase text-black leading-tight">${item.isim}</h4><span class="text-sm font-bold opacity-60 uppercase text-black">${item.konum} • ${item.tarih}</span></div>
                         <div class="bg-brandYellow border-4 border-black px-4 py-2 font-black text-2xl text-black">+${item.puan}</div>
                       </div>
                     `)}
@@ -254,27 +280,8 @@
                 </div>
               </div>
             `}
-
-            ${view === 'ustalar' && html`
-              <div class="max-w-4xl mx-auto brutal-card p-10 bg-white space-y-8 border-[6px]">
-                <h2 class="text-5xl font-black uppercase text-center mb-8">USTANLA EŞLEŞ</h2>
-                <div>
-                  <h3 class="text-2xl font-black mb-4 uppercase">1. Kategori Seç</h3>
-                  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    ${['Elektronik', 'Mobilya', 'Tekstil', 'Bisiklet'].map(cat => html`
-                      <button onClick=${() => setMatchCategory(cat)} class="border-4 border-black p-4 font-black uppercase ${matchCategory === cat ? 'bg-brandPink' : 'bg-mainBg'}">${cat}</button>
-                    `)}
-                  </div>
-                </div>
-                <div>
-                  <h3 class="text-2xl font-black mb-4 uppercase">2. Sorunu Anlat</h3>
-                  <textarea onInput=${e => setMatchDesc(e.target.value)} class="w-full border-4 border-black p-4 h-32 outline-none font-bold" placeholder="Neyi tamir ediyoruz?"></textarea>
-                </div>
-                <button onClick=${() => handleSend()} class="w-full bg-brandYellow border-4 border-black p-6 font-black text-3xl uppercase brutal-btn flex justify-center items-center gap-4"><${IconWrench} /> USTA BUL</button>
-              </div>
-            `}
-            
-            ${view === 'merkezler' && html`<${Map} />`}
+            ${view === 'ustalar' && html`<div class="max-w-4xl mx-auto brutal-card p-10 bg-white border-[6px] text-center space-y-8"><h2 class="text-5xl font-black uppercase">USTANLA EŞLEŞ</h2><button onClick=${handleSend} class="w-full bg-brandYellow border-4 border-black p-6 font-black text-3xl uppercase brutal-btn">EN YAKIN USTAYI BUL</button></div>`}
+            ${view === 'merkezler' && html`<${MapView} />`}
           </main>
           <${ChatBot} isChatOpen=${isChatOpen} setIsChatOpen=${setIsChatOpen} messages=${messages} input=${chatInput} setInput=${setChatInput} handleSend=${handleSend} />
         </div>
