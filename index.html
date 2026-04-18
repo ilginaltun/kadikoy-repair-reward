@@ -24,7 +24,6 @@
       background-color: var(--background);
       color: var(--foreground);
       font-family: 'Poppins', sans-serif;
-      /* Kareler küçültüldü (20px) ve opacity (0.1) ile yumuşatıldı */
       background-image: 
         linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px), 
         linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
@@ -288,6 +287,9 @@
     }
 
     function App() {
+      // YENİ EKLENEN KISIM: Yetkilendirme Durumu
+      const [auth, setAuth] = useState({ loggedIn: false, role: null }); // role: 'musteri' | 'tamirci'
+
       const [view, setView] = useState('panel');
       const [puan, setPuan] = useState(250);
       const [kullanilanlar, setKullanilanlar] = useState([]);
@@ -318,7 +320,15 @@
         setView('merkezler');
       };
 
-      useEffect(() => { if (view === 'panel') { setTimeout(() => { const canvas = document.getElementById('user-qr-code'); if (canvas) window.QRCode.toCanvas(canvas, "TAMIR-2026-ILGIN", { width: 200, margin: 1, color: { dark: '#000000', light: '#ffffff' } }); }, 100); } }, [view]);
+      // Yalnızca kullanıcı Müşteri olarak giriş yapmışsa ve paneldeyse QR kodu oluştur
+      useEffect(() => { 
+        if (auth.loggedIn && auth.role === 'musteri' && view === 'panel') { 
+          setTimeout(() => { 
+            const canvas = document.getElementById('user-qr-code'); 
+            if (canvas) window.QRCode.toCanvas(canvas, "TAMIR-2026-ILGIN", { width: 200, margin: 1, color: { dark: '#000000', light: '#ffffff' } }); 
+          }, 100); 
+        } 
+      }, [view, auth]);
 
       const handleSend = async (customMsg = null) => {
         const msgToSend = customMsg || chatInput;
@@ -365,7 +375,7 @@
         if (kullanilanlar.includes(kampanya.id) || puan < kampanya.points) return;
         setPuan(prevPuan => prevPuan - kampanya.points);
         setKullanilanlar(prev => [...prev, kampanya.id]);
-        alert(`Tebrikler Ilgın! ${kampanya.title} ödülünü başarıyla aldın. Yeni puanın: ${puan - kampanya.points}`);
+        alert(`Tebrikler! ${kampanya.title} ödülünü başarıyla aldın. Yeni puanın: ${puan - kampanya.points}`);
       };
 
       const kampanyalarData = [
@@ -373,22 +383,109 @@
         { id: 2, tag: 'Müzik', title: 'KADIKÖY SAHNE', desc: '%50 İndirimli Konser Girişi', points: 200, color: 'bg-brandPink' },
         { id: 3, tag: 'Kafe', title: 'BİNA CAFE', desc: 'Ücretsiz Kahve & Pasta', points: 100, color: 'bg-brandBlue text-white' },
         { id: 4, tag: 'Sanat', title: 'SÜREYYA OPERASI', desc: 'Tek Kişilik Temsil Bileti', points: 400, color: 'bg-brandYellow' },
-        { id: 5, tag: 'Ulaşım', title: 'MODA İSKELESİ', desc: '2 Adet Ücretsiz Vapur Geçişi', points: 120, color: 'bg-brandPink' },
-        { id: 6, tag: 'Kitap', title: '6:45 SAHAF', desc: '200 TL Değerinde Kitap Çeki', points: 250, color: 'bg-brandBlue text-white' },
-        { id: 7, tag: 'Tamir', title: 'MODA BİSİKLET', desc: 'Ücretsiz Bisiklet Bakımı', points: 150, color: 'bg-brandYellow' },
-        { id: 8, tag: 'Atölye', title: 'İKLİM MERKEZİ', desc: 'Kompost Atölyesi Katılımı', points: 180, color: 'bg-brandPink' },
-        { id: 9, tag: 'Sıfır Atık', title: 'DÜKKAN KADIKÖY', desc: 'Sürdürülebilir Bez Çanta', points: 220, color: 'bg-brandBlue text-white' },
-        { id: 10, tag: 'Gıda', title: 'YELDEĞİRMENİ FIRINI', desc: 'Atıksız Atıştırmalık Kutusu', points: 80, color: 'bg-brandYellow' }
+        { id: 5, tag: 'Tamir', title: 'MODA BİSİKLET', desc: 'Ücretsiz Bisiklet Bakımı', points: 150, color: 'bg-brandYellow' }
       ];
 
       const sonTamirlerData = [
         { id: 1, isim: 'TOST MAKİNESİ', konum: 'Moda Merkezi', tarih: '2026-03-25', puan: 50, bg: 'bg-mainBg', text: 'text-black' },
         { id: 2, isim: 'SANDALYE', konum: 'Yeldeğirmeni Merkezi', tarih: '2026-03-12', puan: 150, bg: 'bg-brandPink', text: 'text-black' },
-        { id: 3, isim: 'BİSİKLET FRENİ', konum: 'Moda Sahili', tarih: '2026-02-18', puan: 80, bg: 'bg-mainBg', text: 'text-black' },
-        { id: 4, isim: 'PORTAFİLTRE ESPRESSO MAK.', konum: 'Osmanağa Evi', tarih: '2026-01-27', puan: 200, bg: 'bg-brandBlue', text: 'text-white' },
-        { id: 5, isim: 'MASA LAMBASI', konum: 'Hasanpaşa Atölyesi', tarih: '2026-01-05', puan: 40, bg: 'bg-mainBg', text: 'text-black' }
+        { id: 3, isim: 'BİSİKLET FRENİ', konum: 'Moda Sahili', tarih: '2026-02-18', puan: 80, bg: 'bg-mainBg', text: 'text-black' }
       ];
 
+      // Tamirciler İçin Örnek Veri Modeli
+      const tamirciIsleri = [
+        { id: 1, baslik: 'Kırık Ekran', kategori: 'Elektronik', musteri: 'Ahmet Y.', konum: 'Moda Sahil (300m)', aciliyet: 'Yüksek', ucret: '500 Puan', img: '📱' },
+        { id: 2, baslik: 'Fermuar Değişimi', kategori: 'Tekstil', musteri: 'Zeynep K.', konum: 'Yeldeğirmeni (1.2km)', aciliyet: 'Orta', ucret: '150 Puan', img: '🧵' },
+        { id: 3, baslik: 'Vites Ayarı', kategori: 'Bisiklet', musteri: 'Can B.', konum: 'Osmanağa (800m)', aciliyet: 'Düşük', ucret: '200 Puan', img: '🚲' }
+      ];
+
+      // GİRİŞ EKRANI (LOGGED IN FALSE İSE GÖRÜNECEK YER)
+      if (!auth.loggedIn) {
+        return html`
+          <div class="min-h-[80vh] flex items-center justify-center relative z-10 flex-col space-y-12">
+            <div class="text-center">
+              <h1 class="text-6xl md:text-9xl font-black tracking-tighter uppercase leading-[0.8] text-black drop-shadow-md">
+                TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL
+              </h1>
+            </div>
+            
+            <div class="brutal-card p-8 md:p-12 bg-white max-w-lg w-full space-y-8 text-center border-[6px]">
+              <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tighter bg-brandYellow px-4 py-2 border-4 border-black inline-block transform -rotate-2">
+                GİRİŞ YAP
+              </h2>
+              <p class="font-bold text-xl mb-8">Lütfen devam etmek istediğin profili seç:</p>
+              
+              <button onClick=${() => setAuth({loggedIn: true, role: 'musteri'})} class="w-full bg-brandPink text-black border-4 border-black p-4 md:p-6 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-between items-center group">
+                <span>MÜŞTERİ</span>
+                <span class="text-4xl group-hover:scale-125 transition-transform">🙋🏻‍♀️</span>
+              </button>
+              
+              <button onClick=${() => setAuth({loggedIn: true, role: 'tamirci'})} class="w-full bg-brandBlue text-white border-4 border-black p-4 md:p-6 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-between items-center group">
+                <span>TAMİRCİ</span>
+                <span class="text-4xl group-hover:scale-125 transition-transform">🔧</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      // USTA (TAMİRCİ) EKRANI 
+      if (auth.role === 'tamirci') {
+        return html`
+          <div class="max-w-7xl mx-auto space-y-8 md:space-y-12 relative z-10">
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b-8 border-black pb-6 md:pb-8 mt-4">
+              <h1 class="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-[0.8] text-black">
+                USTA<br/><span class="text-brandBlue">PANELİ</span>
+              </h1>
+              <div class="flex gap-4 w-full md:w-auto">
+                <div class="flex-1 md:flex-none bg-brandYellow text-black border-4 border-black px-6 py-3 font-black uppercase text-xl text-center shadow-[4px_4px_0px_#000]">AKTİF</div>
+                <button onClick=${() => setAuth({loggedIn: false, role: null})} class="flex-1 md:flex-none bg-white text-black border-4 border-black px-6 py-3 font-black uppercase text-xl brutal-btn">ÇIKIŞ YAP</button>
+              </div>
+            </header>
+
+            <main class="space-y-8">
+               <div class="inline-block relative">
+                 <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                 <h2 class="relative bg-black text-white px-6 py-3 text-3xl md:text-4xl font-black uppercase tracking-tighter border-4 border-black">
+                   YAKINDAKİ İŞLER
+                 </h2>
+               </div>
+               
+               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                  ${tamirciIsleri.map(is => html`
+                    <div class="brutal-card bg-white p-6 flex flex-col justify-between border-[5px] hover:-translate-y-2 transition-transform cursor-pointer">
+                      <div>
+                        <div class="flex justify-between items-start mb-4">
+                          <span class="bg-brandPink text-black font-black px-3 py-1 text-sm border-2 border-black uppercase">${is.kategori}</span>
+                          <span class="bg-mainBg font-bold text-xs px-2 py-1 border-2 border-black">${is.konum}</span>
+                        </div>
+                        <div class="flex gap-4 items-center mb-4">
+                          <div class="text-5xl">${is.img}</div>
+                          <h3 class="text-2xl md:text-3xl font-black uppercase leading-none">${is.baslik}</h3>
+                        </div>
+                        <p class="font-bold text-gray-600 mb-6 border-b-2 border-dashed border-gray-300 pb-4">Müşteri: ${is.musteri}</p>
+                      </div>
+                      <div class="space-y-4">
+                        <div class="flex justify-between items-center bg-mainBg p-3 border-4 border-black">
+                          <span class="font-black text-xl text-brandBlue">${is.ucret}</span>
+                          <span class="${is.aciliyet === 'Yüksek' ? 'text-red-600 animate-pulse' : 'text-black'} font-black uppercase">${is.aciliyet} ACİL</span>
+                        </div>
+                        <div class="flex gap-2 mt-4">
+                          <button class="w-2/3 bg-brandYellow text-black border-4 border-black p-3 font-black text-lg uppercase brutal-btn shadow-[4px_4px_0px_#000]">İŞİ AL</button>
+                          <button class="w-1/3 bg-white text-black border-4 border-black p-3 font-black text-lg uppercase hover:bg-gray-200 transition-colors">PAS</button>
+                        </div>
+                      </div>
+                    </div>
+                  `)}
+               </div>
+            </main>
+            
+            <${ChatBot} isChatOpen=${isChatOpen} setIsChatOpen=${setIsChatOpen} messages=${messages} input=${chatInput} setInput=${setChatInput} handleSend=${handleSend} allShops=${allShops} onShopClick=${handleShopSelect} />
+          </div>
+        `;
+      }
+
+      // MÜŞTERİ EKRANI (Aşağısı önceki orijinal içeriğindir, sadece çıkış butonu eklendi)
       return html`
         <img src="1.png" alt="Yıldız Yer Tutucu" class="absolute pointer-events-none sticker-drop w-16 md:w-28 top-5 left-[-10px] md:left-[5%] rotate-[-15deg] z-0 md:z-50 opacity-40 md:opacity-90" />
         <img src="2.png" alt="Kazan Yer Tutucu" class="hidden md:block absolute pointer-events-none sticker-drop w-40 top-32 left-[-20px] rotate-[10deg] z-50" />
@@ -426,11 +523,13 @@
               <button onClick=${() => setView('kampanyalar')} class="flex items-center justify-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 brutal-btn font-black text-xl md:text-2xl uppercase whitespace-nowrap ${view === 'kampanyalar' ? 'bg-black text-white' : 'bg-white text-black'}">
                 <${IconGift} /> Kampanyalar
               </button>
+              
               <button onClick=${() => setView('merkezler')} class="flex items-center justify-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 brutal-btn font-black text-xl md:text-2xl uppercase whitespace-nowrap ${view === 'merkezler' ? 'bg-black text-white' : 'bg-white text-black'}">
                 <${IconMap} /> Merkezler
               </button>
-              <button onClick=${() => setView('yetkili')} class="px-4 md:px-6 py-3 md:py-4 brutal-btn font-black text-xl md:text-2xl uppercase whitespace-nowrap bg-white text-brandBlue">
-                Yetkili
+              
+              <button onClick=${() => setAuth({loggedIn: false, role: null})} class="px-4 md:px-6 py-3 md:py-4 brutal-btn font-black text-xl md:text-2xl uppercase whitespace-nowrap bg-white text-red-600">
+                ÇIKIŞ YAP
               </button>
             </nav>
           </header>
@@ -558,14 +657,6 @@
                     `
                   })}
                 </div>
-              </div>
-            `}
-            
-            ${view === 'yetkili' && html`
-              <div class="max-w-md mx-auto brutal-card p-6 md:p-10 bg-white">
-                <h2 class="text-3xl md:text-4xl font-black mb-4 md:mb-6 uppercase text-brandBlue text-center">Yetkili Girişi</h2>
-                <input type="password" placeholder="PIN" class="w-full p-3 md:p-4 border-4 border-black mb-4 font-black text-xl md:text-2xl text-center text-black" />
-                <button class="w-full bg-black text-white p-3 md:p-4 font-black text-xl md:text-2xl border-4 border-black shadow-[4px_4px_0px_#000]">GİRİŞ</button>
               </div>
             `}
           </main>
