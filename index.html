@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kadıköy Tamir & Ödül v4.0</title>
+  <title>Kadıköy Tamir & Ödül v4.0 - Usta Eşleşme</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -14,6 +14,7 @@
   <style>
     :root {
       --background: #fcf7f5;
+      --secondary-background: #ffffff;
       --foreground: #000000;
       --border: #000000;
       --shadow: 8px 8px 0px 0px var(--border);
@@ -23,13 +24,16 @@
       background-color: var(--background);
       color: var(--foreground);
       font-family: 'Poppins', sans-serif;
-      background-image: linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+      background-image: 
+        linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px), 
+        linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
       background-size: 20px 20px;
+      overflow-x: hidden;
     }
 
     .brutal-card {
-      background: #ffffff;
-      border: 5px solid var(--border);
+      background: var(--secondary-background);
+      border: 4px solid var(--border);
       box-shadow: var(--shadow);
       transition: all 0.1s ease;
     }
@@ -38,7 +42,6 @@
       border: 4px solid #000;
       box-shadow: 6px 6px 0px 0px #000;
       transition: all 0.1s ease;
-      cursor: pointer;
     }
 
     .brutal-btn:active {
@@ -46,20 +49,70 @@
       box-shadow: 2px 2px 0px 0px #000;
     }
 
-    .sticker-drop { filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 1)); }
-    .custom-marker { border: 3px solid #000; box-shadow: 3px 3px 0px #000; }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .leaflet-container {
+      border: 4px solid #000 !important;
+      background: #fff !important;
+    }
+
+    .map-checkbox {
+      appearance: none;
+      background: #fff;
+      width: 2.2rem;
+      height: 2.2rem;
+      border: 4px solid #000;
+      display: grid;
+      place-content: center;
+      cursor: pointer;
+    }
+
+    .map-checkbox:checked::before {
+      content: "";
+      width: 1.2rem;
+      height: 1.2rem;
+      background: #000;
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .sticker-drop {
+      filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 1));
+    }
+
+    @keyframes pulse-marker {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0px #054ff0; }
+      50% { transform: scale(1.5); box-shadow: 0 0 25px #054ff0; }
+    }
+    .pulse-marker {
+      animation: pulse-marker 1.2s ease-in-out infinite;
+      border-radius: 0;
+    }
   </style>
 
   <script>
     tailwind.config = { 
-      theme: { extend: { colors: { brandYellow: '#dcfc75', brandPink: '#e1d2f3', brandBlue: '#054ff0', mainBg: '#fcf7f5' } } } 
+      theme: { 
+        extend: { 
+          colors: { 
+            brandYellow: '#dcfc75', 
+            brandPink: '#e1d2f3', 
+            brandBlue: '#054ff0',
+            mainBg: '#fcf7f5'
+          } 
+        } 
+      } 
     }
   </script>
 </head>
 
-<body class="p-4 md:p-10 min-h-screen">
+<body class="p-4 md:p-10 relative min-h-screen">
   <div id="root"></div>
 
   <script type="module">
@@ -69,221 +122,555 @@
     const html = htm.bind(h);
 
     const IconHome = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+    const IconGift = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>`;
     const IconMap = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>`;
+    const IconWrench = () => html`<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`;
     const IconSearch = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
 
-    function ChatBot({ isChatOpen, setIsChatOpen, messages, input, setInput, handleSend }) {
+    function renderMessageWithShops(text, allShops, onShopClick) {
+      if (!allShops.length) return text;
+      const sortedShops = [...allShops].sort((a, b) => b.name.length - a.name.length);
+      let segments = [{ type: 'text', value: text }];
+      for (const shop of sortedShops) {
+        const newSegments = [];
+        for (const seg of segments) {
+          if (seg.type !== 'text') { newSegments.push(seg); continue; }
+          const idx = seg.value.toLowerCase().indexOf(shop.name.toLowerCase());
+          if (idx === -1) { newSegments.push(seg); continue; }
+          if (idx > 0) newSegments.push({ type: 'text', value: seg.value.slice(0, idx) });
+          newSegments.push({ type: 'shop', value: seg.value.slice(idx, idx + shop.name.length), shop });
+          const rest = seg.value.slice(idx + shop.name.length);
+          if (rest) newSegments.push({ type: 'text', value: rest });
+        }
+        segments = newSegments;
+      }
+      return segments.map(seg =>
+        seg.type === 'shop'
+          ? html`<span onClick=${(e) => { e.stopPropagation(); onShopClick(seg.shop); }}
+              class="underline decoration-2 cursor-pointer text-brandBlue hover:bg-brandPink inline-flex items-center gap-1"
+              title="Haritada göster">📍 ${seg.value}</span>`
+          : seg.value
+      );
+    }
+
+    function ChatBot({ isChatOpen, setIsChatOpen, messages, input, setInput, handleSend, allShops, onShopClick }) {
       return html`
         <div class="fixed bottom-10 right-5 md:right-10 z-[9999]">
           ${isChatOpen && html`
             <div class="w-[90vw] md:w-[400px] h-[500px] brutal-card flex flex-col mb-6 overflow-hidden bg-white max-w-sm">
               <div class="bg-black text-brandYellow p-5 font-black uppercase flex justify-between items-center border-b-4 border-black">
                 <span>TAMİR AI</span>
-                <button onClick=${() => setIsChatOpen(false)} class="text-2xl text-white">×</button>
+                <button onClick=${() => setIsChatOpen(false)} class="text-2xl hover:scale-125 transition-transform text-white">×</button>
               </div>
-              <div class="flex-grow p-4 overflow-y-auto space-y-4">
-                ${messages.map(m => html`<div class="p-3 border-4 border-black font-bold ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">${m.text}</div>`)}
+              <div class="flex-grow p-4 overflow-y-auto space-y-4 bg-white/60">
+                ${messages.map(m => html`
+                  <div class="p-3 border-4 border-black font-bold text-black ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
+                    ${m.role === 'bot' ? renderMessageWithShops(m.text, allShops, onShopClick) : m.text}
+                  </div>
+                `)}
               </div>
-              <div class="p-4 border-t-4 border-black flex gap-2">
-                <input value=${input} onInput=${e => setInput(e.target.value)} class="flex-grow p-2 border-4 border-black outline-none font-bold" />
-                <button onClick=${handleSend} class="bg-black text-white px-4 border-4 border-black font-black">SOR</button>
+              <div class="p-4 border-t-4 border-black flex gap-2 bg-white">
+                <input value=${input} onInput=${e => setInput(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSend()} 
+                       class="flex-grow p-2 border-4 border-black outline-none font-bold" placeholder="Buraya yaz..." />
+                <button onClick=${() => handleSend()} class="bg-black text-white px-4 border-4 border-black font-black">SOR</button>
               </div>
             </div>
           `}
-          <button onClick=${() => setIsChatOpen(!isChatOpen)} class="bg-brandBlue text-white w-20 h-20 brutal-card flex items-center justify-center text-4xl font-black shadow-[10px_10px_0px_#000]">?</button>
+          <button onClick=${() => setIsChatOpen(!isChatOpen)} 
+                  class="bg-brandBlue text-white w-16 h-16 md:w-20 md:h-20 brutal-card flex items-center justify-center hover:scale-110 transition-transform text-3xl md:text-4xl font-black shadow-[6px_6px_0px_#000] md:shadow-[10px_10px_0px_#000] ml-auto">
+            ?
+          </button>
         </div>
       `;
     }
 
-    function MapView() {
+    function Map({ selectedShop, setSelectedShop }) {
       const mapRef = useRef(null);
-      const mapInstance = useRef(null);
+      const highlightRef = useRef(null);
       const [layers, setLayers] = useState({
-        tamirciler: { active: true, title: 'TAMİRCİLER', color: 'bg-brandYellow' },
-        kamu: { active: true, title: 'KAMU BİNALARI', color: 'bg-brandPink' }
+        tamirciler: { active: true, title: 'TAMİRCİLER', sub: 'Terzi / Elektronik', color: 'bg-brandYellow', shape: 'square' },
+        kamu: { active: true, title: 'KAMU BİNALARI', sub: 'İSMEK / Kütüphane', color: 'bg-brandPink', shape: 'square' },
+        buffers: { active: false, title: '400M ETKİ ALANI', sub: 'Yürüme Mesafesi', color: 'bg-brandBlue/30', shape: 'dotted' }
       });
-      const groupsRef = useRef({ tamirciler: null, kamu: null });
+      const groupsRef = useRef(null);
+      const mapInstance = useRef(null);
 
       useEffect(() => {
-        if (!mapRef.current) return;
-        mapInstance.current = window.L.map(mapRef.current).setView([40.988, 29.045], 14);
-        window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapInstance.current);
-        
-        groupsRef.current.tamirciler = window.L.layerGroup().addTo(mapInstance.current);
-        groupsRef.current.kamu = window.L.layerGroup().addTo(mapInstance.current);
+        if (!mapRef.current || mapInstance.current) return;
+        const map = window.L.map(mapRef.current).setView([40.988, 29.045], 14);
+        window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        mapInstance.current = map;
+        groupsRef.current = { tamirciler: window.L.layerGroup(), kamu: window.L.layerGroup(), buffers: window.L.layerGroup() };
 
         fetch('./kadikoy_map_data.json').then(res => res.json()).then(data => {
-          const createIcon = (color) => window.L.divIcon({ className: `custom-marker ${color} w-6 h-6`, iconSize: [24, 24] });
+          const icon = (bg, shape) => window.L.divIcon({ className: '', html: `<div class="w-7 h-7 border-4 border-black shadow-[4px_4px_0px_#000] ${bg} ${shape === 'circle' ? 'rounded-full' : ''}"></div>`, iconSize: [28, 28] });
+
           if (data.tamirciler) {
-            Object.entries(data.tamirciler).forEach(([cat, shops]) => {
-              shops.forEach(s => {
-                window.L.marker([s.lat, s.lon], { icon: createIcon('bg-brandYellow') })
-                  .bindPopup(`<b class="uppercase font-black">${s.name}</b><br/><span class="text-xs uppercase font-bold">${cat}</span>`).addTo(groupsRef.current.tamirciler);
+            Object.values(data.tamirciler).forEach(kategori => {
+              kategori.forEach(m => {
+                window.L.marker([m.lat, m.lon], { icon: icon('bg-brandYellow', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.tamirciler);
+                window.L.circle([m.lat, m.lon], { radius: 400, color: '#000', weight: 2, fillColor: '#054ff0', fillOpacity: 0.1, dashArray: '5, 10' }).addTo(groupsRef.current.buffers);
               });
             });
           }
-          data.kamu?.forEach(k => {
-            window.L.marker([k.lat, k.lon], { icon: createIcon('bg-brandPink') }).bindPopup(`<b class="uppercase font-black">${k.name}</b>`).addTo(groupsRef.current.kamu);
-          });
-        }).catch(err => console.error("Harita verisi yuklenemedi:", err));
-
-        return () => mapInstance.current.remove();
+          data.kamu?.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-brandPink', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.kamu));
+          Object.keys(layers).forEach(k => { if (layers[k].active) groupsRef.current[k].addTo(map); });
+        });
       }, []);
 
       useEffect(() => {
-        if (!mapInstance.current) return;
-        layers.tamirciler.active ? mapInstance.current.addLayer(groupsRef.current.tamirciler) : mapInstance.current.removeLayer(groupsRef.current.tamirciler);
-        layers.kamu.active ? mapInstance.current.addLayer(groupsRef.current.kamu) : mapInstance.current.removeLayer(groupsRef.current.kamu);
+        if (!mapInstance.current || !groupsRef.current) return;
+        Object.keys(layers).forEach(k => { if (layers[k].active) mapInstance.current.addLayer(groupsRef.current[k]); else mapInstance.current.removeLayer(groupsRef.current[k]); });
       }, [layers]);
 
+      useEffect(() => {
+        if (!mapInstance.current) return;
+        if (highlightRef.current) {
+          mapInstance.current.removeLayer(highlightRef.current);
+          highlightRef.current = null;
+        }
+        if (!selectedShop) return;
+
+        mapInstance.current.flyTo([selectedShop.lat, selectedShop.lon], 17, { duration: 1.5 });
+
+        const pulseIcon = window.L.divIcon({
+          className: '',
+          html: '<div class="pulse-marker" style="width:32px;height:32px;background:#054ff0;border:4px solid #000;"></div>',
+          iconSize: [32, 32]
+        });
+        highlightRef.current = window.L.marker([selectedShop.lat, selectedShop.lon], { icon: pulseIcon, zIndexOffset: 1000 })
+          .bindPopup('<b>' + selectedShop.name + '</b><br/>Kategori: ' + selectedShop.kategori)
+          .addTo(mapInstance.current);
+
+        setTimeout(() => { if (highlightRef.current) highlightRef.current.openPopup(); }, 1600);
+      }, [selectedShop]);
+
       return html`
-        <div class="flex flex-col lg:flex-row gap-8 relative z-10">
-          <div class="w-full lg:w-[350px] brutal-card p-8 bg-white h-fit">
-            <h3 class="text-3xl font-black uppercase border-b-4 border-black pb-4 mb-8 italic">KATMANLAR</h3>
-            <div class="space-y-6">
-               ${Object.entries(layers).map(([key, l]) => html`
-                 <div class="flex items-center gap-6 cursor-pointer group" onClick=${() => setLayers(p => ({...p, [key]: {...l, active: !l.active}}))}>
-                   <div class="w-10 h-10 border-4 border-black shadow-[3px_3px_0px_#000] ${l.active ? l.color : 'bg-gray-200'}"></div>
-                   <span class="text-2xl font-black uppercase tracking-tighter">${l.title}</span>
-                 </div>
-               `)}
+        <div class="flex flex-col lg:flex-row gap-12 relative z-10">
+          <div class="w-full lg:w-[450px] brutal-card p-6 md:p-10 space-y-10 bg-white/90 backdrop-blur-sm">
+            <h3 class="text-4xl md:text-6xl font-black uppercase tracking-tighter border-b-8 border-black pb-4 italic">KATMANLAR</h3>
+            ${selectedShop && html`
+              <div class="mb-6 border-b-4 border-black pb-6">
+                <h4 class="text-2xl md:text-3xl font-black uppercase tracking-tight mb-4">SEÇİLEN TAMİRCİ</h4>
+                <div
+                  onClick=${() => {
+                    if (mapInstance.current && selectedShop) {
+                      mapInstance.current.flyTo([selectedShop.lat, selectedShop.lon], 17, { duration: 1 });
+                      if (highlightRef.current) setTimeout(() => highlightRef.current.openPopup(), 1100);
+                    }
+                  }}
+                  class="cursor-pointer border-4 border-black p-4 bg-brandBlue text-white shadow-[6px_6px_0px_#000] hover:translate-y-[-2px] hover:shadow-[6px_8px_0px_#000] transition-all"
+                >
+                  <div class="text-xl md:text-2xl font-black uppercase leading-tight">${selectedShop.name}</div>
+                  <div class="text-sm md:text-base font-bold mt-2 opacity-80 uppercase">${selectedShop.kategori}</div>
+                  <div class="text-xs md:text-sm font-bold mt-2 opacity-60">📍 Haritada görmek için tıkla</div>
+                </div>
+                <button
+                  onClick=${() => setSelectedShop(null)}
+                  class="mt-3 w-full bg-black text-white border-4 border-black p-2 font-black uppercase text-base hover:bg-gray-800 transition-colors"
+                >KAPAT</button>
+              </div>
+            `}
+            <div class="space-y-8">
+              ${Object.entries(layers).map(([key, l]) => html`
+                <div class="flex items-start gap-6 cursor-pointer" onClick=${() => setLayers(p => ({ ...p, [key]: { ...l, active: !l.active } }))}>
+                  <div class="map-checkbox">${l.active && html`<div class="w-4 h-4 bg-black" style="clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%)"></div>`}</div>
+                  <div class="w-10 h-10 border-4 border-black shrink-0 shadow-[3px_3px_0px_#000] ${l.color} ${l.shape === 'circle' ? 'rounded-full' : ''} ${l.shape === 'dotted' ? 'border-dotted' : ''}"></div>
+                  <div class="flex flex-col"><span class="text-2xl md:text-3xl font-black uppercase leading-none text-black">${l.title}</span><span class="text-lg md:text-xl font-bold text-gray-500 uppercase mt-1">${l.sub}</span></div>
+                </div>
+              `)}
             </div>
           </div>
-          <div ref=${mapRef} class="w-full h-[600px] brutal-card overflow-hidden"></div>
+          <div ref=${mapRef} class="w-full h-[500px] md:h-[700px] brutal-card bg-white"></div>
         </div>
       `;
     }
 
     function App() {
-      const [auth, setAuth] = useState({ loggedIn: false, role: null });
+      // YENİ EKLENEN KISIM: Yetkilendirme Durumu
+      const [auth, setAuth] = useState({ loggedIn: false, role: null }); // role: 'musteri' | 'tamirci'
+
       const [view, setView] = useState('panel');
       const [puan, setPuan] = useState(250);
+      const [kullanilanlar, setKullanilanlar] = useState([]);
       const [isChatOpen, setIsChatOpen] = useState(false);
-      const [messages, setMessages] = useState([{ role: 'bot', text: 'Merhaba! Bugün neyi tamir ediyoruz?' }]);
+      const [messages, setMessages] = useState([{ role: 'bot', text: 'Merhaba bugün neyi tamir ediyoruz! :)' }]);
       const [chatInput, setChatInput] = useState('');
+      const [matchCategory, setMatchCategory] = useState('');
+      const [matchDesc, setMatchDesc] = useState('');
+      const [allShops, setAllShops] = useState([]);
+      const [selectedShop, setSelectedShop] = useState(null);
 
-      const tamirciIsleri = [
-        { id: 1, baslik: 'Kırık Ekran', kategori: 'Elektronik', musteri: 'Ahmet Y.', konum: 'Moda Sahil', aciliyet: 'Yüksek', ucret: '500 Puan', img: 'telefon.png' },
-        { id: 2, baslik: 'Fermuar Değişimi', kategori: 'Tekstil', musteri: 'Zeynep K.', konum: 'Yeldeğirmeni', aciliyet: 'Orta', ucret: '150 Puan', img: 'dikiş makinesi.png' },
-        { id: 3, baslik: 'Vites Ayarı', kategori: 'Bisiklet', musteri: 'Can B.', konum: 'Osmanağa', aciliyet: 'Düşük', ucret: '200 Puan', img: 'bisiklet.png' }
+      useEffect(() => {
+        fetch('./kadikoy_map_data.json')
+          .then(res => res.json())
+          .then(data => {
+            const shops = [];
+            if (data.tamirciler) {
+              Object.entries(data.tamirciler).forEach(([kategori, dukkanlar]) => {
+                dukkanlar.forEach(d => shops.push({ ...d, kategori }));
+              });
+            }
+            setAllShops(shops);
+          });
+      }, []);
+
+      const handleShopSelect = (shop) => {
+        setSelectedShop(shop);
+        setView('merkezler');
+      };
+
+      // Yalnızca kullanıcı Müşteri olarak giriş yapmışsa ve paneldeyse QR kodu oluştur
+      useEffect(() => { 
+        if (auth.loggedIn && auth.role === 'musteri' && view === 'panel') { 
+          setTimeout(() => { 
+            const canvas = document.getElementById('user-qr-code'); 
+            if (canvas) window.QRCode.toCanvas(canvas, "TAMIR-2026-ILGIN", { width: 200, margin: 1, color: { dark: '#000000', light: '#ffffff' } }); 
+          }, 100); 
+        } 
+      }, [view, auth]);
+
+      const handleSend = async (customMsg = null) => {
+        const msgToSend = customMsg || chatInput;
+        if (!msgToSend.trim()) return;
+
+        const currentHistory = [...messages];
+        setMessages(prev => [...prev, { role: 'user', text: msgToSend }]);
+        if (!customMsg) setChatInput('');
+
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: msgToSend,
+              history: currentHistory.map(m => ({
+                role: m.role === 'bot' ? 'assistant' : 'user',
+                text: m.text
+              }))
+            })
+          });
+
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          setMessages(prev => [...prev, { role: 'bot', text: data.reply }]);
+        } catch (e) {
+          setMessages(prev => [...prev, { role: 'bot', text: "Bağlantı pürüzlü kanka!" }]);
+        }
+      };
+
+      const triggerMatch = () => {
+        if (!matchCategory || !matchDesc) {
+          alert("Kanka lütfen bir kategori seçip sorunu kısaca anlat!");
+          return;
+        }
+        const query = `Kategori: ${matchCategory}. Eşyamın sorunu şu: "${matchDesc}". Bana veri tabanındaki tamircilerden en uygununu önerir misin?`;
+        setIsChatOpen(true);
+        handleSend(query);
+        setMatchDesc('');
+        setMatchCategory('');
+      };
+
+      const handleKullan = (kampanya) => {
+        if (kullanilanlar.includes(kampanya.id) || puan < kampanya.points) return;
+        setPuan(prevPuan => prevPuan - kampanya.points);
+        setKullanilanlar(prev => [...prev, kampanya.id]);
+        alert(`Tebrikler! ${kampanya.title} ödülünü başarıyla aldın. Yeni puanın: ${puan - kampanya.points}`);
+      };
+
+      const kampanyalarData = [
+        { id: 1, tag: 'Sinema', title: 'KADIKÖY SİNEMASI', desc: 'Ücretsiz Sinema Bileti', points: 300, color: 'bg-brandYellow' },
+        { id: 2, tag: 'Müzik', title: 'KADIKÖY SAHNE', desc: '%50 İndirimli Konser Girişi', points: 200, color: 'bg-brandPink' },
+        { id: 3, tag: 'Kafe', title: 'BİNA CAFE', desc: 'Ücretsiz Kahve & Pasta', points: 100, color: 'bg-brandBlue text-white' },
+        { id: 4, tag: 'Sanat', title: 'SÜREYYA OPERASI', desc: 'Tek Kişilik Temsil Bileti', points: 400, color: 'bg-brandYellow' },
+        { id: 5, tag: 'Tamir', title: 'MODA BİSİKLET', desc: 'Ücretsiz Bisiklet Bakımı', points: 150, color: 'bg-brandYellow' }
       ];
 
       const sonTamirlerData = [
-        { id: 1, isim: 'TOST MAKİNESİ', konum: 'Moda Merkezi', tarih: '2026-03-25', puan: 50, bg: 'bg-mainBg' },
-        { id: 2, isim: 'SANDALYE', konum: 'Yeldeğirmeni Merkezi', tarih: '2026-03-12', puan: 150, bg: 'bg-brandPink' },
-        { id: 3, isim: 'BİSİKLET FRENİ', konum: 'Moda Sahili', tarih: '2026-02-18', puan: 80, bg: 'bg-mainBg' }
+        { id: 1, isim: 'TOST MAKİNESİ', konum: 'Moda Merkezi', tarih: '2026-03-25', puan: 50, bg: 'bg-mainBg', text: 'text-black' },
+        { id: 2, isim: 'SANDALYE', konum: 'Yeldeğirmeni Merkezi', tarih: '2026-03-12', puan: 150, bg: 'bg-brandPink', text: 'text-black' },
+        { id: 3, isim: 'BİSİKLET FRENİ', konum: 'Moda Sahili', tarih: '2026-02-18', puan: 80, bg: 'bg-mainBg', text: 'text-black' }
       ];
 
-      useEffect(() => {
-        if (auth.loggedIn && auth.role === 'musteri' && view === 'panel') {
-          setTimeout(() => {
-            const canvas = document.getElementById('user-qr-code');
-            if (canvas) window.QRCode.toCanvas(canvas, "TAMIR-2026-ILGIN", { width: 220, margin: 1 });
-          }, 200);
-        }
-      }, [view, auth]);
+      // Tamirciler İçin Örnek Veri Modeli
+      const tamirciIsleri = [
+        { id: 1, baslik: 'Kırık Ekran', kategori: 'Elektronik', musteri: 'Ahmet Y.', konum: 'Moda Sahil (300m)', aciliyet: 'Yüksek', ucret: '500 Puan', img: 'telefon.png' },
+        { id: 2, baslik: 'Fermuar Değişimi', kategori: 'Tekstil', musteri: 'Zeynep K.', konum: 'Yeldeğirmeni (1.2km)', aciliyet: 'Orta', ucret: '150 Puan', img: 'dikiş makinesi.png' },
+        { id: 3, baslik: 'Vites Ayarı', kategori: 'Bisiklet', musteri: 'Can B.', konum: 'Osmanağa (800m)', aciliyet: 'Düşük', ucret: '200 Puan', img: 'bisiklet.png' }
+      ];
 
-      const handleSend = () => {
-        if (!chatInput.trim()) return;
-        setMessages([...messages, { role: 'user', text: chatInput }]);
-        setChatInput('');
-      };
-
+      // GİRİŞ EKRANI (LOGGED IN FALSE İSE GÖRÜNECEK YER)
       if (!auth.loggedIn) {
         return html`
-          <div class="min-h-screen flex flex-col items-center justify-center p-4">
-             <h1 class="text-7xl md:text-9xl font-black uppercase tracking-tighter text-center mb-12">TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL</h1>
-             <div class="brutal-card p-10 bg-white max-w-md w-full text-center space-y-6">
-                <button onClick=${() => setAuth({loggedIn: true, role: 'musteri'})} class="w-full brutal-btn bg-brandPink p-6 font-black text-2xl uppercase group">MÜŞTERİ <span class="group-hover:scale-125 transition-transform">🙋🏻‍♀️</span></button>
-                <button onClick=${() => setAuth({loggedIn: true, role: 'tamirci'})} class="w-full brutal-btn bg-brandBlue text-white p-6 font-black text-2xl uppercase group">TAMİRCİ <span class="group-hover:scale-125 transition-transform">🔧</span></button>
-             </div>
+          <div class="min-h-[80vh] flex items-center justify-center relative z-10 flex-col space-y-12">
+            <div class="text-center">
+              <h1 class="text-6xl md:text-9xl font-black tracking-tighter uppercase leading-[0.8] text-black drop-shadow-md">
+                TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL
+              </h1>
+            </div>
+            
+            <div class="brutal-card p-8 md:p-12 bg-white max-w-lg w-full space-y-8 text-center border-[6px]">
+              <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tighter bg-brandYellow px-4 py-2 border-4 border-black inline-block transform -rotate-2">
+                GİRİŞ YAP
+              </h2>
+              <p class="font-bold text-xl mb-8">Lütfen devam etmek istediğin profili seç:</p>
+              
+              <button onClick=${() => setAuth({loggedIn: true, role: 'musteri'})} class="w-full bg-brandPink text-black border-4 border-black p-4 md:p-6 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-between items-center group">
+                <span>MÜŞTERİ</span>
+                <span class="text-4xl group-hover:scale-125 transition-transform">🙋🏻‍♀️</span>
+              </button>
+              
+              <button onClick=${() => setAuth({loggedIn: true, role: 'tamirci'})} class="w-full bg-brandBlue text-white border-4 border-black p-4 md:p-6 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-between items-center group">
+                <span>TAMİRCİ</span>
+                <span class="text-4xl group-hover:scale-125 transition-transform">🔧</span>
+              </button>
+            </div>
           </div>
         `;
       }
 
+      // USTA (TAMİRCİ) EKRANI 
       if (auth.role === 'tamirci') {
         return html`
-          <div class="max-w-7xl mx-auto space-y-12">
-            <header class="flex justify-between items-center border-b-8 border-black pb-8 mt-4">
-              <h1 class="text-6xl font-black uppercase leading-[0.8]">USTA<br/><span class="text-brandBlue">PANELİ</span></h1>
-              <button onClick=${() => setAuth({loggedIn: false, role: null})} class="bg-white border-4 border-black px-6 py-3 font-black uppercase text-xl brutal-btn">ÇIKIŞ</button>
-            </header>
-            <main class="space-y-10">
-              <h2 class="inline-block bg-black text-white px-6 py-3 text-3xl font-black uppercase border-4 border-black">YAKINDAKİ İŞLER</h2>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                ${tamirciIsleri.map(is => html`
-                  <div class="brutal-card p-8 flex flex-col bg-white border-[5px]">
-                    <div class="flex justify-between mb-8">
-                      <span class="bg-brandPink border-2 border-black px-4 py-1 font-black text-xs uppercase">${is.kategori}</span>
-                      <span class="bg-mainBg border-2 border-black px-2 py-1 font-bold text-[10px] uppercase">${is.konum}</span>
-                    </div>
-                    <div class="flex flex-row items-center mb-8 gap-4 border-b-4 border-black pb-6">
-                      <img src="${is.img}" class="w-32 h-32 object-contain sticker-drop shrink-0" />
-                      <h3 class="text-2xl md:text-3xl font-black uppercase leading-tight">${is.baslik}</h3>
-                    </div>
-                    <p class="font-bold mb-6 uppercase text-sm">Müşteri: ${is.musteri}</p>
-                    <div class="mt-auto space-y-4">
-                      <div class="flex justify-between items-center bg-brandYellow border-4 border-black p-4">
-                        <span class="font-black text-2xl text-brandBlue italic">${is.ucret}</span>
-                        <span class="font-black uppercase text-xs ${is.aciliyet === 'Yüksek' ? 'text-red-600 animate-pulse' : ''}">${is.aciliyet} ACİL</span>
-                      </div>
-                      <button class="w-full bg-black text-white border-4 border-black p-4 font-black text-xl uppercase brutal-btn">İŞİ AL</button>
-                    </div>
-                  </div>
-                `)}
+          <div class="max-w-7xl mx-auto space-y-8 md:space-y-12 relative z-10">
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b-8 border-black pb-6 md:pb-8 mt-4">
+              <h1 class="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-[0.8] text-black">
+                USTA<br/><span class="text-brandBlue">PANELİ</span>
+              </h1>
+              <div class="flex gap-4 w-full md:w-auto">
+                <div class="flex-1 md:flex-none bg-brandYellow text-black border-4 border-black px-6 py-3 font-black uppercase text-xl text-center shadow-[4px_4px_0px_#000]">AKTİF</div>
+                <button onClick=${() => setAuth({loggedIn: false, role: null})} class="flex-1 md:flex-none bg-white text-black border-4 border-black px-6 py-3 font-black uppercase text-xl brutal-btn">ÇIKIŞ YAP</button>
               </div>
+            </header>
+
+            <main class="space-y-8">
+               <div class="inline-block relative">
+                 <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                 <h2 class="relative bg-black text-white px-6 py-3 text-3xl md:text-4xl font-black uppercase tracking-tighter border-4 border-black">
+                   YAKINDAKİ İŞLER
+                 </h2>
+               </div>
+               
+               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                  ${tamirciIsleri.map(is => html`
+                    <div class="brutal-card bg-white p-6 flex flex-col justify-between border-[5px] hover:-translate-y-2 transition-transform cursor-pointer">
+                      <div>
+                        <div class="flex justify-between items-start mb-4">
+                          <span class="bg-brandPink text-black font-black px-3 py-1 text-sm border-2 border-black uppercase">${is.kategori}</span>
+                          <span class="bg-mainBg font-bold text-xs px-2 py-1 border-2 border-black">${is.konum}</span>
+                        </div>
+                        <div class="flex gap-4 items-center mb-4">
+                          <div class="text-5xl">${is.img}</div>
+                          <h3 class="text-2xl md:text-3xl font-black uppercase leading-none">${is.baslik}</h3>
+                        </div>
+                        <p class="font-bold text-gray-600 mb-6 border-b-2 border-dashed border-gray-300 pb-4">Müşteri: ${is.musteri}</p>
+                      </div>
+                      <div class="space-y-4">
+                        <div class="flex justify-between items-center bg-mainBg p-3 border-4 border-black">
+                          <span class="font-black text-xl text-brandBlue">${is.ucret}</span>
+                          <span class="${is.aciliyet === 'Yüksek' ? 'text-red-600 animate-pulse' : 'text-black'} font-black uppercase">${is.aciliyet} ACİL</span>
+                        </div>
+                        <div class="flex gap-2 mt-4">
+                          <button class="w-2/3 bg-brandYellow text-black border-4 border-black p-3 font-black text-lg uppercase brutal-btn shadow-[4px_4px_0px_#000]">İŞİ AL</button>
+                          <button class="w-1/3 bg-white text-black border-4 border-black p-3 font-black text-lg uppercase hover:bg-gray-200 transition-colors">PAS</button>
+                        </div>
+                      </div>
+                    </div>
+                  `)}
+               </div>
             </main>
+            
+            <${ChatBot} isChatOpen=${isChatOpen} setIsChatOpen=${setIsChatOpen} messages=${messages} input=${chatInput} setInput=${setChatInput} handleSend=${handleSend} allShops=${allShops} onShopClick=${handleShopSelect} />
           </div>
         `;
       }
 
+      // MÜŞTERİ EKRANI (Aşağısı önceki orijinal içeriğindir, sadece çıkış butonu eklendi)
       return html`
-        <div class="max-w-7xl mx-auto space-y-12">
-          <header class="flex flex-col gap-8 border-b-8 border-black pb-8 mt-4">
+        <img src="1.png" alt="Yıldız Yer Tutucu" class="absolute pointer-events-none sticker-drop w-16 md:w-28 top-5 left-[-10px] md:left-[5%] rotate-[-15deg] z-0 md:z-50 opacity-40 md:opacity-90" />
+        <img src="2.png" alt="Kazan Yer Tutucu" class="hidden md:block absolute pointer-events-none sticker-drop w-40 top-32 left-[-20px] rotate-[10deg] z-50" />
+        <img src="3.png" alt="İndirim Yer Tutucu" class="absolute pointer-events-none sticker-drop w-32 md:w-64 top-40 md:top-64 right-[-20px] md:right-[-40px] rotate-[-5deg] z-0 md:z-50 transition-opacity duration-300 ${isChatOpen ? 'opacity-0' : 'opacity-40 md:opacity-100'}" />
+        <img src="4.png" alt="Telefon Yer Tutucu" class="hidden md:block absolute pointer-events-none sticker-drop w-24 top-[500px] left-[5%] rotate-[-12deg] z-50" />
+        <img src="5.png" alt="Çiçek Yer Tutucu" class="absolute pointer-events-none sticker-drop w-12 md:w-20 top-10 right-[5%] md:right-[25%] rotate-[20deg] z-0 md:z-50 opacity-40 md:opacity-100" />
+        <img src="6.png" alt="Tamir Ettir Yer Tutucu" class="hidden md:block absolute pointer-events-none sticker-drop w-36 bottom-20 left-[-30px] rotate-[8deg] z-50" />
+        <img src="7.png" alt="Kadıköy Semti Yer Tutucu" class="hidden md:block absolute pointer-events-none sticker-drop w-48 bottom-[200px] right-[5%] rotate-[-6deg] z-0 md:z-50 transition-opacity duration-300 ${isChatOpen || view === 'merkezler' ? 'opacity-0' : 'opacity-40 md:opacity-100'}" />
+        <img src="8.png" alt="Pembe Çiçek Yer Tutucu" class="absolute pointer-events-none sticker-drop w-16 md:w-28 top-[200px] right-[10%] md:right-[40%] rotate-[-18deg] z-0 md:z-50 opacity-40 md:opacity-100" />
+
+        <div class="max-w-7xl mx-auto space-y-8 md:space-y-12 relative z-10">
+          <header class="flex flex-col gap-6 md:gap-8 border-b-8 border-black pb-6 md:pb-8">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
-              <h1 class="text-7xl font-black uppercase text-black leading-[0.8] italic">MÜŞTERİ<br/>PANELİ</h1>
-              <div class="bg-brandYellow border-4 border-black shadow-[8px_8px_0px_0px_#000] p-8 transform rotate-1 -skew-x-6 w-full md:max-w-2xl">
-                <p class="text-3xl md:text-5xl font-black uppercase leading-tight whitespace-nowrap">TAMİRİ YAP <br class="md:hidden" /> İNDİRİMİ KAP!</p>
+              <h1 class="text-6xl md:text-9xl font-black tracking-tighter uppercase leading-[0.8] shrink-0 text-left bg-mainBg/80 md:bg-transparent px-2 md:px-0 text-black">
+                TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL
+              </h1>
+              <div class="text-left md:text-right shrink-0 relative mt-2 md:mt-0 flex justify-start md:justify-end w-full md:w-auto">
+                <div class="bg-brandYellow border-4 border-black shadow-[6px_6px_0px_0px_#000] md:shadow-[8px_8px_0px_0px_#000] p-4 md:p-8 transform rotate-1 -skew-x-6 w-full md:max-w-2xl">
+                  <p class="text-3xl md:text-5xl font-black uppercase text-black leading-tight whitespace-nowrap">
+                    TAMİRİ YAP <br class="md:hidden" /> İNDİRİMİ KAP!
+                  </p>
+                </div>
               </div>
             </div>
-            <nav class="flex flex-wrap gap-4 justify-start md:justify-end">
-              <button onClick=${() => setView('panel')} class="px-8 py-4 brutal-btn font-black text-xl uppercase ${view === 'panel' ? 'bg-black text-white' : 'bg-white'}"><${IconHome} /> PANEL</button>
-              <button onClick=${() => setView('ustalar')} class="px-8 py-4 brutal-btn font-black text-xl uppercase ${view === 'ustalar' ? 'bg-black text-white' : 'bg-brandYellow'}"><${IconSearch} /> USTA BUL</button>
-              <button onClick=${() => setView('merkezler')} class="px-8 py-4 brutal-btn font-black text-xl uppercase ${view === 'merkezler' ? 'bg-black text-white' : 'bg-white'}"><${IconMap} /> HARİTA</button>
-              <button onClick=${() => setAuth({loggedIn: false, role: null})} class="px-8 py-4 brutal-btn font-black text-xl uppercase bg-white text-red-600">ÇIKIŞ</button>
+
+            <nav class="flex flex-row flex-nowrap justify-start md:justify-end overflow-x-auto w-full gap-3 md:gap-4 pb-2 hide-scrollbar">
+              <button onClick=${() => setView('panel')} class="flex items-center justify-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 brutal-btn font-black text-xl md:text-2xl uppercase whitespace-nowrap ${view === 'panel' ? 'bg-black text-white' : 'bg-white text-black'}">
+                <${IconHome} /> Panel
+              </button>
+              
+              <button onClick=${() => setView('ustalar')} class="flex items-center justify-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 brutal-btn font-black text-xl md:text-2xl uppercase whitespace-nowrap ${view === 'ustalar' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
+                <${IconSearch} /> Usta Bul
+              </button>
+
+              <button onClick=${() => setView('kampanyalar')} class="flex items-center justify-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 brutal-btn font-black text-xl md:text-2xl uppercase whitespace-nowrap ${view === 'kampanyalar' ? 'bg-black text-white' : 'bg-white text-black'}">
+                <${IconGift} /> Kampanyalar
+              </button>
+              
+              <button onClick=${() => setView('merkezler')} class="flex items-center justify-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 brutal-btn font-black text-xl md:text-2xl uppercase whitespace-nowrap ${view === 'merkezler' ? 'bg-black text-white' : 'bg-white text-black'}">
+                <${IconMap} /> Merkezler
+              </button>
+              
+              <button onClick=${() => setAuth({loggedIn: false, role: null})} class="px-4 md:px-6 py-3 md:py-4 brutal-btn font-black text-xl md:text-2xl uppercase whitespace-nowrap bg-white text-red-600">
+                ÇIKIŞ YAP
+              </button>
             </nav>
           </header>
 
           <main>
-            ${view === 'panel' && html`
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <div class="space-y-8">
-                  <div class="brutal-card p-10 bg-brandBlue text-white text-center flex flex-col justify-center border-[6px]">
-                    <h2 class="text-4xl font-black uppercase mb-4 tracking-tighter">PUANIN</h2>
-                    <div class="text-[8rem] md:text-[10rem] font-black leading-none italic">${puan}</div>
-                  </div>
-                  <div class="brutal-card p-10 bg-white flex flex-col items-center justify-center border-[6px]">
-                     <div class="bg-white border-4 border-black p-4 mb-6 shadow-[6px_6px_0px_#000]"><canvas id="user-qr-code"></canvas></div>
-                     <p class="bg-black text-white px-6 py-3 font-black text-xl md:text-2xl uppercase shadow-[6px_6px_0px_#dcfc75]">TAMIR-2026-ILGIN</p>
+            ${view === 'ustalar' && html`
+              <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
+                <div class="inline-block relative mb-4 md:mb-6">
+                  <div class="absolute inset-0 bg-brandBlue transform translate-x-1 translate-y-1 md:translate-x-2 md:translate-y-2 border-4 border-black"></div>
+                  <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">
+                    USTANLA EŞLEŞ
+                  </h2>
+                </div>
+                
+                <div class="max-w-4xl mx-auto brutal-card p-6 md:p-10 bg-white">
+                  <div class="space-y-8">
+                    <div>
+                      <h3 class="text-2xl font-black uppercase mb-4 text-black">1. Neyi Tamir Edeceğiz?</h3>
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        ${['Elektronik', 'Mobilya', 'Tekstil', 'Bisiklet'].map(cat => html`
+                          <button 
+                            onClick=${() => setMatchCategory(cat)} 
+                            class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${matchCategory === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">
+                            ${cat}
+                          </button>
+                        `)}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 class="text-2xl font-black uppercase mb-4 text-black">2. Sorun Ne?</h3>
+                      <textarea 
+                        value=${matchDesc} 
+                        onInput=${e => setMatchDesc(e.target.value)} 
+                        class="w-full border-4 border-black p-4 font-bold text-lg outline-none h-32 resize-none bg-mainBg text-black shadow-[inset_4px_4px_0px_rgba(0,0,0,0.05)] focus:shadow-[inset_4px_4px_0px_rgba(0,0,0,0.1)]" 
+                        placeholder="Örn: Ekranı kırıldı, vitesi tutmuyor, fermuarı koptu...">
+                      </textarea>
+                    </div>
+
+                    <button 
+                      onClick=${triggerMatch} 
+                      class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl md:text-3xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-center items-center gap-3">
+                      <${IconWrench} /> EN İYİ USTAYI BUL
+                    </button>
                   </div>
                 </div>
-                <div class="brutal-card p-10 bg-white space-y-8 flex flex-col border-[6px]">
-                  <div class="bg-brandYellow border-4 border-black px-6 py-3 font-black text-3xl uppercase inline-block italic shadow-[4px_4px_0px_#000]">🔧 SON TAMİRLER</div>
-                  <div class="flex-grow space-y-6">
+              </div>
+            `}
+
+            ${view === 'panel' && html`
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 text-center mt-6 md:mt-12 relative z-10">
+                <div class="flex flex-col gap-6 md:gap-8 h-full">
+                  <div class="brutal-card p-6 md:p-10 bg-brandBlue text-white relative overflow-hidden group flex-shrink-0">
+                    <h2 class="text-3xl md:text-5xl font-black mb-2 uppercase italic relative z-10">PUAN</h2>
+                    <div class="text-[7rem] md:text-[8rem] font-black leading-none relative z-10">${puan}</div>
+                  </div>
+                  <div class="brutal-card p-6 md:p-8 bg-white flex flex-col items-center justify-center flex-1">
+                     <canvas id="user-qr-code" class="relative z-10 mb-4 md:mb-6 border-[4px] md:border-[6px] border-black shadow-[4px_4px_0px_#000]"></canvas>
+                     <p class="text-xl md:text-3xl font-black uppercase bg-black text-white px-4 md:px-6 py-2 shadow-[4px_4px_0px_#000] relative z-10 text-center break-all">TAMIR-2026-ILGIN</p>
+                  </div>
+                </div>
+                <div class="brutal-card p-4 md:p-8 flex flex-col relative bg-white text-left h-full hide-scrollbar overflow-y-auto">
+                  <div class="inline-block bg-brandYellow border-4 border-black px-3 md:px-4 py-2 font-black text-xl md:text-3xl mb-6 md:mb-8 shadow-[4px_4px_0px_#000] w-max text-black">
+                    <span class="mr-2">🔧</span>SON TAMİRLER
+                  </div>
+                  <div class="flex flex-col gap-4 md:gap-5">
                     ${sonTamirlerData.map(item => html`
-                      <div class="border-4 border-black p-5 flex justify-between items-center ${item.bg} shadow-[4px_4px_0px_#000]">
-                        <div><h4 class="text-2xl font-black uppercase text-black leading-tight">${item.isim}</h4><span class="text-sm font-bold opacity-60 uppercase text-black">${item.konum} • ${item.tarih}</span></div>
-                        <div class="bg-brandYellow border-4 border-black px-4 py-2 font-black text-2xl text-black">+${item.puan}</div>
+                      <div class="border-4 border-black shadow-[4px_4px_0px_#000] p-3 md:p-4 flex justify-between items-center ${item.bg}">
+                        <div class="flex flex-col flex-1 min-w-0 pr-2 md:pr-4">
+                          <h4 class="text-lg md:text-2xl font-black uppercase ${item.text} truncate">${item.isim}</h4>
+                          <span class="${item.bg === 'bg-brandBlue' ? 'text-white/90' : 'text-gray-600'} font-bold text-[10px] md:text-sm truncate mt-1">
+                            ${item.konum} • ${item.tarih}
+                          </span>
+                        </div>
+                        <div class="bg-brandYellow border-[2px] md:border-[3px] border-black px-2 md:px-3 py-1 md:py-2 text-lg md:text-2xl font-black shrink-0 text-black shadow-[2px_2px_0px_#000]">
+                          +${item.puan}
+                        </div>
                       </div>
                     `)}
                   </div>
                 </div>
               </div>
             `}
-            ${view === 'ustalar' && html`<div class="max-w-4xl mx-auto brutal-card p-10 bg-white border-[6px] text-center space-y-8"><h2 class="text-5xl font-black uppercase">USTANLA EŞLEŞ</h2><button onClick=${handleSend} class="w-full bg-brandYellow border-4 border-black p-6 font-black text-3xl uppercase brutal-btn">EN YAKIN USTAYI BUL</button></div>`}
-            ${view === 'merkezler' && html`<${MapView} />`}
+
+            ${view === 'merkezler' && html`<${Map} selectedShop=${selectedShop} setSelectedShop=${setSelectedShop} />`}
+            
+            ${view === 'kampanyalar' && html`
+              <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
+                <div class="inline-block relative mb-4 md:mb-6">
+                  <div class="absolute inset-0 bg-brandYellow transform translate-x-1 translate-y-1 md:translate-x-2 md:translate-y-2 border-4 border-black"></div>
+                  <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">
+                    ÖDÜLLERİ KULLAN
+                  </h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
+                  ${kampanyalarData.map(k => {
+                    const isUsed = kullanilanlar.includes(k.id);
+                    const isLocked = puan < k.points;
+                    const buttonText = isUsed ? 'KULLANILDI' : (isLocked ? 'KİLİTLİ' : 'KULLAN');
+                    const buttonClass = (isUsed || isLocked)
+                      ? 'bg-[#c0c0c0] text-gray-600 cursor-not-allowed'
+                      : 'bg-brandYellow text-black active:translate-y-1 active:translate-x-1 active:shadow-none transition-all shadow-[2px_2px_0px_0px_#000] md:shadow-[3px_3px_0px_0px_#000]';
+
+                    return html`
+                      <div class="border-[4px] md:border-[6px] border-black shadow-[4px_4px_0px_0px_#000] md:shadow-[8px_8px_0px_0px_#000] p-4 md:p-6 flex flex-col relative ${k.color} transition-transform hover:-translate-y-1">
+                        <div class="absolute -top-3 md:-top-4 right-2 md:right-4 bg-black text-white px-2 md:px-4 py-1 text-sm md:text-lg font-bold transform rotate-[4deg] border-2 md:border-4 border-black">
+                          ${k.tag}
+                        </div>
+                        <h3 class="text-2xl md:text-3xl font-black uppercase mb-3 md:mb-4 pr-10 md:pr-12 leading-none mt-2 ${k.color.includes('text-white') ? 'text-white' : 'text-black'}">
+                          ${k.title}
+                        </h3>
+                        <div class="bg-mainBg border-[3px] md:border-[4px] border-black p-3 md:p-4 min-h-[80px] md:min-h-[120px] flex items-center justify-center text-center">
+                          <p class="font-bold text-lg md:text-xl uppercase leading-tight text-black">${k.desc}</p>
+                        </div>
+                        <hr class="border-t-[4px] md:border-t-[6px] border-black my-4 md:my-5" />
+                        <div class="flex justify-between items-center mt-auto">
+                          <div class="bg-white border-[3px] md:border-[4px] border-black px-2 md:px-3 py-1">
+                            <span class="text-xl md:text-2xl font-black uppercase text-black">${k.points} PUAN</span>
+                          </div>
+                          <button onClick=${() => handleKullan(k)} class="px-3 md:px-5 py-1 md:py-2 border-[3px] md:border-[4px] border-black font-black text-lg md:text-xl uppercase ${buttonClass}">
+                            ${buttonText}
+                          </button>
+                        </div>
+                      </div>
+                    `
+                  })}
+                </div>
+              </div>
+            `}
           </main>
-          <${ChatBot} isChatOpen=${isChatOpen} setIsChatOpen=${setIsChatOpen} messages=${messages} input=${chatInput} setInput=${setChatInput} handleSend=${handleSend} />
+          
+          <${ChatBot}
+            isChatOpen=${isChatOpen}
+            setIsChatOpen=${setIsChatOpen}
+            messages=${messages}
+            input=${chatInput}
+            setInput=${setChatInput}
+            handleSend=${handleSend}
+            allShops=${allShops}
+            onShopClick=${handleShopSelect}
+          />
         </div>
       `;
     }
@@ -291,4 +678,5 @@
     render(html`<${App} />`, document.getElementById('root'));
   </script>
 </body>
+
 </html>
