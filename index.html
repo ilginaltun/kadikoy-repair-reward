@@ -27,11 +27,12 @@
         linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px), 
         linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
       background-size: 20px 20px;
+      overflow-x: hidden;
     }
 
     .brutal-card {
       background: #ffffff;
-      border: 5px solid var(--border);
+      border: 4px solid var(--border);
       box-shadow: var(--shadow);
       transition: all 0.1s ease;
     }
@@ -49,6 +50,8 @@
     }
 
     .sticker-drop { filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 1)); }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 
   <script>
@@ -62,7 +65,7 @@
   </script>
 </head>
 
-<body class="p-4 md:p-10 min-h-screen">
+<body class="p-4 md:p-10 relative min-h-screen">
   <div id="root"></div>
 
   <script type="module">
@@ -83,18 +86,24 @@
             <div class="w-[90vw] md:w-[400px] h-[500px] brutal-card flex flex-col mb-6 overflow-hidden bg-white max-w-sm">
               <div class="bg-black text-brandYellow p-5 font-black uppercase flex justify-between items-center border-b-4 border-black">
                 <span>TAMİR AI</span>
-                <button onClick=${() => setIsChatOpen(false)} class="text-2xl text-white">×</button>
+                <button onClick=${() => setIsChatOpen(false)} class="text-2xl hover:scale-125 transition-transform text-white">×</button>
               </div>
-              <div class="flex-grow p-4 overflow-y-auto space-y-4">
-                ${messages.map(m => html`<div class="p-3 border-4 border-black font-bold ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">${m.text}</div>`)}
+              <div class="flex-grow p-4 overflow-y-auto space-y-4 bg-white/60">
+                ${messages.map(m => html`
+                  <div class="p-3 border-4 border-black font-bold text-black ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
+                    ${m.text}
+                  </div>
+                `)}
               </div>
-              <div class="p-4 border-t-4 border-black flex gap-2">
-                <input value=${input} onInput=${e => setInput(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSend()} class="flex-grow p-2 border-4 border-black outline-none font-bold" />
-                <button onClick=${handleSend} class="bg-black text-white px-4 border-4 border-black font-black">SOR</button>
+              <div class="p-4 border-t-4 border-black flex gap-2 bg-white">
+                <input value=${input} onInput=${e => setInput(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSend()} class="flex-grow p-2 border-4 border-black outline-none font-bold" placeholder="Buraya yaz..." />
+                <button onClick=${() => handleSend()} class="bg-black text-white px-4 border-4 border-black font-black">SOR</button>
               </div>
             </div>
           `}
-          <button onClick=${() => setIsChatOpen(!isChatOpen)} class="bg-brandBlue text-white w-20 h-20 brutal-card flex items-center justify-center text-4xl font-black shadow-[10px_10px_0px_#000]">?</button>
+          <button onClick=${() => setIsChatOpen(!isChatOpen)} class="bg-brandBlue text-white w-16 h-16 md:w-20 md:h-20 brutal-card flex items-center justify-center hover:scale-110 transition-transform text-3xl md:text-4xl font-black shadow-[6px_6px_0px_#000] md:shadow-[10px_10px_0px_#000] ml-auto">
+            ?
+          </button>
         </div>
       `;
     }
@@ -113,13 +122,15 @@
       const [view, setView] = useState('panel');
       const [puan, setPuan] = useState(250);
       const [isChatOpen, setIsChatOpen] = useState(false);
-      const [messages, setMessages] = useState([{ role: 'bot', text: 'Merhaba! Bugün neyi tamir ediyoruz?' }]);
+      const [messages, setMessages] = useState([{ role: 'bot', text: 'Merhaba bugün neyi tamir ediyoruz! :)' }]);
       const [chatInput, setChatInput] = useState('');
+      const [matchCategory, setMatchCategory] = useState('');
+      const [matchDesc, setMatchDesc] = useState('');
 
       const tamirciIsleri = [
-        { id: 1, baslik: 'Kırık Ekran', kategori: 'Elektronik', musteri: 'Ahmet Y.', konum: 'Moda Sahil', aciliyet: 'Yüksek', ucret: '500 Puan', img: 'telefon.png' },
-        { id: 2, baslik: 'Fermuar Değişimi', kategori: 'Tekstil', musteri: 'Zeynep K.', konum: 'Yeldeğirmeni', aciliyet: 'Orta', ucret: '150 Puan', img: 'dikiş makinesi.png' },
-        { id: 3, baslik: 'Vites Ayarı', kategori: 'Bisiklet', musteri: 'Can B.', konum: 'Osmanağa', aciliyet: 'Düşük', ucret: '200 Puan', img: 'bisiklet.png' }
+        { id: 1, baslik: 'Kırık Ekran', kategori: 'Elektronik', musteri: 'Ahmet Y.', konum: 'Moda Sahil (300m)', aciliyet: 'Yüksek', ucret: '500 Puan', img: 'telefon.png' },
+        { id: 2, baslik: 'Fermuar Değişimi', kategori: 'Tekstil', musteri: 'Zeynep K.', konum: 'Yeldeğirmeni (1.2km)', aciliyet: 'Orta', ucret: '150 Puan', img: 'dikiş makinesi.png' },
+        { id: 3, baslik: 'Vites Ayarı', kategori: 'Bisiklet', musteri: 'Can B.', konum: 'Osmanağa (800m)', aciliyet: 'Düşük', ucret: '200 Puan', img: 'bisiklet.png' }
       ];
 
       const sonTamirlerData = [
@@ -146,10 +157,13 @@
       if (!auth.loggedIn) {
         return html`
           <div class="min-h-screen flex flex-col items-center justify-center p-4">
-             <h1 class="text-7xl md:text-9xl font-black uppercase tracking-tighter text-center mb-12">TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL</h1>
+             <h1 class="text-6xl md:text-8xl font-black uppercase tracking-tighter text-center mb-12">TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL</h1>
              <div class="brutal-card p-10 bg-white max-w-md w-full text-center space-y-6">
-                <button onClick=${() => setAuth({loggedIn: true, role: 'musteri'})} class="w-full brutal-btn bg-brandPink p-6 font-black text-2xl uppercase">MÜŞTERİ 🙋🏻‍♀️</button>
-                <button onClick=${() => setAuth({loggedIn: true, role: 'tamirci'})} class="w-full brutal-btn bg-brandBlue text-white p-6 font-black text-2xl uppercase">TAMİRCİ 🔧</button>
+                <h2 class="text-3xl font-black uppercase bg-brandYellow inline-block px-4 py-1 border-4 border-black">GİRİŞ YAP</h2>
+                <div class="space-y-4 pt-4">
+                  <button onClick=${() => setAuth({loggedIn: true, role: 'musteri'})} class="w-full brutal-btn bg-brandPink p-6 font-black text-2xl uppercase flex justify-between items-center group">MÜŞTERİ <span class="group-hover:scale-125 transition-transform">🙋🏻‍♀️</span></button>
+                  <button onClick=${() => setAuth({loggedIn: true, role: 'tamirci'})} class="w-full brutal-btn bg-brandBlue text-white p-6 font-black text-2xl uppercase flex justify-between items-center group">TAMİRCİ <span class="group-hover:scale-125 transition-transform">🔧</span></button>
+                </div>
              </div>
           </div>
         `;
@@ -158,12 +172,12 @@
       if (auth.role === 'tamirci') {
         return html`
           <div class="max-w-7xl mx-auto space-y-12">
-            <header class="flex justify-between items-center border-b-8 border-black pb-8 mt-4">
-              <h1 class="text-6xl font-black uppercase leading-[0.8]">USTA<br/><span class="text-brandBlue">PANELİ</span></h1>
-              <button onClick=${() => setAuth({loggedIn: false, role: null})} class="bg-white border-4 border-black px-6 py-3 font-black uppercase text-xl brutal-btn">ÇIKIŞ</button>
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b-8 border-black pb-8 mt-4">
+              <h1 class="text-5xl md:text-7xl font-black uppercase leading-[0.8]">USTA<br/><span class="text-brandBlue">PANELİ</span></h1>
+              <button onClick=${() => setAuth({loggedIn: false, role: null})} class="bg-white border-4 border-black px-6 py-3 font-black uppercase text-xl brutal-btn">ÇIKIŞ YAP</button>
             </header>
             <main class="space-y-10">
-              <h2 class="inline-block bg-black text-white px-6 py-3 text-3xl font-black uppercase border-4 border-black">YAKINDAKİ İŞLER</h2>
+              <div class="inline-block bg-black text-white px-6 py-3 text-3xl font-black uppercase border-4 border-black shadow-[4px_4px_0px_#e1d2f3]">YAKINDAKİ İŞLER</div>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                 ${tamirciIsleri.map(is => html`
                   <div class="brutal-card p-8 flex flex-col bg-white border-[5px]">
@@ -171,9 +185,9 @@
                       <span class="bg-brandPink border-2 border-black px-4 py-1 font-black text-xs uppercase">${is.kategori}</span>
                       <span class="bg-mainBg border-2 border-black px-2 py-1 font-bold text-[10px] uppercase">${is.konum}</span>
                     </div>
-                    <div class="flex flex-row items-center mb-8 gap-4 border-b-4 border-black pb-6">
+                    <div class="flex flex-row items-center mb-8 gap-6 border-b-4 border-black pb-6">
                       <img src="${is.img}" class="w-32 h-32 object-contain sticker-drop shrink-0" />
-                      <h3 class="text-2xl md:text-3xl font-black uppercase leading-tight">${is.baslik}</h3>
+                      <h3 class="text-3xl font-black uppercase leading-tight">${is.baslik}</h3>
                     </div>
                     <p class="font-bold mb-6 uppercase">Müşteri: ${is.musteri}</p>
                     <div class="mt-auto space-y-4">
@@ -210,7 +224,7 @@
 
           <main>
             ${view === 'panel' && html`
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 <div class="space-y-8">
                   <div class="brutal-card p-10 bg-brandBlue text-white text-center flex flex-col justify-center border-[6px]">
                     <h2 class="text-4xl font-black uppercase mb-4 tracking-tighter">PUANIN</h2>
