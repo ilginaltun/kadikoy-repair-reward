@@ -212,7 +212,6 @@
       const [layers, setLayers] = useState({
         tamirciler: { active: true, title: 'TAMİRCİLER', sub: 'Terzi / Elektronik', color: 'bg-brandYellow', shape: 'square' },
         kamu: { active: true, title: 'KAMU BİNALARI', sub: 'İSMEK / Kütüphane', color: 'bg-brandPink', shape: 'square' },
-        buffers: { active: false, title: '400M ETKİ ALANI', sub: 'Yürüme Mesafesi', color: 'bg-brandBlue/30', shape: 'dotted' },
         customerLocation: { active: true, title: 'MÜŞTERİ LOKASYONUٌ', sub: '400m Hizmet Alanı', color: 'bg-black', shape: 'square' }
       });
       const groupsRef = useRef(null);
@@ -223,7 +222,7 @@
         const map = window.L.map(mapRef.current).setView([40.988, 29.045], 14);
         window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
         mapInstance.current = map;
-        groupsRef.current = { tamirciler: window.L.layerGroup(), kamu: window.L.layerGroup(), buffers: window.L.layerGroup(), customerLocation: window.L.layerGroup() };
+        groupsRef.current = { tamirciler: window.L.layerGroup(), kamu: window.L.layerGroup(), customerLocation: window.L.layerGroup() };
 
         fetch('./kadikoy_map_data.json').then(res => res.json()).then(data => {
           const icon = (bg, shape) => window.L.divIcon({ className: '', html: `<div class="w-7 h-7 border-4 border-black shadow-[4px_4px_0px_#000] ${bg} ${shape === 'circle' ? 'rounded-full' : ''}"></div>`, iconSize: [28, 28] });
@@ -232,7 +231,6 @@
             Object.values(data.tamirciler).forEach(kategori => {
               kategori.forEach(m => {
                 window.L.marker([m.lat, m.lon], { icon: icon('bg-brandYellow', 'square') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.tamirciler);
-                window.L.circle([m.lat, m.lon], { radius: 400, color: '#000', weight: 2, fillColor: '#054ff0', fillOpacity: 0.1, dashArray: '5, 10' }).addTo(groupsRef.current.buffers);
               });
             });
           }
@@ -369,15 +367,12 @@
         setView('merkezler');
       };
 
-      // Yalnızca kullanıcı Müşteri olarak giriş yapmışsa ve paneldeyse QR kodu oluştur
-      useEffect(() => { 
-        if (auth.loggedIn && auth.role === 'musteri' && view === 'panel') { 
-          setTimeout(() => { 
-            const canvas = document.getElementById('user-qr-code'); 
-            if (canvas) window.QRCode.toCanvas(canvas, "TAMIR-2026-ILGIN", { width: 200, margin: 1, color: { dark: '#000000', light: '#ffffff' } }); 
-          }, 100); 
-        } 
-      }, [view, auth]);
+      useEffect(() => {
+        if (auth.loggedIn && auth.role === 'musteri' && view === 'panel' && !customerLocation && !locationPermissionAsked) {
+          // Otomatik olarak konum sor
+          requestLocationPermission();
+        }
+      }, [auth, view, customerLocation, locationPermissionAsked]);
 
       const handleSend = async (customMsg = null) => {
         const msgToSend = customMsg || chatInput;
