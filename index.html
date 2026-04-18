@@ -70,7 +70,10 @@
     import htm from 'https://esm.sh/htm@3.1.1';
     const html = htm.bind(h);
 
-    // --- COMPONENTLER ---
+    // --- ICONLAR ---
+    const IconHome = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+    const IconSearch = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
+
     function ChatBot({ isChatOpen, setIsChatOpen, messages, input, setInput, handleSend }) {
       return html`
         <div class="fixed bottom-10 right-5 md:right-10 z-[9999]">
@@ -81,21 +84,15 @@
                 <button onClick=${() => setIsChatOpen(false)} class="text-2xl text-white">×</button>
               </div>
               <div class="flex-grow p-4 overflow-y-auto space-y-4">
-                ${messages.map(m => html`
-                  <div class="p-3 border-4 border-black font-bold ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
-                    ${m.text}
-                  </div>
-                `)}
+                ${messages.map(m => html`<div class="p-3 border-4 border-black font-bold ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">${m.text}</div>`)}
               </div>
               <div class="p-4 border-t-4 border-black flex gap-2">
-                <input value=${input} onInput=${e => setInput(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSend()} 
-                       class="flex-grow p-2 border-4 border-black outline-none font-bold" />
-                <button onClick=${() => handleSend()} class="bg-black text-white px-4 border-4 border-black font-black">SOR</button>
+                <input value=${input} onInput=${e => setInput(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSend()} class="flex-grow p-2 border-4 border-black outline-none font-bold" />
+                <button onClick=${handleSend} class="bg-black text-white px-4 border-4 border-black font-black">SOR</button>
               </div>
             </div>
           `}
-          <button onClick=${() => setIsChatOpen(!isChatOpen)} 
-                  class="bg-brandBlue text-white w-20 h-20 brutal-card flex items-center justify-center text-4xl font-black">?</button>
+          <button onClick=${() => setIsChatOpen(!isChatOpen)} class="bg-brandBlue text-white w-20 h-20 brutal-card flex items-center justify-center text-4xl font-black shadow-[6px_6px_0px_#000]">?</button>
         </div>
       `;
     }
@@ -113,6 +110,15 @@
         { id: 3, baslik: 'Vites Ayarı', kategori: 'Bisiklet', musteri: 'Can B.', konum: 'Osmanağa', aciliyet: 'Düşük', ucret: '200 Puan', img: 'bisiklet.png' }
       ];
 
+      useEffect(() => {
+        if (auth.loggedIn && auth.role === 'musteri' && view === 'panel') {
+          setTimeout(() => {
+            const canvas = document.getElementById('user-qr-code');
+            if (canvas) window.QRCode.toCanvas(canvas, "TAMIR-2026-ILGIN", { width: 220, margin: 1 });
+          }, 100);
+        }
+      }, [view, auth]);
+
       const handleSend = () => {
         if (!chatInput.trim()) return;
         setMessages([...messages, { role: 'user', text: chatInput }]);
@@ -121,9 +127,9 @@
 
       if (!auth.loggedIn) {
         return html`
-          <div class="min-h-screen flex flex-col items-center justify-center">
+          <div class="min-h-screen flex flex-col items-center justify-center p-4">
              <h1 class="text-7xl md:text-9xl font-black uppercase tracking-tighter text-center mb-12">TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL</h1>
-             <div class="brutal-card p-10 bg-white max-w-md w-full text-center space-y-6">
+             <div class="brutal-card p-10 bg-white max-w-md w-full text-center space-y-6 border-[6px]">
                 <button onClick=${() => setAuth({loggedIn: true, role: 'musteri'})} class="w-full brutal-btn bg-brandPink p-6 font-black text-2xl uppercase">MÜŞTERİ 🙋🏻‍♀️</button>
                 <button onClick=${() => setAuth({loggedIn: true, role: 'tamirci'})} class="w-full brutal-btn bg-brandBlue text-white p-6 font-black text-2xl uppercase">TAMİRCİ 🔧</button>
              </div>
@@ -134,28 +140,24 @@
       if (auth.role === 'tamirci') {
         return html`
           <div class="max-w-7xl mx-auto space-y-12">
-            <header class="flex justify-between items-center border-b-8 border-black pb-8">
+            <header class="flex justify-between items-center border-b-8 border-black pb-8 mt-4">
               <h1 class="text-6xl font-black uppercase leading-none">USTA<br/><span class="text-brandBlue">PANELİ</span></h1>
               <button onClick=${() => setAuth({loggedIn: false, role: null})} class="bg-white border-4 border-black px-6 py-3 font-black uppercase text-xl brutal-btn">ÇIKIŞ</button>
             </header>
-
             <main class="space-y-10">
               <h2 class="inline-block bg-black text-white px-6 py-3 text-3xl font-black uppercase border-4 border-black">YAKINDAKİ İŞLER</h2>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                 ${tamirciIsleri.map(is => html`
-                  <div class="brutal-card p-8 flex flex-col bg-white">
+                  <div class="brutal-card p-8 flex flex-col bg-white border-[5px]">
                     <div class="flex justify-between mb-8">
                       <span class="bg-brandPink border-2 border-black px-4 py-1 font-black text-xs uppercase">${is.kategori}</span>
                       <span class="bg-mainBg border-2 border-black px-2 py-1 font-bold text-[10px] uppercase">${is.konum}</span>
                     </div>
-                    
-                    <div class="flex flex-col items-center text-center mb-8 gap-6">
-                      <img src="${is.img}" class="w-32 h-32 md:w-48 md:h-48 object-contain sticker-drop" />
-                      <h3 class="text-3xl md:text-4xl font-black uppercase leading-none">${is.baslik}</h3>
+                    <div class="flex flex-row items-center mb-8 gap-4 border-b-4 border-black pb-6">
+                      <img src="${is.img}" class="w-32 h-32 object-contain sticker-drop shrink-0" />
+                      <h3 class="text-2xl md:text-3xl font-black uppercase leading-tight">${is.baslik}</h3>
                     </div>
-
-                    <p class="font-bold border-b-4 border-dotted border-black pb-4 mb-6 text-center uppercase">Müşteri: ${is.musteri}</p>
-                    
+                    <p class="font-bold mb-6 uppercase text-sm">Müşteri: ${is.musteri}</p>
                     <div class="mt-auto space-y-4">
                       <div class="flex justify-between items-center bg-brandYellow border-4 border-black p-4">
                         <span class="font-black text-2xl text-brandBlue italic">${is.ucret}</span>
@@ -172,33 +174,40 @@
         `;
       }
 
-      // Varsayılan Müşteri Paneli
+      // MÜŞTERİ PANELİ (QR KOD VE PUAN DÜZELTİLDİ)
       return html`
         <div class="max-w-7xl mx-auto space-y-12">
-          <header class="flex justify-between items-center border-b-8 border-black pb-8">
-            <h1 class="text-7xl font-black uppercase text-black">PANEL</h1>
+          <header class="flex justify-between items-center border-b-8 border-black pb-8 mt-4">
+            <h1 class="text-7xl font-black uppercase text-black italic leading-[0.8]">MÜŞTERİ<br/>PANELİ</h1>
             <button onClick=${() => setAuth({loggedIn: false, role: null})} class="px-6 py-4 brutal-btn font-black text-xl uppercase bg-white">ÇIKIŞ</button>
           </header>
+          
           <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div class="brutal-card p-10 bg-brandBlue text-white text-center">
-              <h2 class="text-4xl font-black uppercase mb-2">PUANIN</h2>
-              <div class="text-9xl font-black leading-none">250</div>
+            <div class="brutal-card p-10 bg-brandBlue text-white text-center flex flex-col justify-center border-[6px]">
+              <h2 class="text-4xl font-black uppercase mb-4 tracking-tighter">PUANIN</h2>
+              <div class="text-[8rem] md:text-[10rem] font-black leading-none italic">${puan}</div>
             </div>
-            <div class="brutal-card p-10 bg-white flex flex-col items-center">
-              <canvas id="user-qr-code" class="border-4 border-black"></canvas>
+            
+            <div class="brutal-card p-10 bg-white flex flex-col items-center justify-center border-[6px]">
+               <div class="bg-white border-4 border-black p-4 mb-6 shadow-[6px_6px_0px_#000]">
+                  <canvas id="user-qr-code"></canvas>
+               </div>
+               <p class="bg-black text-white px-6 py-3 font-black text-xl md:text-2xl uppercase shadow-[6px_6px_0px_#dcfc75]">TAMIR-2026-ILGIN</p>
             </div>
           </div>
+
+          <nav class="flex flex-wrap gap-4 justify-center md:justify-start border-t-8 border-black pt-8">
+            <button onClick=${() => setView('panel')} class="px-8 py-4 brutal-btn font-black text-xl uppercase ${view === 'panel' ? 'bg-black text-white' : 'bg-white'}">Puanlarım</button>
+            <button class="px-8 py-4 brutal-btn font-black text-xl uppercase bg-brandYellow">Usta Bul</button>
+            <button class="px-8 py-4 brutal-btn font-black text-xl uppercase bg-brandPink">Ödüller</button>
+          </nav>
+
           <${ChatBot} isChatOpen=${isChatOpen} setIsChatOpen=${setIsChatOpen} messages=${messages} input=${chatInput} setInput=${setChatInput} handleSend=${handleSend} />
         </div>
       `;
     }
 
     render(html`<${App} />`, document.getElementById('root'));
-
-    setTimeout(() => {
-      const canvas = document.getElementById('user-qr-code');
-      if (canvas) window.QRCode.toCanvas(canvas, "TAMIR-2026-ILGIN", { width: 220, margin: 1 });
-    }, 500);
   </script>
 </body>
 </html>
