@@ -183,13 +183,30 @@ Veriler: {map_data}"""
     try:
         response = requests.post("https://api.groq.com/openai/v1/chat/completions", 
                                  headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}, 
-                                 json=payload)
+                                 json=payload,
+                                 timeout=30)
+        
+        if response.status_code != 200:
+            error_msg = response.text
+            print(f"GROQ API Error: {response.status_code} - {error_msg}")
+            return jsonify({"reply": f"API Hatası ({response.status_code}): {error_msg[:200]}"}), 500
+        
         data = response.json()
+        
+        if "choices" not in data or not data["choices"]:
+            print(f"Invalid GROQ response: {data}")
+            return jsonify({"reply": "API yanıt hatası: choices bulunamadı"}), 500
+        
         assistant_reply = data["choices"][0]["message"]["content"]
         save_conversation(user_email, user_role, 'assistant', assistant_reply, {'customerLocation': customer_location})
         return jsonify({"reply": assistant_reply})
+    except requests.exceptions.Timeout:
+        return jsonify({"reply": "API isteği zaman aşımına uğradı. Lütfen tekrar dene."}), 500
+    except requests.exceptions.ConnectionError:
+        return jsonify({"reply": "Bağlantı kurulamadı. İnternet bağlantınızı kontrol edin."}), 500
     except Exception as e:
-        return jsonify({"reply": f"Hata: {str(e)}"}), 500
+        print(f"Chat error: {type(e).__name__}: {str(e)}")
+        return jsonify({"reply": f"Hata: {str(e)[:100]}"}), 500
 
 
 if __name__ == '__main__':
