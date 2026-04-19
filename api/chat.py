@@ -130,7 +130,12 @@ def auth():
 @app.route('/api/chat', methods=['POST', 'GET'])
 def chat():
     if request.method == 'GET':
-        return jsonify({"status": "API calisiyor!", "groq_key_set": bool(GROQ_API_KEY)})
+        groq_set = bool(GROQ_API_KEY)
+        print(f"[DEBUG] GET /api/chat - GROQ_API_KEY set: {groq_set}")
+        return jsonify({"status": "API calisiyor!", "groq_key_set": groq_set})
+    
+    print(f"[DEBUG] POST /api/chat - GROQ_API_KEY set: {bool(GROQ_API_KEY)}")
+    print(f"[DEBUG] Request body: {request.json}")
     
     user_data = request.json
     user_email = user_data.get("userEmail")
@@ -148,7 +153,8 @@ def chat():
     })
 
     if not GROQ_API_KEY:
-        fallback_reply = "⚠️ AI servisi şu anda yapılandırılmadı. Lütfen admin ile iletişime geç. (GROQ_API_KEY eksik)"
+        print("[ERROR] GROQ_API_KEY is not set in environment")
+        fallback_reply = "⚠️ AI servisi şu anda yapılandırılmadı. GROQ_API_KEY Vercel'de set edilmemiş. Admin ile iletişime geç."
         save_conversation(user_email, user_role, 'assistant', fallback_reply, {})
         return jsonify({"reply": fallback_reply}), 200
 
