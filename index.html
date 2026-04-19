@@ -338,7 +338,8 @@
       const [email, setEmail] = useState('');
       const [password, setPassword] = useState('');
       const [authError, setAuthError] = useState('');
-      const apiBase = window.location.origin === 'null' ? 'http://127.0.0.1:5000' : window.location.origin;
+      const isLocal = window.location.protocol === 'file:' || ['localhost', '127.0.0.1'].includes(window.location.hostname);
+      const apiBase = isLocal ? 'http://127.0.0.1:5001' : window.location.origin;
 
       const [view, setView] = useState('panel');
       const [puan, setPuan] = useState(250);

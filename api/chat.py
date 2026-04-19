@@ -9,9 +9,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 app = Flask(__name__)
 CORS(app)
 
@@ -221,4 +220,4 @@ Veriler: {map_data}"""
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)
