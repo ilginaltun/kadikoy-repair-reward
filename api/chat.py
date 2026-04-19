@@ -1,13 +1,55 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 import json
 import os
+import sqlite3
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(BASE_DIR, 'repair_hub.db')
+
+
+def get_db_connection():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS conversations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_email TEXT,
+            user_role TEXT,
+            sender TEXT NOT NULL,
+            message TEXT NOT NULL,
+            context TEXT,
+            created_at TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+
+init_db()
+
 
 def get_map_context():
     try:
@@ -22,6 +64,65 @@ def get_map_context():
     except Exception as e:
         return f"Veri okunamadı: {str(e)}"
 
+
+def get_user(email):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
+
+def create_user(email, password, role):
+    password_hash = generate_password_hash(password)
+    created_at = datetime.utcnow().isoformat()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO users (email, password_hash, role, created_at) VALUES (?, ?, ?, ?)",
+        (email, password_hash, role, created_at)
+    )
+    conn.commit()
+    conn.close()
+
+
+def save_conversation(user_email, user_role, sender, message, context=None):
+    inserted_at = datetime.utcnow().isoformat()
+    if context is not None and not isinstance(context, str):
+        context = json.dumps(context, ensure_ascii=False)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO conversations (user_email, user_role, sender, message, context, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (user_email, user_role, sender, message, context, inserted_at)
+    )
+    conn.commit()
+    conn.close()
+
+
+@app.route('/api/auth', methods=['POST'])
+def auth():
+    data = request.json or {}
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '')
+    role = data.get('role')
+
+    if not email or not password or role not in ['musteri', 'tamirci']:
+        return jsonify({'error': 'Geçerli e-posta, şifre ve rol giriniz.'}), 400
+
+    user = get_user(email)
+    if user:
+        if user['role'] != role:
+            return jsonify({'error': 'Bu e-posta başka bir rol için kayıtlı.'}), 400
+        if not check_password_hash(user['password_hash'], password):
+            return jsonify({'error': 'Şifre yanlış.'}), 401
+        return jsonify({'email': email, 'role': role})
+
+    create_user(email, password, role)
+    return jsonify({'email': email, 'role': role, 'registered': True})
+
+
 @app.route('/api/chat', methods=['POST', 'GET'])
 def chat():
     if request.method == 'GET':
@@ -31,10 +132,21 @@ def chat():
         return jsonify({"reply": "Sistem Hatası: API KEY eksik!"}), 500
 
     user_data = request.json
+    user_email = user_data.get("userEmail")
+    user_role = user_data.get("userRole")
+    if not user_email:
+        return jsonify({"reply": "Lütfen önce hesabına giriş yap."}), 400
+
     user_message = user_data.get("message", "")
     # Frontend'den gelen geçmiş mesajları alıyoruz
     history = user_data.get("history", []) 
-    
+    customer_location = user_data.get("customerLocation")
+
+    save_conversation(user_email, user_role, 'user', user_message, {
+        'customerLocation': customer_location,
+        'history_length': len(history)
+    })
+
     map_data = get_map_context()
 
     # BOTUN TAKILMAMASI İÇİN GÜNCELLENEN PROMPT
@@ -73,6 +185,8 @@ Veriler: {map_data}"""
                                  headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}, 
                                  json=payload)
         data = response.json()
-        return jsonify({"reply": data["choices"][0]["message"]["content"]})
+        assistant_reply = data["choices"][0]["message"]["content"]
+        save_conversation(user_email, user_role, 'assistant', assistant_reply, {'customerLocation': customer_location})
+        return jsonify({"reply": assistant_reply})
     except Exception as e:
         return jsonify({"reply": f"Hata: {str(e)}"}), 500

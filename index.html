@@ -333,7 +333,11 @@
 
     function App() {
       // YENİ EKLENEN KISIM: Yetkilendirme Durumu
-      const [auth, setAuth] = useState({ loggedIn: false, role: null }); // role: 'musteri' | 'tamirci'
+      const [auth, setAuth] = useState({ loggedIn: false, role: null, email: null }); // role: 'musteri' | 'tamirci'
+      const [selectedRole, setSelectedRole] = useState(null);
+      const [email, setEmail] = useState('');
+      const [password, setPassword] = useState('');
+      const [authError, setAuthError] = useState('');
 
       const [view, setView] = useState('panel');
       const [puan, setPuan] = useState(250);
@@ -367,6 +371,34 @@
         setView('merkezler');
       };
 
+      const handleAuthSubmit = async () => {
+        if (!email.trim() || !password.trim() || !selectedRole) {
+          setAuthError('Lütfen e-posta, şifre ve rol seçimi tamamlayın.');
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email.trim().toLowerCase(), password, role: selectedRole })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            setAuthError(data.error || 'Giriş başarısız.');
+            return;
+          }
+          setAuth({ loggedIn: true, role: selectedRole, email: data.email });
+          setSelectedRole(null);
+          setEmail('');
+          setPassword('');
+          setAuthError('');
+          setMessages([{ role: 'bot', text: 'Merhaba bugün neyi tamir ediyoruz! :)' }]);
+        } catch (err) {
+          setAuthError('Sunucu bağlantısı sağlanamadı.');
+        }
+      };
+
       useEffect(() => {
         if (auth.loggedIn && auth.role === 'musteri' && view === 'panel' && !customerLocation && !locationPermissionAsked) {
           // Otomatik olarak konum sor
@@ -392,6 +424,8 @@
                 role: m.role === 'bot' ? 'assistant' : 'user',
                 text: m.text
               })),
+              userEmail: auth.email,
+              userRole: auth.role,
               ...(customerLocation && { customerLocation })
             })
           });
@@ -473,22 +507,38 @@
                 TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL
               </h1>
             </div>
-            
+
             <div class="brutal-card p-8 md:p-12 bg-white max-w-lg w-full space-y-8 text-center border-[6px]">
               <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tighter bg-brandBlue px-4 py-2 border-4 border-black inline-block transform -rotate-2">
-                GİRİŞ YAP
+                HESAP GİRİŞİ
               </h2>
-              <p class="font-bold text-xl mb-8">Lütfen devam etmek istediğin profili seç:</p>
-              
-              <button onClick=${() => setAuth({loggedIn: true, role: 'musteri'})} class="w-full bg-brandPink text-black border-4 border-black p-4 md:p-6 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-between items-center group">
-                <span>MÜŞTERİ</span>
-                <img src="müşteri.png" alt="Müşteri" class="w-24 h-24 object-contain group-hover:scale-110 transition-transform" />
-              </button>
-              
-              <button onClick=${() => setAuth({loggedIn: true, role: 'tamirci'})} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-between items-center group">
-                <span>TAMİRCİ</span>
-                <img src="ingiliz anahtarı kopya.png" alt="İngiliz Anahtarı" class="w-24 h-24 object-contain group-hover:scale-110 transition-transform" />
-              </button>
+              ${!selectedRole ? html`
+                <p class="font-bold text-xl mb-8">Devam etmek istediğin profili seç:</p>
+                <button onClick=${() => setSelectedRole('musteri')} class="w-full bg-brandPink text-black border-4 border-black p-4 md:p-6 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-between items-center group">
+                  <span>MÜŞTERİ</span>
+                  <img src="müşteri.png" alt="Müşteri" class="w-24 h-24 object-contain group-hover:scale-110 transition-transform" />
+                </button>
+                <button onClick=${() => setSelectedRole('tamirci')} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-between items-center group">
+                  <span>TAMİRCİ</span>
+                  <img src="ingiliz anahtarı kopya.png" alt="İngiliz Anahtarı" class="w-24 h-24 object-contain group-hover:scale-110 transition-transform" />
+                </button>
+              ` : html`
+                <div class="space-y-6 text-left">
+                  <div class="border-4 border-black p-6 bg-mainBg">
+                    <p class="text-2xl font-black uppercase">${selectedRole === 'musteri' ? 'MÜŞTERİ' : 'TAMİRCİ'} hesabı</p>
+                    <p class="text-sm font-bold opacity-80 mt-2">E-posta ve şifrenle giriş yap veya yeni hesap oluştur.</p>
+                  </div>
+                  <div class="space-y-4">
+                    <input type="email" value=${email} onInput=${e => setEmail(e.target.value)} placeholder="E-posta" class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
+                    <input type="password" value=${password} onInput=${e => setPassword(e.target.value)} placeholder="Şifre" class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
+                    ${authError && html`<div class="text-red-600 font-bold">${authError}</div>`}
+                    <div class="flex flex-col gap-3 md:flex-row">
+                      <button onClick=${handleAuthSubmit} class="flex-1 bg-black text-white border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:bg-gray-800 transition-colors">GİRİŞ YAP / KAYIT OL</button>
+                      <button onClick=${() => { setSelectedRole(null); setAuthError(''); setEmail(''); setPassword(''); }} class="flex-1 bg-white text-black border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:bg-gray-100 transition-colors">GERİ</button>
+                    </div>
+                  </div>
+                </div>
+              `}
             </div>
           </div>
         `;
@@ -504,7 +554,7 @@
               </h1>
               <div class="flex gap-4 w-full md:w-auto">
                 <div class="flex-1 md:flex-none bg-brandYellow text-black border-4 border-black px-6 py-3 font-black uppercase text-xl text-center shadow-[4px_4px_0px_#000]">AKTİF</div>
-                <button onClick=${() => setAuth({loggedIn: false, role: null})} class="flex-1 md:flex-none bg-white text-black border-4 border-black px-6 py-3 font-black uppercase text-xl brutal-btn">ÇIKIŞ YAP</button>
+                <button onClick=${() => setAuth({loggedIn: false, role: null, email: null})} class="flex-1 md:flex-none bg-white text-black border-4 border-black px-6 py-3 font-black uppercase text-xl brutal-btn">ÇIKIŞ YAP</button>
               </div>
             </header>
 
@@ -593,7 +643,7 @@
                 <${IconMap} /> Merkezler
               </button>
               
-              <button onClick=${() => setAuth({loggedIn: false, role: null})} class="px-4 md:px-6 py-3 md:py-4 brutal-btn font-black text-xl md:text-2xl uppercase whitespace-nowrap bg-white text-red-600">
+              <button onClick=${() => setAuth({loggedIn: false, role: null, email: null})} class="px-4 md:px-6 py-3 md:py-4 brutal-btn font-black text-xl md:text-2xl uppercase whitespace-nowrap bg-white text-red-600">
                 ÇIKIŞ YAP
               </button>
             </nav>
@@ -614,7 +664,7 @@
                     <div>
                       <h3 class="text-2xl font-black uppercase mb-4 text-black">1. Neyi Tamir Edeceğiz?</h3>
                       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        ${['Elektronik', 'Mobilya', 'Tekstil', 'Bisiklet'].map(cat => html`
+                        ${['Elektronik', 'Mobilya', 'Tekstil', 'Bisiklet', 'Diğer'].map(cat => html`
                           <button 
                             onClick=${() => setMatchCategory(cat)} 
                             class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${matchCategory === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">
