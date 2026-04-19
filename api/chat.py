@@ -8,7 +8,7 @@ import sqlite3
 from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-app = Flask(__name__, static_url_path='', static_folder=BASE_DIR)
+app = Flask(__name__)
 CORS(app)
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
@@ -190,12 +190,6 @@ Veriler: {map_data}"""
         return jsonify({"reply": assistant_reply})
     except Exception as e:
         return jsonify({"reply": f"Hata: {str(e)}"}), 500
-
-
-@app.route('/', defaults={'path': 'index.html'})
-@app.route('/<path:path>')
-def serve_static(path):
-    return app.send_static_file(path)
 
 
 if __name__ == '__main__':
