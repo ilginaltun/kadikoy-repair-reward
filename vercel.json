@@ -1,6 +1,11 @@
 {
-  "buildCommand": "pip install -r requirements.txt",
+  "buildCommand": "true",
   "public": true,
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
