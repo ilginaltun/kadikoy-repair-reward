@@ -126,11 +126,8 @@ def auth():
 @app.route('/api/chat', methods=['POST', 'GET'])
 def chat():
     if request.method == 'GET':
-        return jsonify({"status": "API calisiyor!"})
+        return jsonify({"status": "API calisiyor!", "groq_key_set": bool(GROQ_API_KEY)})
     
-    if not GROQ_API_KEY:
-        return jsonify({"reply": "Sistem Hatası: API KEY eksik!"}), 500
-
     user_data = request.json
     user_email = user_data.get("userEmail")
     user_role = user_data.get("userRole")
@@ -138,7 +135,6 @@ def chat():
         return jsonify({"reply": "Lütfen önce hesabına giriş yap."}), 400
 
     user_message = user_data.get("message", "")
-    # Frontend'den gelen geçmiş mesajları alıyoruz
     history = user_data.get("history", []) 
     customer_location = user_data.get("customerLocation")
 
@@ -146,6 +142,11 @@ def chat():
         'customerLocation': customer_location,
         'history_length': len(history)
     })
+
+    if not GROQ_API_KEY:
+        fallback_reply = "⚠️ AI servisi şu anda yapılandırılmadı. Lütfen admin ile iletişime geç. (GROQ_API_KEY eksik)"
+        save_conversation(user_email, user_role, 'assistant', fallback_reply, {})
+        return jsonify({"reply": fallback_reply}), 200
 
     map_data = get_map_context()
 
