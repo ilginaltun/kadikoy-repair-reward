@@ -338,6 +338,7 @@
       const [email, setEmail] = useState('');
       const [password, setPassword] = useState('');
       const [authError, setAuthError] = useState('');
+      const apiBase = window.location.origin === 'null' ? 'http://127.0.0.1:5000' : window.location.origin;
 
       const [view, setView] = useState('panel');
       const [puan, setPuan] = useState(250);
@@ -378,7 +379,7 @@
         }
 
         try {
-          const res = await fetch('/api/auth', {
+          const res = await fetch(`${apiBase}/api/auth`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email.trim().toLowerCase(), password, role: selectedRole })
@@ -415,7 +416,7 @@
         if (!customMsg) setChatInput('');
 
         try {
-          const res = await fetch('/api/chat', {
+          const res = await fetch(`${apiBase}/api/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

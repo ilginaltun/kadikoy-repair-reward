@@ -1,8 +1,14 @@
 {
+  "buildCommand": "pip install -r requirements.txt",
+  "public": true,
   "rewrites": [
     {
-      "source": "/chat",
-      "destination": "api/app.py"
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

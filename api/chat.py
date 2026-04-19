@@ -7,11 +7,11 @@ import os
 import sqlite3
 from datetime import datetime
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+app = Flask(__name__, static_url_path='', static_folder=BASE_DIR)
 CORS(app)
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, 'repair_hub.db')
 
 
@@ -190,3 +190,13 @@ Veriler: {map_data}"""
         return jsonify({"reply": assistant_reply})
     except Exception as e:
         return jsonify({"reply": f"Hata: {str(e)}"}), 500
+
+
+@app.route('/', defaults={'path': 'index.html'})
+@app.route('/<path:path>')
+def serve_static(path):
+    return app.send_static_file(path)
+
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
