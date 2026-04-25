@@ -662,6 +662,7 @@
       const [email, setEmail]                           = useState('');
       const [password, setPassword]                     = useState('');
       const [authError, setAuthError]                   = useState('');
+      const [isLoggingIn, setIsLoggingIn]               = useState(false);
       const isLocal = window.location.protocol === 'file:' || ['localhost', '127.0.0.1'].includes(window.location.hostname);
       const apiBase = isLocal ? 'http://127.0.0.1:5001' : window.location.origin;
 
@@ -710,14 +711,32 @@
 
       const handleAuthSubmit = async () => {
         if (!email.trim() || !password.trim() || !selectedRole) { setAuthError('Lütfen e-posta, şifre ve rol seçimi tamamlayın.'); return; }
+        setIsLoggingIn(true);
+        setAuthError('');
+
+        const localLogin = () => {
+          setAuth({ loggedIn: true, role: selectedRole, email: email.trim().toLowerCase() });
+          setSelectedRole(null); setEmail(''); setPassword(''); setAuthError('');
+          setMessages([{ role: 'bot', text: 'Merhaba bugün neyi tamir ediyoruz! :)' }]);
+          setIsLoggingIn(false);
+        };
+
+        const controller = new AbortController();
+        const timer = setTimeout(() => { controller.abort(); localLogin(); }, 4000);
+
         try {
-          const res  = await fetch(`${apiBase}/api/auth`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.trim().toLowerCase(), password, role: selectedRole }) });
+          const res  = await fetch(`${apiBase}/api/auth`, { signal: controller.signal, method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.trim().toLowerCase(), password, role: selectedRole }) });
+          clearTimeout(timer);
           const data = await res.json();
-          if (!res.ok) { setAuthError(data.error || 'Giriş başarısız.'); return; }
+          if (!res.ok) { setAuthError(data.error || 'Giriş başarısız.'); setIsLoggingIn(false); return; }
           setAuth({ loggedIn: true, role: selectedRole, email: data.email });
           setSelectedRole(null); setEmail(''); setPassword(''); setAuthError('');
           setMessages([{ role: 'bot', text: 'Merhaba bugün neyi tamir ediyoruz! :)' }]);
-        } catch (_) { setAuthError('Sunucu bağlantısı sağlanamadı.'); }
+          setIsLoggingIn(false);
+        } catch (_) {
+          clearTimeout(timer);
+          if (!controller.signal.aborted) localLogin();
+        }
       };
 
       const handleSend = async (customMsg = null) => {
@@ -855,7 +874,9 @@
                     <input type="password" value=${password} onInput=${e => setPassword(e.target.value)} placeholder="Şifre" class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
                     ${authError && html`<div class="text-red-600 font-bold">${authError}</div>`}
                     <div class="flex flex-col gap-3 md:flex-row">
-                      <button onClick=${handleAuthSubmit} class="flex-1 bg-black text-white border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:bg-gray-800 transition-colors">GİRİŞ YAP / KAYIT OL</button>
+                      <button onClick=${handleAuthSubmit} disabled=${isLoggingIn} class="flex-1 bg-black text-white border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-wait">
+                        ${isLoggingIn ? '⏳ GİRİŞ YAPILIYOR...' : 'GİRİŞ YAP / KAYIT OL'}
+                      </button>
                       <button onClick=${() => { setSelectedRole(null); setAuthError(''); setEmail(''); setPassword(''); }} class="flex-1 bg-white text-black border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0px_#000]">GERİ</button>
                     </div>
                   </div>
@@ -941,25 +962,25 @@
             </div>
 
             <nav class="nav-scroll flex flex-row flex-nowrap justify-start w-full gap-2 pb-3">
-              <button onClick=${() => setView('panel')} class="flex items-center gap-2 px-5 py-4 brutal-btn font-black text-sm uppercase whitespace-nowrap shrink-0 ${view === 'panel' ? 'bg-black text-white' : 'bg-white text-black'}">
+              <button onClick=${() => setView('panel')} class="flex items-center gap-2 px-5 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'panel' ? 'bg-black text-white' : 'bg-white text-black'}">
                 <${IconHome} /> Panel
               </button>
-              <button onClick=${() => setView('ustalar')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-sm uppercase whitespace-nowrap shrink-0 ${view === 'ustalar' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
+              <button onClick=${() => setView('ustalar')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'ustalar' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
                 <${IconSearch} /> Usta Bul
               </button>
-              <button onClick=${() => setView('kampanyalar')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-sm uppercase whitespace-nowrap shrink-0 ${view === 'kampanyalar' ? 'bg-black text-white' : 'bg-white text-black'}">
+              <button onClick=${() => setView('kampanyalar')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'kampanyalar' ? 'bg-black text-white' : 'bg-white text-black'}">
                 <${IconGift} /> Kampanyalar
               </button>
-              <button onClick=${() => setView('merkezler')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-sm uppercase whitespace-nowrap shrink-0 ${view === 'merkezler' ? 'bg-black text-white' : 'bg-white text-black'}">
+              <button onClick=${() => setView('merkezler')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'merkezler' ? 'bg-black text-white' : 'bg-white text-black'}">
                 <${IconMap} /> Merkezler
               </button>
-              <button onClick=${() => setView('aletler')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-sm uppercase whitespace-nowrap shrink-0 ${view === 'aletler' ? 'bg-black text-white' : 'bg-brandPink text-black'}">
+              <button onClick=${() => setView('aletler')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'aletler' ? 'bg-black text-white' : 'bg-brandPink text-black'}">
                 <${IconBox} /> Alet/Edevat
               </button>
-              <button onClick=${() => setView('atig')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-sm uppercase whitespace-nowrap shrink-0 ${view === 'atig' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
+              <button onClick=${() => setView('atig')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'atig' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
                 <${IconLeaf} /> Atığın
               </button>
-              <button onClick=${() => setAuth({loggedIn: false, role: null, email: null})} class="px-7 py-6 brutal-btn font-black text-sm uppercase whitespace-nowrap shrink-0 bg-white text-red-600">
+              <button onClick=${() => setAuth({loggedIn: false, role: null, email: null})} class="px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 bg-white text-red-600">
                 ÇIKIŞ YAP
               </button>
             </nav>
