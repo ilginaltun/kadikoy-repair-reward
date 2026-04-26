@@ -707,7 +707,7 @@
         if (savedUstaLocation) setUstaLocation(JSON.parse(savedUstaLocation));
         const savedUstaLocationAsked = localStorage.getItem('ustaLocationPermissionAsked');
         if (savedUstaLocationAsked === 'true') setUstaLocationPermissionAsked(true);
-        const savedJobPostings = localStorage.getItem('jobPostings');
+        const savedJobPostings = localStorage.getItem('globalJobPostings');
         if (savedJobPostings) setJobPostings(JSON.parse(savedJobPostings));
       }, []);
 
@@ -766,7 +766,7 @@
       }, [auth, view, customerLocation, locationPermissionAsked]);
 
       const loadJobPostings = () => {
-        const saved = localStorage.getItem('jobPostings');
+        const saved = localStorage.getItem('globalJobPostings');
         const localJobs = saved ? (() => { try { return JSON.parse(saved); } catch { return []; } })() : [];
         if (localJobs.length > 0) setJobPostings(localJobs);
 
@@ -779,7 +779,7 @@
               if (!merged.find(lj => String(lj.id) === String(aj.id))) merged.push(aj);
             });
             setJobPostings(merged);
-            localStorage.setItem('jobPostings', JSON.stringify(merged));
+            localStorage.setItem('globalJobPostings', JSON.stringify(merged));
           })
           .catch(() => {});
       };
@@ -798,7 +798,7 @@
         if (!auth.loggedIn || auth.role !== 'tamirci') return;
 
         const refreshFromLocal = () => {
-          const saved = localStorage.getItem('jobPostings');
+          const saved = localStorage.getItem('globalJobPostings');
           if (saved) {
             try {
               const parsed = JSON.parse(saved);
@@ -821,7 +821,7 @@
                     addedCount++;
                   }
                 });
-                if (addedCount > 0) localStorage.setItem('jobPostings', JSON.stringify(merged));
+                if (addedCount > 0) localStorage.setItem('globalJobPostings', JSON.stringify(merged));
                 return merged;
               });
             }).catch(() => refreshFromLocal());
@@ -859,7 +859,7 @@
       useEffect(() => { if (auth.loggedIn) localStorage.setItem(`assignedJobs_${auth.email}`, JSON.stringify(assignedJobs)); }, [assignedJobs, auth.loggedIn]);
       useEffect(() => { if (auth.loggedIn) localStorage.setItem(`jobChats_${auth.email}`, JSON.stringify(jobChats)); }, [jobChats, auth.loggedIn]);
       useEffect(() => { if (auth.loggedIn) localStorage.setItem(`cumulativeImpact_${auth.email}`, JSON.stringify(cumulativeImpact)); }, [cumulativeImpact, auth.loggedIn]);
-      useEffect(() => { localStorage.setItem('jobPostings', JSON.stringify(jobPostings)); }, [jobPostings]);
+      useEffect(() => { localStorage.setItem('globalJobPostings', JSON.stringify(jobPostings)); }, [jobPostings]);
       useEffect(() => { if (customerLocation) localStorage.setItem('customerLocation', JSON.stringify(customerLocation)); }, [customerLocation]);
       useEffect(() => { localStorage.setItem('locationPermissionAsked', locationPermissionAsked ? 'true' : 'false'); }, [locationPermissionAsked]);
       useEffect(() => { if (ustaLocation) localStorage.setItem('ustaLocation', JSON.stringify(ustaLocation)); }, [ustaLocation]);
@@ -892,7 +892,7 @@
 
         setJobPostings(prev => {
           const next = [...prev, newJob];
-          localStorage.setItem('jobPostings', JSON.stringify(next));
+          localStorage.setItem('globalJobPostings', JSON.stringify(next));
           return next;
         });
 
@@ -1197,7 +1197,7 @@
                     <button onClick=${async () => {
                       setIsRefreshing(true);
                       try {
-                        const saved = localStorage.getItem('jobPostings');
+                        const saved = localStorage.getItem('globalJobPostings');
                         let localJobs = [];
                         if (saved) { try { localJobs = JSON.parse(saved) || []; } catch(_) {} }
                         
@@ -1229,7 +1229,7 @@
                               addedCount++;
                             }
                           });
-                          localStorage.setItem('jobPostings', JSON.stringify(merged));
+                          localStorage.setItem('globalJobPostings', JSON.stringify(merged));
                           return merged;
                         });
                         alert('✅ ' + apiJobs.length + ' ilanın tümü yüklendi!');
