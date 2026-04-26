@@ -134,6 +134,7 @@
     const IconSearch  = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
     const IconBox     = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`;
     const IconLeaf    = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>`;
+    const IconGlobe   = () => html`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
 
     // ── Helpers ────────────────────────────────────────────────────────────
     const getDistance = (lat1, lon1, lat2, lon2) => {
@@ -887,10 +888,11 @@
         { id: 12, tag: 'Sosyal',       title: 'KADIKÖY SOSYAL MARKET',           desc: 'Belediye Market İndirimi',        points: 300, color: 'bg-brandBlue text-white' },
       ];
 
+      // kg: tahmini ağırlık. CO2 = kg × 2.73 (landfill+üretim kaçınma faktörü, Kadıköy hesabı)
       const sonTamirlerData = [
-        { id: 1, isim: 'TOST MAKİNESİ',  konum: 'Moda Merkezi',           tarih: '2026-03-25', puan: 50,  bg: 'bg-mainBg',    text: 'text-black', co2: 35,  water: 6500 },
-        { id: 2, isim: 'SANDALYE',        konum: 'Yeldeğirmeni Merkezi',   tarih: '2026-03-12', puan: 150, bg: 'bg-brandPink', text: 'text-black', co2: 25,  water: 200  },
-        { id: 3, isim: 'BİSİKLET FRENİ', konum: 'Moda Sahili',            tarih: '2026-02-18', puan: 80,  bg: 'bg-mainBg',    text: 'text-black', co2: 15,  water: 150  },
+        { id: 1, isim: 'TOST MAKİNESİ',  konum: 'Moda Merkezi',         tarih: '2026-03-25', puan: 50,  bg: 'bg-mainBg',    text: 'text-black', kg: 1.5, co2: 4,  water: 750  },
+        { id: 2, isim: 'SANDALYE',        konum: 'Yeldeğirmeni Merkezi', tarih: '2026-03-12', puan: 150, bg: 'bg-brandPink', text: 'text-black', kg: 5.0, co2: 14, water: 1000 },
+        { id: 3, isim: 'BİSİKLET FRENİ', konum: 'Moda Sahili',          tarih: '2026-02-18', puan: 80,  bg: 'bg-mainBg',    text: 'text-black', kg: 0.3, co2: 1,  water: 135  },
       ];
 
       const tamirciIsleri = [
@@ -1100,7 +1102,7 @@
                 <${IconLeaf} /> Atığın
               </button>
               <button onClick=${() => setView('hesap')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'hesap' ? 'bg-black text-white' : 'bg-brandPink text-black'}">
-                👤 Hesap
+                <${IconGlobe} /> Hesap
               </button>
             </nav>
           </header>
@@ -1354,8 +1356,8 @@
                         <p class="font-black text-3xl mt-1">${totalTrees} <span class="text-xl">🌳</span></p>
                       </div>
                       <div class="border-4 border-white/30 p-4">
-                        <p class="font-bold text-xs uppercase opacity-60">Araç Eşdeğeri</p>
-                        <p class="font-black text-3xl mt-1">${totalCars} <span class="text-xl">🚗</span></p>
+                        <p class="font-bold text-xs uppercase opacity-60">Tamir Ettirilen</p>
+                        <p class="font-black text-3xl mt-1">${sonTamirlerData.length} <span class="text-base font-bold opacity-70">ürün</span></p>
                       </div>
                     </div>
                     <div class="border-4 border-brandYellow p-4 flex justify-between items-center">
@@ -1367,15 +1369,13 @@
                   <!-- Sağ Alt: Son Tamirler -->
                   <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
                     <div class="inline-block bg-brandPink border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">🔧 SON TAMİRLER</div>
-                    <p class="font-bold text-xs text-gray-400 uppercase">Karta tıkla — çevresel etkini gör</p>
                     <div class="flex flex-col gap-3">
                       ${sonTamirlerData.map(item => html`
-                        <div onClick=${() => handleShowRepairImpact(item)}
-                             class="border-4 border-black p-3 flex justify-between items-center cursor-pointer hover:shadow-[4px_4px_0_#054ff0] hover:border-brandBlue transition-all ${item.bg}">
+                        <div class="border-4 border-black p-3 flex justify-between items-center ${item.bg}">
                           <div class="flex-1 min-w-0 pr-2">
                             <h4 class="text-lg font-black uppercase ${item.text} truncate">${item.isim}</h4>
                             <span class="text-gray-600 font-bold text-xs truncate block mt-0.5">${item.konum} • ${item.tarih}</span>
-                            <span class="text-xs font-bold text-brandBlue mt-1 uppercase block">🌱 ${item.co2} kg CO₂ • Etkini gör →</span>
+                            <span class="text-xs font-bold text-gray-500 mt-1 block">≈ ${item.kg} kg</span>
                           </div>
                           <div class="bg-brandYellow border-2 border-black px-2 py-1 text-xl font-black shrink-0 text-black">+${item.puan}</div>
                         </div>
