@@ -790,12 +790,12 @@
         }
       }, [auth, ustaView, ustaLocation, ustaLocationPermissionAsked]);
 
-      // Usta 'Yakındaki İşler' paneline her geçişte ilanları yenile
+      // Usta paneline geçişte VEYA usta olarak giriş yapıldığında ilanları yenile
       useEffect(() => {
         if (auth.loggedIn && auth.role === 'tamirci' && ustaView === 'panel') {
           loadJobPostings();
         }
-      }, [ustaView]);
+      }, [ustaView, auth.loggedIn, auth.role]);
 
       // Persistence: Load user-specific data on login
       useEffect(() => {
@@ -865,23 +865,25 @@
       const handleShopSelect = (shop) => { setSelectedShop(shop); setView('merkezler'); };
 
       const handlePostJob = async (form) => {
-        // Puan CO₂ etkisine göre otomatik hesaplanır, müşteri seçemez
-        const impact = calcImpact(form.kategori, 1);
+        // Puan CO₂ × kg oranına göre otomatik hesaplanır, müşteri seçemez
+        const kg = Math.max(0.1, parseFloat(form.kg) || 1);
+        const impact = calcImpact(form.kategori, kg);
         const newJob = {
           id: Date.now(),
           baslik: form.baslik,
           kategori: form.kategori,
-          musteri: auth.email.split('@')[0], // basit isim
-          konum: 'Kadıköy (yaklaşık)', // basit
+          musteri: auth.email.split('@')[0],
+          konum: 'Kadıköy (yaklaşık)',
           aciliyet: form.aciliyet,
-          ucret: String(impact.points), // CO₂ bazlı otomatik puan
+          ucret: String(impact.points), // CO₂ × kg bazlı otomatik puan
           co2: impact.co2,
+          kg: kg,
           lat: customerLocation ? customerLocation.lat : (40.987 + (Math.random() - 0.5) * 0.014),
           lon: customerLocation ? customerLocation.lon : (29.045 + (Math.random() - 0.5) * 0.014),
           deadline: null,
           assignedTo: null,
           assignedDate: null,
-          img: 'tamir.png' // basit img
+          img: { 'Elektronik': 'telefon.png', 'Tekstil': 'dikis_makinesi.png', 'Bisiklet': 'bisiklet.png' }[form.kategori] || 'ingiliz_anahtari.png'
         };
         try {
           const res = await fetch(`${apiBase}/api/jobpostings`, {
@@ -893,8 +895,14 @@
           await loadJobPostings();
           alert('İlan yayınlandı!');
         } catch (error) {
-          setJobPostings(prev => [...prev, newJob]);
-          alert('İlan yayınlandı! (local)');
+          // API yoksa direkt state + localStorage'a ekle
+          const updated = prev => {
+            const next = [...prev, newJob];
+            localStorage.setItem('jobPostings', JSON.stringify(next));
+            return next;
+          };
+          setJobPostings(updated);
+          alert('İlan yayınlandı!');
         }
         setView('panel');
       };
@@ -1593,8 +1601,9 @@
             `}
 
             ${view === 'ilan-ac' && (() => {
-              const [ilanForm, setIlanForm] = useState({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta' });
-              const ilanImpact = calcImpact(ilanForm.kategori, 1);
+              const [ilanForm, setIlanForm] = useState({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta', kg: '1' });
+              const ilanKg = Math.max(0.1, parseFloat(ilanForm.kg) || 1);
+              const ilanImpact = calcImpact(ilanForm.kategori, ilanKg);
               return html`
               <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
                 <div class="inline-block relative mb-4 md:mb-6">
@@ -1611,7 +1620,7 @@
                       <h3 class="text-2xl font-black uppercase mb-4 text-black">Kategori</h3>
                       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         ${['Elektronik', 'Tekstil', 'Mobilya', 'Bisiklet'].map(cat => html`
-                          <button onClick=${() => setIlanForm(f => ({...f, kategori: cat}))} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${ilanForm.kategori === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">${cat}</button>
+                          <button onClick=${() => setIlanForm(f => ({...f, kategori: cat}))} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${ilanForm.kategori === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">${getCategoryEmoji(cat)} ${cat}</button>
                         `)}
                       </div>
                     </div>
@@ -1623,25 +1632,25 @@
                         `)}
                       </div>
                     </div>
-                    <div class="border-4 border-black p-5 bg-brandYellow/30 space-y-3">
-                      <h3 class="text-xl font-black uppercase text-black">🌱 Otomatik Hesaplanan Puan</h3>
-                      <p class="font-bold text-sm text-gray-600">Puan, seçtiğin kategorinin CO₂ etkisine göre otomatik belirlenir. Değiştiremezsin.</p>
-                      <div class="grid grid-cols-3 gap-3">
-                        <div class="border-4 border-black bg-white p-3 text-center">
-                          <p class="font-black text-2xl text-brandBlue">${ilanImpact.points}</p>
-                          <p class="font-bold text-xs uppercase text-gray-600">PUAN</p>
-                        </div>
-                        <div class="border-4 border-black bg-white p-3 text-center">
-                          <p class="font-black text-2xl">${ilanImpact.co2} kg</p>
-                          <p class="font-bold text-xs uppercase text-gray-600">CO₂ Önlenir</p>
-                        </div>
-                        <div class="border-4 border-black bg-white p-3 text-center">
-                          <p class="font-black text-2xl">${ilanImpact.trees} 🌳</p>
-                          <p class="font-bold text-xs uppercase text-gray-600">Ağaç Eşd.</p>
-                        </div>
-                      </div>
+                    <div>
+                      <h3 class="text-2xl font-black uppercase mb-4 text-black">Eşyanın Tahmini Ağırlığı (kg)</h3>
+                      <p class="font-bold text-sm text-gray-500 mb-3">Ağırlık arttıkça tamir etkisi ve kazanılan puan artar.</p>
+                      <input
+                        type="number" min="0.1" step="0.1"
+                        value=${ilanForm.kg}
+                        onInput=${e => setIlanForm(f => ({...f, kg: e.target.value}))}
+                        class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg"
+                        placeholder="Örn: 0.5 (telefon), 5 (sandalye), 15 (bisiklet)"
+                      />
                     </div>
-                    <button onClick=${() => { if (!ilanForm.baslik.trim()) { alert('Başlık girin!'); return; } handlePostJob(ilanForm); setIlanForm({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta' }); }} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl md:text-3xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-center items-center gap-3">
+                    <div class="border-4 border-black p-5 bg-brandYellow flex items-center justify-between gap-6">
+                      <div>
+                        <p class="font-bold text-sm uppercase text-gray-700">Kazanacağın Puan</p>
+                        <p class="font-black text-xs text-gray-500 mt-0.5">${ilanKg.toFixed(1)} kg ${ilanForm.kategori} tamir etkisine göre</p>
+                      </div>
+                      <p class="font-black text-5xl text-brandBlue">${ilanImpact.points}</p>
+                    </div>
+                    <button onClick=${() => { if (!ilanForm.baslik.trim()) { alert('Başlık girin!'); return; } if (!ilanForm.kg || parseFloat(ilanForm.kg) <= 0) { alert('Ağırlık girin!'); return; } handlePostJob(ilanForm); setIlanForm({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta', kg: '1' }); }} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl md:text-3xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-center items-center gap-3">
                       <${IconWrench} /> İLANI YAYINLA
                     </button>
                   </div>
