@@ -220,29 +220,37 @@ def messages():
 @app.route('/api/jobpostings', methods=['GET', 'POST'])
 def jobpostings():
     if request.method == 'POST':
-        data = request.json or {}
-        new_job = {
-            'id': str(data.get('id')),
-            'baslik': data.get('baslik'),
-            'kategori': data.get('kategori'),
-            'musteri': data.get('musteri'),
-            'konum': data.get('konum'),
-            'aciliyet': data.get('aciliyet'),
-            'ucret': data.get('ucret'),
-            'lat': data.get('lat'),
-            'lon': data.get('lon'),
-            'deadline': data.get('deadline'),
-            'assignedTo': data.get('assignedTo'),
-            'assignedDate': data.get('assignedDate'),
-            'img': data.get('img')
-        }
-        if not new_job['id']:
-            return jsonify({'error': 'id gerekli'}), 400
-        supabase.table('jobpostings').insert(new_job).execute()
-        return jsonify({'status': 'ok'})
+        try:
+            data = request.json or {}
+            new_job = {
+                'id': str(data.get('id')),
+                'baslik': data.get('baslik'),
+                'kategori': data.get('kategori'),
+                'musteri': data.get('musteri'),
+                'konum': data.get('konum'),
+                'aciliyet': data.get('aciliyet'),
+                'ucret': data.get('ucret'),
+                'lat': data.get('lat'),
+                'lon': data.get('lon'),
+                'deadline': data.get('deadline'),
+                'assignedTo': data.get('assignedTo'),
+                'assignedDate': data.get('assignedDate'),
+                'img': data.get('img')
+            }
+            if not new_job['id']:
+                return jsonify({'error': 'id gerekli'}), 400
+            result = supabase.table('jobpostings').insert(new_job).execute()
+            return jsonify({'status': 'ok', 'data': result.data})
+        except Exception as e:
+            print(f"[ERROR] jobpostings POST: {str(e)}")
+            return jsonify({'error': str(e)}), 500
     else:
-        result = supabase.table('jobpostings').select('*').execute()
-        return jsonify(result.data)
+        try:
+            result = supabase.table('jobpostings').select('*').execute()
+            return jsonify(result.data)
+        except Exception as e:
+            print(f"[ERROR] jobpostings GET: {str(e)}")
+            return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/export/conversations', methods=['GET'])

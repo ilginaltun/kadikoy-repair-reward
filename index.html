@@ -752,6 +752,7 @@
       const [assignedJobs, setAssignedJobs]             = useState({}); // {jobId: {deadline, type: 'usta' or 'musteri'}}
       const [jobChats, setJobChats]                     = useState({}); // {jobId: [{role: 'musteri' or 'usta', text, time}]}
       const [chatJobId, setChatJobId]                   = useState(null);
+      const [isRefreshing, setIsRefreshing]             = useState(false);
 
       useEffect(() => {
         fetch('./kadikoy_map_data.json').then(res => res.json()).then(data => {
@@ -804,12 +805,12 @@
         }
       }, [auth, ustaView, ustaLocation, ustaLocationPermissionAsked]);
 
-      // ─── Usta paneli: polling + cross-tab storage event ile ilan yenileme ───
+      // ─── Usta paneli: polling + cross-tab storage event + API ile ilan yenileme ───
+      // ustaView kısıtı KALDIRILDI — tamirci girişi boyunca her zaman aktif
       useEffect(() => {
-        if (!auth.loggedIn || auth.role !== 'tamirci' || ustaView !== 'panel') return;
+        if (!auth.loggedIn || auth.role !== 'tamirci') return;
 
-        const refresh = () => {
-          // State zaten güncelse localStorage'dan merge et
+        const refreshFromLocal = () => {
           const saved = localStorage.getItem('jobPostings');
           if (saved) {
             try {
@@ -819,20 +820,62 @@
           }
         };
 
-        // Hemen çek
-        refresh();
+        const refreshFromApi = () => {
+          fetch(`${apiBase}/api/jobpostings`)
+            .then(r => {
+              if (!r.ok) {
+                console.warn('[JobPostings API] HTTP Error:', r.status);
+                return null;
+              }
+              return r.json();
+            })
+            .then(apiJobs => {
+              if (!Array.isArray(apiJobs)) {
+                console.warn('[JobPostings API] Response is not an array:', apiJobs);
+                return;
+              }
+              if (apiJobs.length === 0) {
+                console.info('[JobPostings API] No jobs from API, keeping local data');
+                return;
+              }
+              console.info('[JobPostings API] Got', apiJobs.length, 'jobs from API');
+              setJobPostings(prev => {
+                const merged = [...prev];
+                let addedCount = 0;
+                apiJobs.forEach(aj => {
+                  if (!merged.find(lj => String(lj.id) === String(aj.id))) {
+                    merged.push(aj);
+                    addedCount++;
+                  }
+                });
+                if (addedCount > 0) {
+                  console.info('[JobPostings API] Added', addedCount, 'new jobs');
+                  localStorage.setItem('jobPostings', JSON.stringify(merged));
+                }
+                return merged;
+              });
+            })
+            .catch(err => {
+              console.error('[JobPostings API] Fetch error:', err.message);
+              refreshFromLocal();
+            });
+        };
+
+        // İlk yükleme: önce local, sonra API
+        refreshFromLocal();
+        refreshFromApi();
 
         // Farklı tab/pencereden değişiklikleri yakala (storage event)
-        window.addEventListener('storage', refresh);
+        window.addEventListener('storage', refreshFromLocal);
 
-        // Aynı tab güvenlik ağı: her 3 saniyede kontrol
-        const timer = setInterval(refresh, 3000);
+        // Her 2 saniyede: önce API, başarısız olursa local (daha hızlı sync)
+        const timer = setInterval(refreshFromApi, 2000);
 
         return () => {
-          window.removeEventListener('storage', refresh);
+          window.removeEventListener('storage', refreshFromLocal);
           clearInterval(timer);
         };
-      }, [ustaView, auth.loggedIn, auth.role]);
+      }, [auth.loggedIn, auth.role]);
 
       // Persistence: Load user-specific data on login
       useEffect(() => {
@@ -929,12 +972,29 @@
           return next;
         });
 
-        // Arka planda Supabase'e de gonder (sessizce)
+        // Arka planda Supabase'e de gonder (feedback ile)
         fetch(`${apiBase}/api/jobpostings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newJob)
-        }).catch(() => {});
+        })
+          .then(r => {
+            if (r.ok) {
+              console.log('[POST İLAN] Başarılı! ID:', newJob.id);
+              return r.json();
+            } else {
+              console.error('[POST İLAN] HTTP Error:', r.status);
+              throw new Error('HTTP ' + r.status);
+            }
+          })
+          .then(data => {
+            console.log('[POST İLAN] API Response:', data);
+            setMessages(prev => [...prev, { role: 'bot', text: '✅ İlanın başarıyla yayınlandı ve Supabase\'e kaydedildi!' }]);
+          })
+          .catch(err => {
+            console.warn('[POST İLAN] API hatası (local veri kaydedildi):', err.message);
+            setMessages(prev => [...prev, { role: 'bot', text: '⚠️ İlanın yayınlandı ama Supabase senkronizasyonunda sıkıntı. Sonra "Yenile" butonuna bas.' }]);
+          });
 
         alert('İlan yayınlandı!');
         setView('panel');
@@ -1203,10 +1263,74 @@
                       <button onClick=${() => setUstaView('harita')} class="ml-auto bg-black text-white px-4 py-2 font-black text-sm border-2 border-black hover:bg-gray-800 transition-colors whitespace-nowrap">HARITADA GÖR</button>
                     </div>
                   `}
-                  <div class="inline-block relative">
-                    <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
-                    <h2 class="relative bg-black text-white px-6 py-3 text-3xl md:text-4xl font-black uppercase tracking-tighter border-4 border-black">YAKINDAKİ İŞLER</h2>
+                  <div class="flex flex-wrap items-center gap-4">
+                    <div class="inline-block relative">
+                      <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                      <h2 class="relative bg-black text-white px-6 py-3 text-3xl md:text-4xl font-black uppercase tracking-tighter border-4 border-black">YAKINDAKİ İŞLER</h2>
+                    </div>
+                    <button onClick=${async () => {
+                      setIsRefreshing(true);
+                      try {
+                        const saved = localStorage.getItem('jobPostings');
+                        let localJobs = [];
+                        if (saved) { try { localJobs = JSON.parse(saved) || []; } catch(_) {} }
+                        console.log('[YENİLE] Local jobs:', localJobs.length);
+                        
+                        const response = await fetch(`${apiBase}/api/jobpostings`);
+                        if (!response.ok) {
+                          console.error('[YENİLE] API error:', response.status);
+                          alert('⚠️ API bağlantı sorunu (HTTP ' + response.status + '). Local veriler gösteriliyor.');
+                          return;
+                        }
+                        
+                        const apiJobs = await response.json();
+                        console.log('[YENİLE] API jobs:', apiJobs.length, 'adet');
+                        
+                        if (!Array.isArray(apiJobs)) {
+                          console.warn('[YENİLE] Invalid API response format');
+                          alert('⚠️ API veri formatı hatalı');
+                          return;
+                        }
+                        
+                        if (apiJobs.length === 0) {
+                          alert('ℹ️ Henüz açık ilan yok');
+                          setJobPostings(localJobs.length > 0 ? localJobs : []);
+                          return;
+                        }
+                        
+                        // Merge: API'den gelenleri local'e ekle
+                        setJobPostings(prev => {
+                          const merged = [...prev];
+                          let addedCount = 0;
+                          apiJobs.forEach(aj => {
+                            if (!merged.find(lj => String(lj.id) === String(aj.id))) {
+                              merged.push(aj);
+                              addedCount++;
+                            }
+                          });
+                          localStorage.setItem('jobPostings', JSON.stringify(merged));
+                          console.log('[YENİLE] Added', addedCount, 'new jobs. Total:', merged.length);
+                          return merged;
+                        });
+                        alert('✅ ' + apiJobs.length + ' ilanın tümü yüklendi!');
+                      } catch (err) {
+                        console.error('[YENİLE] Error:', err);
+                        alert('❌ Hata: ' + err.message);
+                      } finally {
+                        setIsRefreshing(false);
+                      }
+                    }} disabled=${isRefreshing} class="bg-brandYellow border-4 border-black px-4 py-2 font-black text-base uppercase brutal-btn shadow-[4px_4px_0px_#000] hover:translate-y-1 hover:shadow-[2px_2px_0px_#000] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                      ${isRefreshing ? '⏳' : '🔄'} ${isRefreshing ? 'YÜKLÜNİYOR...' : 'YENİLE'}
+                    </button>
+                    <span class="font-bold text-sm text-gray-500 border-2 border-dashed border-gray-300 px-3 py-1">${jobPostings.filter(j => !j.assignedTo).length} açık ilan</span>
                   </div>
+                  ${jobPostings.filter(j => !j.assignedTo).length === 0 ? html`
+                    <div class="brutal-card p-8 bg-white border-4 border-dashed border-gray-300 text-center col-span-3">
+                      <p class="text-5xl mb-4">🔍</p>
+                      <p class="font-black text-xl uppercase text-gray-500">Henüz açık iş ilanı yok</p>
+                      <p class="font-bold text-sm text-gray-400 mt-2">Müşteri ilan açtığında burada görünecek. YENİLE butonuna bas veya bekle.</p>
+                    </div>
+                  ` : ''}
                   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     ${jobPostings.filter(j => !j.assignedTo).map(is => html`
                       <div class="brutal-card bg-white p-6 flex flex-col justify-between border-[5px] hover:-translate-y-2 transition-transform cursor-pointer">
