@@ -687,6 +687,20 @@
       const isLocal = window.location.protocol === 'file:' || ['localhost', '127.0.0.1'].includes(window.location.hostname);
       const apiBase = isLocal ? 'http://127.0.0.1:5001' : window.location.origin;
 
+      // Load auth from localStorage on mount
+      useEffect(() => {
+        const savedAuth = localStorage.getItem('auth');
+        if (savedAuth) {
+          const parsed = JSON.parse(savedAuth);
+          setAuth(parsed);
+        }
+      }, []);
+
+      // Save auth to localStorage on change
+      useEffect(() => {
+        localStorage.setItem('auth', JSON.stringify(auth));
+      }, [auth]);
+
       const [view, setView]                             = useState('panel');
       const [puan, setPuan]                             = useState(250);
       const [kullanilanlar, setKullanilanlar]           = useState([]);
@@ -756,7 +770,7 @@
           if (savedJobChats) setJobChats(JSON.parse(savedJobChats));
           const savedCumulativeImpact = localStorage.getItem(`cumulativeImpact_${auth.email}`);
           if (savedCumulativeImpact) setCumulativeImpact(JSON.parse(savedCumulativeImpact));
-          const savedJobPostings = localStorage.getItem(`jobPostings_${auth.email}`);
+          const savedJobPostings = localStorage.getItem('jobPostings');
           if (savedJobPostings) setJobPostings(JSON.parse(savedJobPostings));
         }
       }, [auth.loggedIn]);
@@ -789,7 +803,7 @@
       }, [cumulativeImpact, auth.loggedIn]);
       useEffect(() => {
         if (auth.loggedIn) {
-          localStorage.setItem(`jobPostings_${auth.email}`, JSON.stringify(jobPostings));
+          localStorage.setItem('jobPostings', JSON.stringify(jobPostings));
         }
       }, [jobPostings, auth.loggedIn]);
 
