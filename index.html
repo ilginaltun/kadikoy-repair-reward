@@ -197,9 +197,9 @@
         }
         segments = newSegments;
       }
-      return segments.map(seg =>
+      return segments.map((seg, index) =>
         seg.type === 'shop'
-          ? html`<span class="inline-block"><span onClick=${(e) => { e.stopPropagation(); onShopClick(seg.shop); }}
+          ? html`<span key=${index} class="inline-block"><span onClick=${(e) => { e.stopPropagation(); onShopClick(seg.shop); }}
               class="underline decoration-2 cursor-pointer text-brandBlue hover:bg-brandPink inline-flex items-center gap-1"
               title="Haritada göster">📍 ${seg.value}</span><span class="text-xs font-bold ml-1 text-gray-500">(⚡${seg.shop.ratings?.hiz} ⭐${seg.shop.ratings?.kalite} 💰${seg.shop.ratings?.fiyat})</span></span>`
           : seg.value
@@ -217,8 +217,8 @@
                 <button onClick=${() => setIsChatOpen(false)} class="text-2xl hover:scale-125 transition-transform text-white">×</button>
               </div>
               <div class="flex-grow p-4 overflow-y-auto space-y-4 bg-white/60">
-                ${messages.map(m => html`
-                  <div class="p-3 border-4 border-black font-bold text-black ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
+                ${messages.map((m, idx) => html`
+                  <div key=${idx} class="p-3 border-4 border-black font-bold text-black ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
                     ${m.role === 'bot' ? renderMessageWithShops(m.text, allShops, onShopClick) : m.text}
                   </div>
                 `)}
@@ -309,7 +309,7 @@
             `}
             <div class="space-y-8">
               ${Object.entries(layers).map(([key, l]) => html`
-                <div class="flex items-start gap-6 cursor-pointer" onClick=${() => setLayers(p => ({ ...p, [key]: { ...l, active: !l.active } }))}>
+                <div key=${key} class="flex items-start gap-6 cursor-pointer" onClick=${() => setLayers(p => ({ ...p, [key]: { ...l, active: !l.active } }))}>
                   <div class="map-checkbox">${l.active && html`<div class="w-4 h-4 bg-black" style="clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%)"></div>`}</div>
                   <div class="w-10 h-10 border-4 border-black shrink-0 shadow-[3px_3px_0px_#000] ${l.color}"></div>
                   <div class="flex flex-col"><span class="text-2xl md:text-3xl font-black uppercase leading-none text-black">${l.title}</span><span class="text-lg md:text-xl font-bold text-gray-500 uppercase mt-1">${l.sub}</span></div>
@@ -362,7 +362,7 @@
               const available = toolCounts[alet.id] ?? alet.total;
               const isUnavailable = !isBorrowed && available <= 0;
               return html`
-                <div class="brutal-card bg-white p-5 md:p-6 flex flex-col gap-4 border-[5px] transition-all
+                <div key=${alet.id} class="brutal-card bg-white p-5 md:p-6 flex flex-col gap-4 border-[5px] transition-all
                             ${isBorrowed ? 'border-brandBlue shadow-[8px_8px_0px_#054ff0]' : isUnavailable ? 'opacity-60' : 'hover:-translate-y-1'}">
                   <div class="flex justify-between items-start">
                     <span class="text-5xl">${alet.emoji}</span>
@@ -493,7 +493,7 @@
             </div>
             <div class="flex gap-2 flex-wrap">
               ${tabs.map(t => html`
-                <button onClick=${() => { setSelectedWaste(null); setTab(t.id); }}
+                <button key=${t.id} onClick=${() => { setSelectedWaste(null); setTab(t.id); }}
                         class="px-4 py-2 border-4 border-black font-black uppercase text-base brutal-btn
                                ${tab === t.id ? 'bg-black text-white' : 'bg-white text-black'}">
                   ${t.label}
@@ -507,7 +507,7 @@
               <div class="w-full lg:w-[320px] brutal-card p-5 bg-white space-y-4 shrink-0">
                 <h3 class="text-2xl font-black uppercase border-b-4 border-black pb-3">LEJAND</h3>
                 ${['Elektronik','Tekstil','Mobilya','Bisiklet','Diğer'].map(cat => html`
-                  <div class="flex items-center gap-3">
+                  <div key=${cat} class="flex items-center gap-3">
                     <div class="w-9 h-9 border-4 border-black flex items-center justify-center text-base shrink-0">${getCategoryEmoji(cat)}</div>
                     <span class="font-bold uppercase text-sm">${cat}</span>
                   </div>
@@ -542,7 +542,7 @@
                 <p class="col-span-3 text-center font-bold text-xl py-16 text-gray-400">Henüz atık eklenmemiş.</p>
               `}
               ${wasteItems.map(item => html`
-                <div class="brutal-card bg-white p-5 border-[5px] flex flex-col gap-3 ${item.reserved ? 'opacity-55' : 'hover:-translate-y-1'} transition-transform">
+                <div key=${item.id} class="brutal-card bg-white p-5 border-[5px] flex flex-col gap-3 ${item.reserved ? 'opacity-55' : 'hover:-translate-y-1'} transition-transform">
                   <div class="flex justify-between items-start">
                     <span class="text-4xl">${getCategoryEmoji(item.category)}</span>
                     <span class="${item.reserved ? 'bg-gray-300 text-gray-500' : 'bg-brandYellow'} border-2 border-black px-2 py-1 text-xs font-black uppercase">
@@ -571,7 +571,7 @@
                 <label class="font-black uppercase text-sm block mb-3">Kategori</label>
                 <div class="grid grid-cols-3 md:grid-cols-5 gap-2">
                   ${['Elektronik','Tekstil','Mobilya','Bisiklet','Diğer'].map(cat => html`
-                    <button onClick=${() => setForm(f => ({...f, category: cat}))}
+                    <button key=${cat} onClick=${() => setForm(f => ({...f, category: cat}))}
                             class="border-4 border-black p-2 font-black text-sm uppercase text-center transition-all
                                    ${form.category === cat ? 'bg-brandPink shadow-[3px_3px_0_#000] -translate-y-0.5' : 'bg-mainBg hover:bg-brandPink/40'}">
                       <div class="text-2xl mb-1">${getCategoryEmoji(cat)}</div>
@@ -794,6 +794,7 @@
         }
       }, [auth, ustaView, ustaLocation, ustaLocationPermissionAsked]);
 
+      // DOM THRASHING (Butonlara basamama) sorununu çözen güncellenmiş yenileme mantığı
       useEffect(() => {
         if (!auth.loggedIn || auth.role !== 'tamirci') return;
 
@@ -802,7 +803,10 @@
           if (saved) {
             try {
               const parsed = JSON.parse(saved);
-              if (Array.isArray(parsed)) setJobPostings(parsed);
+              if (Array.isArray(parsed)) {
+                // Sadece değişiklik varsa state'i güncelle
+                setJobPostings(prev => JSON.stringify(prev) !== JSON.stringify(parsed) ? parsed : prev);
+              }
             } catch (_) {}
           }
         };
@@ -813,16 +817,29 @@
             .then(apiJobs => {
               if (!Array.isArray(apiJobs) || apiJobs.length === 0) return;
               setJobPostings(prev => {
-                const merged = [...prev];
-                let addedCount = 0;
+                let hasChanges = false;
+                const next = [...prev];
+                
                 apiJobs.forEach(aj => {
-                  if (!merged.find(lj => String(lj.id) === String(aj.id))) {
-                    merged.push(aj);
-                    addedCount++;
+                  const idx = next.findIndex(lj => String(lj.id) === String(aj.id));
+                  if (idx === -1) {
+                    next.push(aj);
+                    hasChanges = true;
+                  } else {
+                    // Mevcut iş başkası tarafından alındıysa güncelle
+                    if (next[idx].assignedTo !== aj.assignedTo || next[idx].assignedDate !== aj.assignedDate) {
+                      next[idx] = { ...next[idx], ...aj };
+                      hasChanges = true;
+                    }
                   }
                 });
-                if (addedCount > 0) localStorage.setItem('globalJobPostings', JSON.stringify(merged));
-                return merged;
+
+                if (hasChanges) {
+                  localStorage.setItem('globalJobPostings', JSON.stringify(next));
+                  return next;
+                }
+                
+                return prev; // Değişiklik yoksa PREV dönerek RE-RENDER'ı engeller (Buton bug'ı çözümü)
               });
             }).catch(() => refreshFromLocal());
         };
@@ -868,7 +885,7 @@
       const handleShopSelect = (shop) => { setSelectedShop(shop); setView('merkezler'); };
 
       // ==========================================
-      // KRİTİK DÜZELTME 1: Müşteri İlan Açma
+      // KRİTİK DÜZELTME 1: Müşteri İlan Açma (API POST Eklendi)
       // ==========================================
       const handlePostJob = async (form) => {
         const defaultKg = DEFAULT_KG[form.kategori] ?? 1;
@@ -880,7 +897,7 @@
           musteri: auth.email.split('@')[0],
           konum: 'Kadıköy (yaklaşık)',
           aciliyet: form.aciliyet,
-          ucret: impact.points, // DÜZELTME: String() sarmalı kaldırıldı
+          ucret: impact.points,
           co2: impact.co2,
           lat: customerLocation ? customerLocation.lat : (40.987 + (Math.random() - 0.5) * 0.014),
           lon: customerLocation ? customerLocation.lon : (29.045 + (Math.random() - 0.5) * 0.014),
@@ -895,6 +912,13 @@
           localStorage.setItem('globalJobPostings', JSON.stringify(next));
           return next;
         });
+
+        // Usta panelinde görünmesi için Supabase'e gönderiyoruz
+        fetch(`${apiBase}/api/jobpostings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newJob)
+        }).catch(err => console.warn('API POST hatası:', err));
 
         alert('İlan yayınlandı!');
         setView('panel');
@@ -1019,9 +1043,6 @@
         setImpactModal({ co2: repair.co2, water: repair.water, trees: Math.max(1, Math.round(repair.co2 / 21)), points: repair.puan, item: repair.isim, type: 'tamir' });
       };
 
-      // ==========================================
-      // KRİTİK DÜZELTME 2: Usta İşi Alma (PUT)
-      // ==========================================
       const handleJobTake = (job) => {
         const impact = calcImpact(job.kategori === 'Bisiklet' ? 'Bisiklet' : job.kategori, 1);
         setPuan(prev => prev + parseInt(job.ucret));
@@ -1235,7 +1256,7 @@
                   ` : ''}
                   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     ${jobPostings.filter(j => !j.assignedTo).map(is => html`
-                      <div class="brutal-card bg-white p-6 flex flex-col justify-between border-[5px] hover:-translate-y-2 transition-transform cursor-pointer">
+                      <div key=${is.id} class="brutal-card bg-white p-6 flex flex-col justify-between border-[5px] hover:-translate-y-2 transition-transform cursor-pointer">
                         <div>
                           <div class="flex justify-between items-start mb-4">
                             <span class="bg-brandPink text-black font-black px-3 py-1 text-sm border-2 border-black uppercase">${is.kategori}</span>
@@ -1269,11 +1290,11 @@
                 const myJobs = Object.entries(assignedJobs).filter(([id, info]) => info.type === 'usta');
                 const totalRepaired = myJobs.length;
                 const totalSavings = myJobs.reduce((s, [id, info]) => {
-                  const job = jobPostings.find(j => j.id == id);
+                  const job = jobPostings.find(j => String(j.id) === String(id));
                   return s + (job ? parseInt(job.ucret) : 0);
                 }, 0);
                 const totalCo2 = myJobs.reduce((s, [id, info]) => {
-                  const job = jobPostings.find(j => j.id == id);
+                  const job = jobPostings.find(j => String(j.id) === String(id));
                   if (!job) return s;
                   const impact = calcImpact(job.kategori === 'Bisiklet' ? 'Bisiklet' : job.kategori, 1);
                   return s + impact.co2;
@@ -1312,10 +1333,11 @@
                       ${myJobs.length === 0 ? html`
                         <p class="font-bold text-gray-400 text-center py-8">Henüz alınan iş yok.</p>
                       ` : myJobs.map(([id, info]) => {
-                        const job = jobPostings.find(j => j.id == id);
+                        const job = jobPostings.find(j => String(j.id) === String(id));
                         const rem = Math.max(0, Math.ceil((new Date(info.deadline) - new Date()) / (24 * 60 * 60 * 1000)));
+                        if (!job) return null;
                         return html`
-                          <div class="border-4 border-black p-4 flex justify-between items-center ${rem === 0 ? 'bg-red-100' : 'bg-brandYellow/40'}">
+                          <div key=${id} class="border-4 border-black p-4 flex justify-between items-center ${rem === 0 ? 'bg-red-100' : 'bg-brandYellow/40'}">
                             <div class="flex-1">
                               <p class="font-black uppercase">${job.baslik}</p>
                               <p class="font-bold text-sm text-gray-600 mt-1">Müşteri: ${job.musteri}</p>
@@ -1357,7 +1379,7 @@
                         ? 'bg-[#c0c0c0] text-gray-600 cursor-not-allowed'
                         : 'bg-brandYellow text-black active:translate-y-1 active:shadow-none transition-all shadow-[3px_3px_0px_0px_#000]';
                       return html`
-                        <div class="border-[5px] border-black shadow-[6px_6px_0px_0px_#000] p-5 flex flex-col relative ${k.color} transition-transform hover:-translate-y-1">
+                        <div key=${k.id} class="border-[5px] border-black shadow-[6px_6px_0px_0px_#000] p-5 flex flex-col relative ${k.color} transition-transform hover:-translate-y-1">
                           <div class="absolute -top-4 right-3 bg-black text-white px-3 py-1 text-sm font-bold transform rotate-[4deg] border-2 border-black">${k.tag}</div>
                           <h3 class="text-xl md:text-2xl font-black uppercase mb-3 pr-10 leading-none mt-2 ${k.color.includes('text-white') ? 'text-white' : 'text-black'}">${k.title}</h3>
                           <div class="bg-mainBg border-4 border-black p-3 min-h-[80px] flex items-center justify-center text-center">
@@ -1386,9 +1408,10 @@
             <${ChatBot} isChatOpen=${isChatOpen} setIsChatOpen=${setIsChatOpen} messages=${messages} input=${chatInput} setInput=${setChatInput} handleSend=${handleSend} allShops=${allShops} onShopClick=${handleShopSelect} title="USTA AI" />
             ${impactModal && html`<${ImpactModal} data=${impactModal} onClose=${() => setImpactModal(null)} />`}
             ${chatJobId && (() => {
-              const job = jobPostings.find(j => j.id == chatJobId);
+              const job = jobPostings.find(j => String(j.id) === String(chatJobId));
+              if(!job) return null;
               const [chatMessages, setChatMessages] = useState([]);
-              const [chatInput, setChatInput] = useState('');
+              const [chatInputItem, setChatInputItem] = useState('');
               useEffect(() => {
                 fetch(`${apiBase}/api/messages?jobId=${chatJobId}`)
                   .then(res => res.json())
@@ -1396,19 +1419,19 @@
                   .catch(() => setChatMessages(jobChats[chatJobId] || []));
               }, [chatJobId]);
               const handleSendChat = () => {
-                if (!chatInput.trim()) return;
-                const newMsg = { role: auth.role, name: auth.email.split('@')[0], text: chatInput.trim(), time: new Date().toISOString() };
+                if (!chatInputItem.trim()) return;
+                const newMsg = { role: auth.role, name: auth.email.split('@')[0], text: chatInputItem.trim(), time: new Date().toISOString() };
                 fetch(`${apiBase}/api/messages`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ jobId: chatJobId, ...newMsg })
                 }).then(() => {
                   setChatMessages(prev => [...prev, newMsg]);
-                  setChatInput('');
+                  setChatInputItem('');
                 }).catch(() => {
                   setJobChats(prev => ({...prev, [chatJobId]: [...(prev[chatJobId] || []), newMsg]}));
                   setChatMessages(prev => [...prev, newMsg]);
-                  setChatInput('');
+                  setChatInputItem('');
                 });
               };
               const otherName = auth.role === 'musteri' ? (job.assignedTo ? job.assignedTo.split('@')[0] : 'Usta') : job.musteri;
@@ -1420,15 +1443,15 @@
                       <button onClick=${() => setChatJobId(null)} class="text-3xl hover:scale-125 transition-transform">×</button>
                     </div>
                     <div class="flex-grow overflow-y-auto space-y-4 max-h-64">
-                      ${chatMessages.length === 0 ? html`<p class="text-center text-gray-500">Henüz mesaj yok.</p>` : chatMessages.map(m => html`
-                        <div class="p-3 border-4 border-black font-bold text-black ${m.role === auth.role ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
+                      ${chatMessages.length === 0 ? html`<p class="text-center text-gray-500">Henüz mesaj yok.</p>` : chatMessages.map((m, idx) => html`
+                        <div key=${idx} class="p-3 border-4 border-black font-bold text-black ${m.role === auth.role ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
                           <div class="text-xs font-bold uppercase text-gray-600 mb-1">${m.name}</div>
                           ${m.text}
                         </div>
                       `)}
                     </div>
                     <div class="flex gap-2">
-                      <input value=${chatInput} onInput=${e => setChatInput(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSendChat()}
+                      <input value=${chatInputItem} onInput=${e => setChatInputItem(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSendChat()}
                              class="flex-grow p-2 border-4 border-black outline-none font-bold" placeholder="Mesaj yaz..." />
                       <button onClick=${handleSendChat} class="bg-black text-white px-4 border-4 border-black font-black">GÖNDER</button>
                     </div>
@@ -1505,7 +1528,7 @@
                       <h3 class="text-2xl font-black uppercase mb-4 text-black">1. Neyi Tamir Edeceğiz?</h3>
                       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         ${['Elektronik', 'Mobilya', 'Tekstil', 'Diğer'].map(cat => html`
-                          <button onClick=${() => setMatchCategory(cat)} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${matchCategory === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">${cat}</button>
+                          <button key=${cat} onClick=${() => setMatchCategory(cat)} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${matchCategory === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">${cat}</button>
                         `)}
                       </div>
                     </div>
@@ -1517,8 +1540,8 @@
                       <div>
                         <h3 class="text-2xl font-black uppercase mb-4 text-black">3. En Yakın ${matchCategory} Ustaları</h3>
                         <div class="space-y-4">
-                          ${allShops.filter(s => s.kategori === matchCategory).map(s => ({...s, distance: getDistance(customerLocation.lat, customerLocation.lon, s.lat, s.lon)})).sort((a,b) => a.distance-b.distance).slice(0,3).map(shop => html`
-                            <div class="border-4 border-black p-4 bg-mainBg flex justify-between items-center cursor-pointer hover:bg-brandPink/50 transition-colors" onClick=${() => { setSelectedShop(shop); setView('merkezler'); }}>
+                          ${allShops.filter(s => s.kategori === matchCategory).map(s => ({...s, distance: getDistance(customerLocation.lat, customerLocation.lon, s.lat, s.lon)})).sort((a,b) => a.distance-b.distance).slice(0,3).map((shop, idx) => html`
+                            <div key=${shop.id || idx} class="border-4 border-black p-4 bg-mainBg flex justify-between items-center cursor-pointer hover:bg-brandPink/50 transition-colors" onClick=${() => { setSelectedShop(shop); setView('merkezler'); }}>
                               <div>
                                 <div class="text-xl font-black uppercase">${shop.name}</div>
                                 <div class="text-sm font-bold text-gray-600">${shop.kategori} • ${(shop.distance/1000).toFixed(1)} km uzaklıkta</div>
@@ -1619,7 +1642,7 @@
                       ? 'bg-[#c0c0c0] text-gray-600 cursor-not-allowed'
                       : 'bg-brandYellow text-black active:translate-y-1 active:translate-x-1 active:shadow-none transition-all shadow-[2px_2px_0px_0px_#000] md:shadow-[3px_3px_0px_0px_#000]';
                     return html`
-                      <div class="border-[4px] md:border-[6px] border-black shadow-[4px_4px_0px_0px_#000] md:shadow-[8px_8px_0px_0px_#000] p-4 md:p-6 flex flex-col relative ${k.color} transition-transform hover:-translate-y-1">
+                      <div key=${k.id} class="border-[4px] md:border-[6px] border-black shadow-[4px_4px_0px_0px_#000] md:shadow-[8px_8px_0px_0px_#000] p-4 md:p-6 flex flex-col relative ${k.color} transition-transform hover:-translate-y-1">
                         <div class="absolute -top-3 md:-top-4 right-2 md:right-4 bg-black text-white px-2 md:px-4 py-1 text-sm md:text-lg font-bold transform rotate-[4deg] border-2 md:border-4 border-black">${k.tag}</div>
                         <h3 class="text-2xl md:text-3xl font-black uppercase mb-3 md:mb-4 pr-10 md:pr-12 leading-none mt-2 ${k.color.includes('text-white') ? 'text-white' : 'text-black'}">${k.title}</h3>
                         <div class="bg-mainBg border-[3px] md:border-[4px] border-black p-3 md:p-4 min-h-[80px] md:min-h-[120px] flex items-center justify-center text-center">
@@ -1678,7 +1701,7 @@
                       <h3 class="text-2xl font-black uppercase mb-4 text-black">Kategori</h3>
                       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         ${['Elektronik', 'Tekstil', 'Mobilya', 'Bisiklet'].map(cat => html`
-                          <button onClick=${() => setIlanForm(f => ({...f, kategori: cat}))} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${ilanForm.kategori === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">${getCategoryEmoji(cat)} ${cat}</button>
+                          <button key=${cat} onClick=${() => setIlanForm(f => ({...f, kategori: cat}))} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${ilanForm.kategori === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">${getCategoryEmoji(cat)} ${cat}</button>
                         `)}
                       </div>
                     </div>
@@ -1686,7 +1709,7 @@
                       <h3 class="text-2xl font-black uppercase mb-4 text-black">Aciliyet</h3>
                       <div class="grid grid-cols-3 gap-4">
                         ${['Düşük', 'Orta', 'Yüksek'].map(ac => html`
-                          <button onClick=${() => setIlanForm(f => ({...f, aciliyet: ac}))} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${ilanForm.aciliyet === ac ? 'bg-brandYellow text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandYellow/50'}">${ac}</button>
+                          <button key=${ac} onClick=${() => setIlanForm(f => ({...f, aciliyet: ac}))} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${ilanForm.aciliyet === ac ? 'bg-brandYellow text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandYellow/50'}">${ac}</button>
                         `)}
                       </div>
                     </div>
@@ -1733,7 +1756,7 @@
                       return myPosts.length === 0 ? html`
                         <p class="font-bold text-gray-400 text-center py-8">Henüz ilan açmadınız.</p>
                       ` : myPosts.map(job => html`
-                        <div class="border-4 border-black p-3 bg-brandYellow/40">
+                        <div key=${job.id} class="border-4 border-black p-3 bg-brandYellow/40">
                           <h4 class="text-lg font-black uppercase truncate">${job.baslik}</h4>
                           <span class="text-gray-600 font-bold text-xs truncate block mt-0.5">${job.kategori} • ${job.ucret} Puan • ${job.aciliyet}</span>
                           <div class="mt-2 flex justify-between items-center">
@@ -1753,7 +1776,7 @@
                       const rem = getRemainingDays(info.returnDate);
                       const due = new Date(info.returnDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
                       return html`
-                        <div class="border-4 border-black p-4 flex justify-between items-center ${rem === 0 ? 'bg-red-100' : 'bg-brandYellow/40'}">
+                        <div key=${id} class="border-4 border-black p-4 flex justify-between items-center ${rem === 0 ? 'bg-red-100' : 'bg-brandYellow/40'}">
                           <div>
                             <p class="font-black uppercase">${info.toolName}</p>
                             <p class="font-bold text-sm text-gray-600 mt-1">İade tarihi: ${due}</p>
@@ -1774,7 +1797,7 @@
                     ` : html`
                       <div class="space-y-3 max-h-64 overflow-y-auto hide-scrollbar">
                         ${myWaste.map(w => html`
-                          <div class="border-4 border-black p-3 flex justify-between items-center ${w.reserved ? 'bg-gray-100' : 'bg-white'}">
+                          <div key=${w.id} class="border-4 border-black p-3 flex justify-between items-center ${w.reserved ? 'bg-gray-100' : 'bg-white'}">
                             <div>
                               <p class="font-black uppercase text-sm leading-tight">${w.desc}</p>
                               <p class="font-bold text-xs text-gray-500 mt-1">${w.amount} adet • ${w.category}</p>
@@ -1819,10 +1842,11 @@
                       return myJobs.length === 0 ? html`
                         <p class="font-bold text-gray-400 text-center py-8">Henüz iş ilanınız yok.</p>
                       ` : myJobs.map(([id, info]) => {
-                        const job = jobPostings.find(j => j.id == id);
+                        const job = jobPostings.find(j => String(j.id) === String(id));
                         const rem = Math.max(0, Math.ceil((new Date(info.deadline) - new Date()) / (24 * 60 * 60 * 1000)));
+                        if(!job) return null;
                         return html`
-                          <div class="border-4 border-black p-3 flex justify-between items-center ${rem === 0 ? 'bg-red-100' : 'bg-brandYellow/40'}">
+                          <div key=${id} class="border-4 border-black p-3 flex justify-between items-center ${rem === 0 ? 'bg-red-100' : 'bg-brandYellow/40'}">
                             <div class="flex-1 min-w-0 pr-2">
                               <h4 class="text-lg font-black uppercase truncate">${job.baslik}</h4>
                               <span class="text-gray-600 font-bold text-xs truncate block mt-0.5">${job.kategori} • ${job.ucret} Puan</span>
