@@ -148,16 +148,14 @@
     const getCategoryEmoji = (cat) =>
       ({ 'Elektronik': '📱', 'Tekstil': '👗', 'Mobilya': '🪑', 'Bisiklet': '🚲', 'Diğer': '📦' })[cat] ?? '📦';
 
-    // Kategori başına ortalama tamir parça ağırlıkları
     const DEFAULT_KG = {
-      'Elektronik': 0.5,  // ortalama telefon/tablet
-      'Tekstil':    0.65, // ortalama pantolon
-      'Mobilya':    3.0,  // ortalama sandalye/mobilya parçası
-      'Bisiklet':   0.5,  // ortalama parça (lastik, zincir vb.)
+      'Elektronik': 0.5,
+      'Tekstil':    0.65,
+      'Mobilya':    3.0,
+      'Bisiklet':   0.5,
       'Diğer':      1.0,
     };
 
-    // Per-item environmental impact
     const calcImpact = (category, amount = 1) => {
       const f = {
         'Elektronik': { co2: 70,  water: 13000, incin: 28 },
@@ -170,7 +168,7 @@
       const water = Math.round(f.water * amount);
       const incin = Math.round(f.incin * amount);
       const trees = Math.max(1, Math.round((co2 + incin) / 11));
-      const points = Math.max(100, Math.round(co2 * 10)); // ×10 — genelde 100+
+      const points = Math.max(100, Math.round(co2 * 10));
       return { co2, water, incin, trees, points };
     };
 
@@ -794,7 +792,7 @@
         }
       }, [auth, ustaView, ustaLocation, ustaLocationPermissionAsked]);
 
-      // DOM THRASHING (Butonlara basamama) sorununu çözen güncellenmiş yenileme mantığı
+      // ─── BUTON KAYBOLMA (DOM Thrashing) ÇÖZÜMÜ ───
       useEffect(() => {
         if (!auth.loggedIn || auth.role !== 'tamirci') return;
 
@@ -804,7 +802,7 @@
             try {
               const parsed = JSON.parse(saved);
               if (Array.isArray(parsed)) {
-                // Sadece değişiklik varsa state'i güncelle
+                // Sadece değişiklik varsa güncelle (Gereksiz render'ı engeller)
                 setJobPostings(prev => JSON.stringify(prev) !== JSON.stringify(parsed) ? parsed : prev);
               }
             } catch (_) {}
@@ -825,12 +823,9 @@
                   if (idx === -1) {
                     next.push(aj);
                     hasChanges = true;
-                  } else {
-                    // Mevcut iş başkası tarafından alındıysa güncelle
-                    if (next[idx].assignedTo !== aj.assignedTo || next[idx].assignedDate !== aj.assignedDate) {
-                      next[idx] = { ...next[idx], ...aj };
-                      hasChanges = true;
-                    }
+                  } else if (next[idx].assignedTo !== aj.assignedTo || next[idx].assignedDate !== aj.assignedDate) {
+                    next[idx] = { ...next[idx], ...aj };
+                    hasChanges = true;
                   }
                 });
 
@@ -838,8 +833,7 @@
                   localStorage.setItem('globalJobPostings', JSON.stringify(next));
                   return next;
                 }
-                
-                return prev; // Değişiklik yoksa PREV dönerek RE-RENDER'ı engeller (Buton bug'ı çözümü)
+                return prev; // Değişiklik yoksa render yapma
               });
             }).catch(() => refreshFromLocal());
         };
@@ -847,7 +841,7 @@
         refreshFromLocal();
         refreshFromApi();
         window.addEventListener('storage', refreshFromLocal);
-        const timer = setInterval(refreshFromApi, 2000);
+        const timer = setInterval(refreshFromApi, 2500);
 
         return () => {
           window.removeEventListener('storage', refreshFromLocal);
@@ -884,44 +878,55 @@
 
       const handleShopSelect = (shop) => { setSelectedShop(shop); setView('merkezler'); };
 
-      // ==========================================
-      // KRİTİK DÜZELTME 1: Müşteri İlan Açma (API POST Eklendi)
-      // ==========================================
+      // ─── GÜVENLİ İLAN AÇMA ───
       const handlePostJob = async (form) => {
         const defaultKg = DEFAULT_KG[form.kategori] ?? 1;
         const impact = calcImpact(form.kategori, defaultKg);
         const newJob = {
-          id: Date.now(),
+          id: Date.now().toString(), // Veritabanı çökmesini engeller
           baslik: form.baslik,
           kategori: form.kategori,
           musteri: auth.email.split('@')[0],
           konum: 'Kadıköy (yaklaşık)',
           aciliyet: form.aciliyet,
-          ucret: impact.points,
+          ucret: parseInt(impact.points),
           co2: impact.co2,
-          lat: customerLocation ? customerLocation.lat : (40.987 + (Math.random() - 0.5) * 0.014),
-          lon: customerLocation ? customerLocation.lon : (29.045 + (Math.random() - 0.5) * 0.014),
+          lat: parseFloat(customerLocation ? customerLocation.lat : 40.988),
+          lon: parseFloat(customerLocation ? customerLocation.lon : 29.045),
           deadline: null,
           assignedTo: null,
           assignedDate: null,
           img: { 'Elektronik': 'telefon.png', 'Tekstil': 'dikis_makinesi.png', 'Bisiklet': 'bisiklet.png' }[form.kategori] || 'ingiliz_anahtari.png'
         };
 
-        setJobPostings(prev => {
-          const next = [...prev, newJob];
-          localStorage.setItem('globalJobPostings', JSON.stringify(next));
-          return next;
-        });
+        try {
+          const res = await fetch(`${apiBase}/api/jobpostings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newJob)
+          });
+          
+          const dbRes = await res.json();
 
-        // Usta panelinde görünmesi için Supabase'e gönderiyoruz
-        fetch(`${apiBase}/api/jobpostings`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newJob)
-        }).catch(err => console.warn('API POST hatası:', err));
+          // EĞER VERİTABANI HATA VERİRSE EKRANA KAYDETME VE BİLGİ VER!
+          if (!res.ok || dbRes.error) {
+             alert('🚨 SUPABASE VERİTABANI HATASI!\n\nLütfen Github\'a kodları pushlayıp Vercel\'in güncellenmesini beklediğinizden emin olun!\n\nHata detayı:\n' + JSON.stringify(dbRes.error || dbRes));
+             return;
+          }
 
-        alert('İlan yayınlandı!');
-        setView('panel');
+          // Veritabanı sorunsuz çalıştıysa kendi ekranına ekle
+          setJobPostings(prev => {
+            const next = [...prev, newJob];
+            localStorage.setItem('globalJobPostings', JSON.stringify(next));
+            return next;
+          });
+
+          alert('✅ İlan başarıyla veritabanına kaydedildi ve Usta paneline ulaştı!');
+          setView('panel');
+
+        } catch (err) {
+          alert('🚨 SUNUCU/AĞ HATASI:\n' + err.message + '\n\nBackend (chat.py) Vercel\'de aktif olmayabilir.');
+        }
       };
 
       const handleAuthSubmit = async () => {
@@ -1050,7 +1055,7 @@
         const assignedDateStr = new Date().toISOString();
         const deadlineStr = deadline.toISOString();
 
-        setJobPostings(prev => prev.map(j => j.id === job.id ? {...j, assignedTo: auth.email, assignedDate: assignedDateStr, deadline: deadlineStr} : j));
+        setJobPostings(prev => prev.map(j => String(j.id) === String(job.id) ? {...j, assignedTo: auth.email, assignedDate: assignedDateStr, deadline: deadlineStr} : j));
         setAssignedJobs(prev => ({...prev, [job.id]: {deadline: deadlineStr, type: 'usta'}}));
 
         fetch(`${apiBase}/api/jobpostings`, {
@@ -1201,42 +1206,21 @@
                     <button onClick=${async () => {
                       setIsRefreshing(true);
                       try {
-                        const saved = localStorage.getItem('globalJobPostings');
-                        let localJobs = [];
-                        if (saved) { try { localJobs = JSON.parse(saved) || []; } catch(_) {} }
-                        
                         const response = await fetch(`${apiBase}/api/jobpostings`);
                         if (!response.ok) {
-                          alert('⚠️ API bağlantı sorunu (HTTP ' + response.status + '). Local veriler gösteriliyor.');
+                          alert('⚠️ API bağlantı sorunu. (Kodları Vercel\'e pushladınız mı?)');
                           return;
                         }
-                        
                         const apiJobs = await response.json();
-                        
-                        if (!Array.isArray(apiJobs)) {
-                          alert('⚠️ API veri formatı hatalı');
-                          return;
-                        }
                         
                         if (apiJobs.length === 0) {
                           alert('ℹ️ Henüz açık ilan yok');
-                          setJobPostings(localJobs.length > 0 ? localJobs : []);
+                          setJobPostings([]);
                           return;
                         }
                         
-                        setJobPostings(prev => {
-                          const merged = [...prev];
-                          let addedCount = 0;
-                          apiJobs.forEach(aj => {
-                            if (!merged.find(lj => String(lj.id) === String(aj.id))) {
-                              merged.push(aj);
-                              addedCount++;
-                            }
-                          });
-                          localStorage.setItem('globalJobPostings', JSON.stringify(merged));
-                          return merged;
-                        });
-                        alert('✅ ' + apiJobs.length + ' ilanın tümü yüklendi!');
+                        setJobPostings(apiJobs);
+                        localStorage.setItem('globalJobPostings', JSON.stringify(apiJobs));
                       } catch (err) {
                         alert('❌ Hata: ' + err.message);
                       } finally {
@@ -1255,8 +1239,8 @@
                     </div>
                   ` : ''}
                   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                    ${jobPostings.filter(j => !j.assignedTo).map(is => html`
-                      <div key=${is.id} class="brutal-card bg-white p-6 flex flex-col justify-between border-[5px] hover:-translate-y-2 transition-transform cursor-pointer">
+                    ${jobPostings.filter(j => !j.assignedTo).map((is, idx) => html`
+                      <div key=${is.id || idx} class="brutal-card bg-white p-6 flex flex-col justify-between border-[5px] hover:-translate-y-2 transition-transform cursor-pointer">
                         <div>
                           <div class="flex justify-between items-start mb-4">
                             <span class="bg-brandPink text-black font-black px-3 py-1 text-sm border-2 border-black uppercase">${is.kategori}</span>
@@ -1335,7 +1319,7 @@
                       ` : myJobs.map(([id, info]) => {
                         const job = jobPostings.find(j => String(j.id) === String(id));
                         const rem = Math.max(0, Math.ceil((new Date(info.deadline) - new Date()) / (24 * 60 * 60 * 1000)));
-                        if (!job) return null;
+                        if(!job) return null;
                         return html`
                           <div key=${id} class="border-4 border-black p-4 flex justify-between items-center ${rem === 0 ? 'bg-red-100' : 'bg-brandYellow/40'}">
                             <div class="flex-1">

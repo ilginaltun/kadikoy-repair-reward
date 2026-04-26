@@ -216,30 +216,31 @@ def messages():
         result = supabase.table('messages').select('*').eq('job_id', job_id).order('time').execute()
         return jsonify(result.data)
 
-
-# ─── KRİTİK GÜNCELLEME: PUT metodu eklendi ve id str() sarmalından kurtarıldı ───
-@app.route('/api/jobpostings', methods=['GET', 'POST', 'PUT']) 
+# ─── GÜVENLİ VERİTANI İŞLEMLERİ EKLENDİ ───
+@app.route('/api/jobpostings', methods=['GET', 'POST', 'PUT'])
 def jobpostings():
     if request.method == 'POST':
         try:
             data = request.json or {}
+            # Bütün tipleri güvenli bir şekilde formatlıyoruz
             new_job = {
-                'id': data.get('id'), # str() sarmalından çıkardık, veritabanına sayı (bigint) gidecek
-                'baslik': data.get('baslik'),
-                'kategori': data.get('kategori'),
-                'musteri': data.get('musteri'),
-                'konum': data.get('konum'),
-                'aciliyet': data.get('aciliyet'),
-                'ucret': data.get('ucret'),
-                'lat': data.get('lat'),
-                'lon': data.get('lon'),
+                'id': str(data.get('id')), # Kesinlikle string, id hatalarını önler
+                'baslik': str(data.get('baslik', '')),
+                'kategori': str(data.get('kategori', '')),
+                'musteri': str(data.get('musteri', '')),
+                'konum': str(data.get('konum', '')),
+                'aciliyet': str(data.get('aciliyet', '')),
+                'ucret': int(data.get('ucret', 0)), # Kesinlikle sayı
+                'lat': float(data.get('lat', 40.988)),
+                'lon': float(data.get('lon', 29.045)),
                 'deadline': data.get('deadline'),
                 'assignedTo': data.get('assignedTo'),
                 'assignedDate': data.get('assignedDate'),
-                'img': data.get('img')
+                'img': str(data.get('img', ''))
             }
-            if not new_job['id']:
+            if not new_job['id'] or new_job['id'] == 'None':
                 return jsonify({'error': 'id gerekli'}), 400
+            
             result = supabase.table('jobpostings').insert(new_job).execute()
             return jsonify({'status': 'ok', 'data': result.data})
         except Exception as e:
@@ -249,8 +250,8 @@ def jobpostings():
     elif request.method == 'PUT':
         try:
             data = request.json or {}
-            job_id = data.get('id')
-            if not job_id:
+            job_id = str(data.get('id'))
+            if not job_id or job_id == 'None':
                 return jsonify({'error': 'id gerekli'}), 400
             
             update_data = {
