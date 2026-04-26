@@ -685,15 +685,28 @@
       const [authError, setAuthError]                   = useState('');
       const [isLoggingIn, setIsLoggingIn]               = useState(false);
       const isLocal = window.location.protocol === 'file:' || ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const apiBase = isLocal ? 'http://127.0.0.1:5001' : window.location.origin;
+      const sameHostApi = !isLocal && window.location.port === '8000'
+        ? `${window.location.protocol}//${window.location.hostname}:5001`
+        : window.location.origin;
+      const apiBase = isLocal ? 'http://127.0.0.1:5001' : sameHostApi;
 
-      // Load auth from localStorage on mount
+      // Load app state from localStorage on mount
       useEffect(() => {
         const savedAuth = localStorage.getItem('auth');
         if (savedAuth) {
           const parsed = JSON.parse(savedAuth);
           setAuth(parsed);
         }
+        const savedCustomerLocation = localStorage.getItem('customerLocation');
+        if (savedCustomerLocation) setCustomerLocation(JSON.parse(savedCustomerLocation));
+        const savedLocationAsked = localStorage.getItem('locationPermissionAsked');
+        if (savedLocationAsked === 'true') setLocationPermissionAsked(true);
+        const savedUstaLocation = localStorage.getItem('ustaLocation');
+        if (savedUstaLocation) setUstaLocation(JSON.parse(savedUstaLocation));
+        const savedUstaLocationAsked = localStorage.getItem('ustaLocationPermissionAsked');
+        if (savedUstaLocationAsked === 'true') setUstaLocationPermissionAsked(true);
+        const savedJobPostings = localStorage.getItem('jobPostings');
+        if (savedJobPostings) setJobPostings(JSON.parse(savedJobPostings));
       }, []);
 
       // Save auth to localStorage on change
@@ -751,14 +764,24 @@
         }
       }, [auth, view, customerLocation, locationPermissionAsked]);
 
+      const loadJobPostings = async () => {
+        try {
+          const res = await fetch(`${apiBase}/api/jobpostings`);
+          if (!res.ok) throw new Error('jobpostings fetch failed');
+          const data = await res.json();
+          const jobs = Array.isArray(data) ? data : (data?.data || []);
+          if (Array.isArray(jobs)) {
+            setJobPostings(jobs);
+            localStorage.setItem('jobPostings', JSON.stringify(jobs));
+          }
+        } catch (error) {
+          const saved = localStorage.getItem('jobPostings');
+          if (saved) setJobPostings(JSON.parse(saved));
+        }
+      };
+
       useEffect(() => {
-        fetch(`${apiBase}/api/jobpostings`)
-          .then(res => res.json())
-          .then(data => setJobPostings(data))
-          .catch(() => {
-            const saved = localStorage.getItem('jobPostings');
-            if (saved) setJobPostings(JSON.parse(saved));
-          });
+        loadJobPostings();
       }, []);
 
       useEffect(() => {
@@ -767,7 +790,7 @@
         }
       }, [auth, ustaView, ustaLocation, ustaLocationPermissionAsked]);
 
-      // Persistence: Load from localStorage on login
+      // Persistence: Load user-specific data on login
       useEffect(() => {
         if (auth.loggedIn) {
           const savedPuan = localStorage.getItem(`puan_${auth.email}`);
@@ -780,12 +803,13 @@
           if (savedJobChats) setJobChats(JSON.parse(savedJobChats));
           const savedCumulativeImpact = localStorage.getItem(`cumulativeImpact_${auth.email}`);
           if (savedCumulativeImpact) setCumulativeImpact(JSON.parse(savedCumulativeImpact));
-          const savedJobPostings = localStorage.getItem('jobPostings');
-          if (savedJobPostings) setJobPostings(JSON.parse(savedJobPostings));
         }
       }, [auth.loggedIn]);
 
       // Persistence: Save to localStorage on changes
+      useEffect(() => {
+        localStorage.setItem('auth', JSON.stringify(auth));
+      }, [auth]);
       useEffect(() => {
         if (auth.loggedIn) {
           localStorage.setItem(`puan_${auth.email}`, puan.toString());
@@ -812,14 +836,28 @@
         }
       }, [cumulativeImpact, auth.loggedIn]);
       useEffect(() => {
-        if (auth.loggedIn) {
-          localStorage.setItem('jobPostings', JSON.stringify(jobPostings));
+        localStorage.setItem('jobPostings', JSON.stringify(jobPostings));
+      }, [jobPostings]);
+      useEffect(() => {
+        if (customerLocation) {
+          localStorage.setItem('customerLocation', JSON.stringify(customerLocation));
         }
-      }, [jobPostings, auth.loggedIn]);
+      }, [customerLocation]);
+      useEffect(() => {
+        localStorage.setItem('locationPermissionAsked', locationPermissionAsked ? 'true' : 'false');
+      }, [locationPermissionAsked]);
+      useEffect(() => {
+        if (ustaLocation) {
+          localStorage.setItem('ustaLocation', JSON.stringify(ustaLocation));
+        }
+      }, [ustaLocation]);
+      useEffect(() => {
+        localStorage.setItem('ustaLocationPermissionAsked', ustaLocationPermissionAsked ? 'true' : 'false');
+      }, [ustaLocationPermissionAsked]);
 
       const handleShopSelect = (shop) => { setSelectedShop(shop); setView('merkezler'); };
 
-      const handlePostJob = (form) => {
+      const handlePostJob = async (form) => {
         const newJob = {
           id: Date.now(),
           baslik: form.baslik,
@@ -834,19 +872,20 @@
           assignedDate: null,
           img: 'tamir.png' // basit img
         };
-        fetch(`${apiBase}/api/jobpostings`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newJob)
-        }).then(() => {
-          setJobPostings(prev => [...prev, newJob]);
-          setView('panel');
+        try {
+          const res = await fetch(`${apiBase}/api/jobpostings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newJob)
+          });
+          if (!res.ok) throw new Error('job post failed');
+          await loadJobPostings();
           alert('İlan yayınlandı!');
-        }).catch(() => {
+        } catch (error) {
           setJobPostings(prev => [...prev, newJob]);
-          setView('panel');
           alert('İlan yayınlandı! (local)');
-        });
+        }
+        setView('panel');
       };
 
       const handleAuthSubmit = async () => {
