@@ -148,24 +148,31 @@
     const getCategoryEmoji = (cat) =>
       ({ 'Elektronik': '📱', 'Tekstil': '👗', 'Mobilya': '🪑', 'Bisiklet': '🚲', 'Diğer': '📦' })[cat] ?? '📦';
 
+    // Kategori başına ortalama tamir parça ağırlıkları
+    const DEFAULT_KG = {
+      'Elektronik': 0.5,  // ortalama telefon/tablet
+      'Tekstil':    0.65, // ortalama pantolon
+      'Mobilya':    3.0,  // ortalama sandalye/mobilya parçası
+      'Bisiklet':   0.5,  // ortalama parça (lastik, zincir vb.)
+      'Diğer':      1.0,
+    };
+
     // Per-item environmental impact
     // Kaynak: Kadıköy atık analizi — landfill CO2 faktörü 1,038 t/t (Aydın & Koca Akkaya, 2025)
-    // Toplam (landfill + üretim kaçınma): 8.458 ton atık → 23.105 ton CO2
-    // Ağaç eşdeğeri: 8.780 ton CO2 → 781.195 ağaç → 1 ağaç ≈ 11 kg CO₂/yıl (Sıfır Atık Kitabı)
-    // Tekstil su yoğunluğu: 1 kg pamuklu tekstil = 10.000 litre su (TTSİS, 2022)
+    // Puan = CO₂ × 10 (genelde 100 ve üzeri olması için)
     const calcImpact = (category, amount = 1) => {
       const f = {
-        'Elektronik': { co2: 70,  water: 13000, incin: 28 }, // plastik+metal yanması yüksek CO₂
-        'Tekstil':    { co2: 15,  water: 5000,  incin: 6  }, // pamuk yanması
-        'Mobilya':    { co2: 30,  water: 200,   incin: 12 }, // ahşap+kaplama yanması
-        'Bisiklet':   { co2: 90,  water: 450,   incin: 22 }, // lastik yanması kritik
+        'Elektronik': { co2: 70,  water: 13000, incin: 28 },
+        'Tekstil':    { co2: 15,  water: 5000,  incin: 6  },
+        'Mobilya':    { co2: 30,  water: 200,   incin: 12 },
+        'Bisiklet':   { co2: 90,  water: 450,   incin: 22 },
         'Diğer':      { co2: 40,  water: 300,   incin: 10 },
       }[category] ?? { co2: 40, water: 300, incin: 10 };
       const co2   = Math.round(f.co2 * amount);
       const water = Math.round(f.water * amount);
-      const incin = Math.round(f.incin * amount); // yakılmasından önlenen CO₂
-      const trees = Math.max(1, Math.round((co2 + incin) / 11)); // 1 ağaç ≈ 11 kg CO₂/yıl
-      const points = Math.max(10, co2);
+      const incin = Math.round(f.incin * amount);
+      const trees = Math.max(1, Math.round((co2 + incin) / 11));
+      const points = Math.max(100, Math.round(co2 * 10)); // ×10 — genelde 100+
       return { co2, water, incin, trees, points };
     };
 
@@ -790,11 +797,34 @@
         }
       }, [auth, ustaView, ustaLocation, ustaLocationPermissionAsked]);
 
-      // Usta paneline geçişte VEYA usta olarak giriş yapıldığında ilanları yenile
+      // ─── Usta paneli: polling + cross-tab storage event ile ilan yenileme ───
       useEffect(() => {
-        if (auth.loggedIn && auth.role === 'tamirci' && ustaView === 'panel') {
-          loadJobPostings();
-        }
+        if (!auth.loggedIn || auth.role !== 'tamirci' || ustaView !== 'panel') return;
+
+        const refresh = () => {
+          // State zaten güncelse localStorage'dan merge et
+          const saved = localStorage.getItem('jobPostings');
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              if (Array.isArray(parsed)) setJobPostings(parsed);
+            } catch (_) {}
+          }
+        };
+
+        // Hemen çek
+        refresh();
+
+        // Farklı tab/pencereden değişiklikleri yakala (storage event)
+        window.addEventListener('storage', refresh);
+
+        // Aynı tab güvenlik ağı: her 3 saniyede kontrol
+        const timer = setInterval(refresh, 3000);
+
+        return () => {
+          window.removeEventListener('storage', refresh);
+          clearInterval(timer);
+        };
       }, [ustaView, auth.loggedIn, auth.role]);
 
       // Persistence: Load user-specific data on login
@@ -865,9 +895,9 @@
       const handleShopSelect = (shop) => { setSelectedShop(shop); setView('merkezler'); };
 
       const handlePostJob = async (form) => {
-        // Puan CO₂ × kg oranına göre otomatik hesaplanır, müşteri seçemez
-        const kg = Math.max(0.1, parseFloat(form.kg) || 1);
-        const impact = calcImpact(form.kategori, kg);
+        // Puan: kategori başı varsayılan kg × CO₂ faktörü × 10, müşteri seçemez
+        const defaultKg = DEFAULT_KG[form.kategori] ?? 1;
+        const impact = calcImpact(form.kategori, defaultKg);
         const newJob = {
           id: Date.now(),
           baslik: form.baslik,
@@ -875,9 +905,8 @@
           musteri: auth.email.split('@')[0],
           konum: 'Kadıköy (yaklaşık)',
           aciliyet: form.aciliyet,
-          ucret: String(impact.points), // CO₂ × kg bazlı otomatik puan
+          ucret: String(impact.points),
           co2: impact.co2,
-          kg: kg,
           lat: customerLocation ? customerLocation.lat : (40.987 + (Math.random() - 0.5) * 0.014),
           lon: customerLocation ? customerLocation.lon : (29.045 + (Math.random() - 0.5) * 0.014),
           deadline: null,
@@ -893,17 +922,15 @@
           });
           if (!res.ok) throw new Error('job post failed');
           await loadJobPostings();
-          alert('İlan yayınlandı!');
-        } catch (error) {
-          // API yoksa direkt state + localStorage'a ekle
-          const updated = prev => {
+        } catch (_) {
+          // API yoksa localStorage üzerinden sakla ve state’i güncelle
+          setJobPostings(prev => {
             const next = [...prev, newJob];
             localStorage.setItem('jobPostings', JSON.stringify(next));
             return next;
-          };
-          setJobPostings(updated);
-          alert('İlan yayınlandı!');
+          });
         }
+        alert('İlan yayınlandı!');
         setView('panel');
       };
 
@@ -1601,9 +1628,8 @@
             `}
 
             ${view === 'ilan-ac' && (() => {
-              const [ilanForm, setIlanForm] = useState({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta', kg: '1' });
-              const ilanKg = Math.max(0.1, parseFloat(ilanForm.kg) || 1);
-              const ilanImpact = calcImpact(ilanForm.kategori, ilanKg);
+              const [ilanForm, setIlanForm] = useState({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta' });
+              const ilanImpact = calcImpact(ilanForm.kategori, DEFAULT_KG[ilanForm.kategori] ?? 1);
               return html`
               <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
                 <div class="inline-block relative mb-4 md:mb-6">
@@ -1632,25 +1658,14 @@
                         `)}
                       </div>
                     </div>
-                    <div>
-                      <h3 class="text-2xl font-black uppercase mb-4 text-black">Eşyanın Tahmini Ağırlığı (kg)</h3>
-                      <p class="font-bold text-sm text-gray-500 mb-3">Ağırlık arttıkça tamir etkisi ve kazanılan puan artar.</p>
-                      <input
-                        type="number" min="0.1" step="0.1"
-                        value=${ilanForm.kg}
-                        onInput=${e => setIlanForm(f => ({...f, kg: e.target.value}))}
-                        class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg"
-                        placeholder="Örn: 0.5 (telefon), 5 (sandalye), 15 (bisiklet)"
-                      />
-                    </div>
-                    <div class="border-4 border-black p-5 bg-brandYellow flex items-center justify-between gap-6">
+                    <div class="border-4 border-black bg-black text-white p-6 flex items-center justify-between gap-4">
                       <div>
-                        <p class="font-bold text-sm uppercase text-gray-700">Kazanacağın Puan</p>
-                        <p class="font-black text-xs text-gray-500 mt-0.5">${ilanKg.toFixed(1)} kg ${ilanForm.kategori} tamir etkisine göre</p>
+                        <p class="font-black text-xl uppercase">Kazanacağın Puan</p>
+                        <p class="font-bold text-sm opacity-60 mt-1">${ilanForm.kategori} kategorisi için otomatik hesaplanır</p>
                       </div>
-                      <p class="font-black text-5xl text-brandBlue">${ilanImpact.points}</p>
+                      <p class="font-black text-6xl text-brandYellow">${ilanImpact.points}</p>
                     </div>
-                    <button onClick=${() => { if (!ilanForm.baslik.trim()) { alert('Başlık girin!'); return; } if (!ilanForm.kg || parseFloat(ilanForm.kg) <= 0) { alert('Ağırlık girin!'); return; } handlePostJob(ilanForm); setIlanForm({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta', kg: '1' }); }} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl md:text-3xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-center items-center gap-3">
+                    <button onClick=${() => { if (!ilanForm.baslik.trim()) { alert('Başlık girin!'); return; } handlePostJob(ilanForm); setIlanForm({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta' }); }} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl md:text-3xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-center items-center gap-3">
                       <${IconWrench} /> İLANI YAYINLA
                     </button>
                   </div>
