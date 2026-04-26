@@ -36,8 +36,11 @@ def get_map_context():
         return f"Veri okunamadı: {str(e)}"
 
 
-def get_user(email):
-    result = supabase.table('users').select('*').eq('email', email).execute()
+def get_user(email, role=None):
+    query = supabase.table('users').select('*').eq('email', email)
+    if role:
+        query = query.eq('role', role)
+    result = query.execute()
     return result.data[0] if result.data else None
 
 
@@ -74,10 +77,8 @@ def auth():
     if not email or not password or role not in ['musteri', 'tamirci']:
         return jsonify({'error': 'Geçerli e-posta, şifre ve rol giriniz.'}), 400
 
-    user = get_user(email)
+    user = get_user(email, role)
     if user:
-        if user['role'] != role:
-            return jsonify({'error': 'Bu e-posta başka bir rol için kayıtlı.'}), 400
         if not check_password_hash(user['password_hash'], password):
             return jsonify({'error': 'Şifre yanlış.'}), 401
         return jsonify({'email': email, 'role': role})
