@@ -217,6 +217,34 @@ def messages():
         return jsonify(result.data)
 
 
+@app.route('/api/jobpostings', methods=['GET', 'POST'])
+def jobpostings():
+    if request.method == 'POST':
+        data = request.json or {}
+        new_job = {
+            'id': str(data.get('id')),
+            'baslik': data.get('baslik'),
+            'kategori': data.get('kategori'),
+            'musteri': data.get('musteri'),
+            'konum': data.get('konum'),
+            'aciliyet': data.get('aciliyet'),
+            'ucret': data.get('ucret'),
+            'lat': data.get('lat'),
+            'lon': data.get('lon'),
+            'deadline': data.get('deadline'),
+            'assignedTo': data.get('assignedTo'),
+            'assignedDate': data.get('assignedDate'),
+            'img': data.get('img')
+        }
+        if not new_job['id']:
+            return jsonify({'error': 'id gerekli'}), 400
+        supabase.table('jobpostings').insert(new_job).execute()
+        return jsonify({'status': 'ok'})
+    else:
+        result = supabase.table('jobpostings').select('*').execute()
+        return jsonify(result.data)
+
+
 @app.route('/api/export/conversations', methods=['GET'])
 def export_conversations():
     result = supabase.table('conversations').select(

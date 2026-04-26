@@ -752,6 +752,16 @@
       }, [auth, view, customerLocation, locationPermissionAsked]);
 
       useEffect(() => {
+        fetch(`${apiBase}/api/jobpostings`)
+          .then(res => res.json())
+          .then(data => setJobPostings(data))
+          .catch(() => {
+            const saved = localStorage.getItem('jobPostings');
+            if (saved) setJobPostings(JSON.parse(saved));
+          });
+      }, []);
+
+      useEffect(() => {
         if (auth.loggedIn && auth.role === 'tamirci' && ustaView === 'panel' && !ustaLocation && !ustaLocationPermissionAsked) {
           requestUstaLocationPermission();
         }
@@ -824,9 +834,19 @@
           assignedDate: null,
           img: 'tamir.png' // basit img
         };
-        setJobPostings(prev => [...prev, newJob]);
-        setView('panel');
-        alert('İlan yayınlandı!');
+        fetch(`${apiBase}/api/jobpostings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newJob)
+        }).then(() => {
+          setJobPostings(prev => [...prev, newJob]);
+          setView('panel');
+          alert('İlan yayınlandı!');
+        }).catch(() => {
+          setJobPostings(prev => [...prev, newJob]);
+          setView('panel');
+          alert('İlan yayınlandı! (local)');
+        });
       };
 
       const handleAuthSubmit = async () => {
@@ -1341,7 +1361,7 @@
                 <${IconMap} /> Merkezler
               </button>
               <button onClick=${() => setView('aletler')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'aletler' ? 'bg-black text-white' : 'bg-brandPink text-black'}">
-                <${IconBox} /> Alet/Edevat
+                <${IconBox} /> Alet
               </button>
               <button onClick=${() => setView('atig')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'atig' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
                 <${IconLeaf} /> Atığın
@@ -1442,7 +1462,7 @@
                         <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">3</div>
                         <div>
                           <p class="font-black uppercase text-base">Alet Ödünç Al</p>
-                          <p class="font-bold text-sm text-gray-700 mt-1">"Alet/Edevat" kütüphanesinden matkap, dikiş makinesi, avometre gibi aletleri ücretsiz ödünç al. Süresi dolunca iade et.</p>
+                          <p class="font-bold text-sm text-gray-700 mt-1">"Alet" kütüphanesinden matkap, dikiş makinesi, avometre gibi aletleri ücretsiz ödünç al. Süresi dolunca iade et.</p>
                         </div>
                       </div>
                       <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandYellow">
@@ -1586,7 +1606,27 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 
-                  <!-- Sol Üst: Ödünç Alınan Aletler -->
+                  <!-- Sol Üst: Açtığım İlanlar -->
+                  <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
+                    <div class="inline-block bg-brandBlue border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000] text-white">📋 AÇTIĞIM İLANLAR</div>
+                    ${(() => {
+                      const myPosts = jobPostings.filter(j => j.musteri === auth.email.split('@')[0]);
+                      return myPosts.length === 0 ? html`
+                        <p class="font-bold text-gray-400 text-center py-8">Henüz ilan açmadınız.</p>
+                      ` : myPosts.map(job => html`
+                        <div class="border-4 border-black p-3 bg-brandYellow/40">
+                          <h4 class="text-lg font-black uppercase truncate">${job.baslik}</h4>
+                          <span class="text-gray-600 font-bold text-xs truncate block mt-0.5">${job.kategori} • ${job.ucret} Puan • ${job.aciliyet}</span>
+                          <div class="mt-2 flex justify-between items-center">
+                            <span class="text-sm font-bold ${job.assignedTo ? 'text-green-600' : 'text-red-600'}">${job.assignedTo ? 'Atandı' : 'Bekliyor'}</span>
+                            ${job.assignedTo && html`<button onClick=${() => setChatJobId(job.id)} class="bg-black text-white px-3 py-1 font-black text-sm uppercase">MESAJ</button>`}
+                          </div>
+                        </div>
+                      `);
+                    })()}
+                  </div>
+
+                  <!-- Sağ Üst: Ödünç Alınan Aletler -->
                   <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
                     <div class="inline-block bg-brandPink border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">📦 ÖDÜNÇ ALINANLAR</div>
                     ${borrowedList.length === 0 ? html`
