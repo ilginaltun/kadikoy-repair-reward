@@ -217,13 +217,14 @@ def messages():
         return jsonify(result.data)
 
 
-@app.route('/api/jobpostings', methods=['GET', 'POST'])
+# ─── KRİTİK GÜNCELLEME: PUT metodu eklendi ve id str() sarmalından kurtarıldı ───
+@app.route('/api/jobpostings', methods=['GET', 'POST', 'PUT']) 
 def jobpostings():
     if request.method == 'POST':
         try:
             data = request.json or {}
             new_job = {
-                'id': str(data.get('id')),
+                'id': data.get('id'), # str() sarmalından çıkardık, veritabanına sayı (bigint) gidecek
                 'baslik': data.get('baslik'),
                 'kategori': data.get('kategori'),
                 'musteri': data.get('musteri'),
@@ -244,6 +245,25 @@ def jobpostings():
         except Exception as e:
             print(f"[ERROR] jobpostings POST: {str(e)}")
             return jsonify({'error': str(e)}), 500
+            
+    elif request.method == 'PUT':
+        try:
+            data = request.json or {}
+            job_id = data.get('id')
+            if not job_id:
+                return jsonify({'error': 'id gerekli'}), 400
+            
+            update_data = {
+                'assignedTo': data.get('assignedTo'),
+                'assignedDate': data.get('assignedDate'),
+                'deadline': data.get('deadline')
+            }
+            result = supabase.table('jobpostings').update(update_data).eq('id', job_id).execute()
+            return jsonify({'status': 'ok', 'data': result.data})
+        except Exception as e:
+            print(f"[ERROR] jobpostings PUT: {str(e)}")
+            return jsonify({'error': str(e)}), 500
+            
     else:
         try:
             result = supabase.table('jobpostings').select('*').execute()
