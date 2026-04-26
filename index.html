@@ -158,8 +158,6 @@
     };
 
     // Per-item environmental impact
-    // Kaynak: Kadıköy atık analizi — landfill CO2 faktörü 1,038 t/t (Aydın & Koca Akkaya, 2025)
-    // Puan = CO₂ × 10 (genelde 100 ve üzeri olması için)
     const calcImpact = (category, amount = 1) => {
       const f = {
         'Elektronik': { co2: 70,  water: 13000, incin: 28 },
@@ -437,7 +435,6 @@
         });
       };
 
-      // Init / refresh map when harita tab active
       useEffect(() => {
         if (tab !== 'harita') {
           if (wasteMapInst.current) { wasteMapInst.current.remove(); wasteMapInst.current = null; }
@@ -455,7 +452,6 @@
         return () => clearTimeout(t);
       }, [tab, wasteItems]);
 
-      // Cleanup on component unmount
       useEffect(() => () => {
         if (wasteMapInst.current) { wasteMapInst.current.remove(); wasteMapInst.current = null; }
       }, []);
@@ -697,7 +693,6 @@
         : window.location.origin;
       const apiBase = isLocal ? 'http://127.0.0.1:5001' : sameHostApi;
 
-      // Load app state from localStorage on mount
       useEffect(() => {
         const savedAuth = localStorage.getItem('auth');
         if (savedAuth) {
@@ -716,7 +711,6 @@
         if (savedJobPostings) setJobPostings(JSON.parse(savedJobPostings));
       }, []);
 
-      // Save auth to localStorage on change
       useEffect(() => {
         localStorage.setItem('auth', JSON.stringify(auth));
       }, [auth]);
@@ -734,7 +728,6 @@
       const [customerLocation, setCustomerLocation]     = useState(null);
       const [locationPermissionAsked, setLocationPermissionAsked] = useState(false);
 
-      // New feature state
       const [borrowedTools, setBorrowedTools]           = useState({});
       const [toolCounts, setToolCounts]                 = useState({ 1: 3, 2: 2, 3: 2, 4: 4, 5: 2, 6: 3 });
       const [cumulativeImpact, setCumulativeImpact]     = useState({ co2: 0, water: 0 });
@@ -749,8 +742,8 @@
       ]);
       const [impactModal, setImpactModal]               = useState(null);
       const [jobPostings, setJobPostings]               = useState([]);
-      const [assignedJobs, setAssignedJobs]             = useState({}); // {jobId: {deadline, type: 'usta' or 'musteri'}}
-      const [jobChats, setJobChats]                     = useState({}); // {jobId: [{role: 'musteri' or 'usta', text, time}]}
+      const [assignedJobs, setAssignedJobs]             = useState({});
+      const [jobChats, setJobChats]                     = useState({});
       const [chatJobId, setChatJobId]                   = useState(null);
       const [isRefreshing, setIsRefreshing]             = useState(false);
 
@@ -772,19 +765,15 @@
         }
       }, [auth, view, customerLocation, locationPermissionAsked]);
 
-      // ─── İlanları yükle: localStorage her zaman birincil kaynak ───────────
-      // API varsa Supabase ile merge et, API boş dönse bile localStorage korunur
       const loadJobPostings = () => {
         const saved = localStorage.getItem('jobPostings');
         const localJobs = saved ? (() => { try { return JSON.parse(saved); } catch { return []; } })() : [];
         if (localJobs.length > 0) setJobPostings(localJobs);
 
-        // Arka planda API'yi de kontrol et; sadece gerçek veri varsa merge et
         fetch(`${apiBase}/api/jobpostings`)
           .then(r => r.ok ? r.json() : [])
           .then(apiJobs => {
-            if (!Array.isArray(apiJobs) || apiJobs.length === 0) return; // boşsa localStorage'a dokunma
-            // Merge: API + local — id'ye göre tekilleştir, local değişiklikleri koru
+            if (!Array.isArray(apiJobs) || apiJobs.length === 0) return;
             const merged = [...localJobs];
             apiJobs.forEach(aj => {
               if (!merged.find(lj => String(lj.id) === String(aj.id))) merged.push(aj);
@@ -792,7 +781,7 @@
             setJobPostings(merged);
             localStorage.setItem('jobPostings', JSON.stringify(merged));
           })
-          .catch(() => {}); // API yoksa sessizce geç
+          .catch(() => {});
       };
 
       useEffect(() => {
@@ -805,8 +794,6 @@
         }
       }, [auth, ustaView, ustaLocation, ustaLocationPermissionAsked]);
 
-      // ─── Usta paneli: polling + cross-tab storage event + API ile ilan yenileme ───
-      // ustaView kısıtı KALDIRILDI — tamirci girişi boyunca her zaman aktif
       useEffect(() => {
         if (!auth.loggedIn || auth.role !== 'tamirci') return;
 
@@ -822,23 +809,9 @@
 
         const refreshFromApi = () => {
           fetch(`${apiBase}/api/jobpostings`)
-            .then(r => {
-              if (!r.ok) {
-                console.warn('[JobPostings API] HTTP Error:', r.status);
-                return null;
-              }
-              return r.json();
-            })
+            .then(r => r.ok ? r.json() : null)
             .then(apiJobs => {
-              if (!Array.isArray(apiJobs)) {
-                console.warn('[JobPostings API] Response is not an array:', apiJobs);
-                return;
-              }
-              if (apiJobs.length === 0) {
-                console.info('[JobPostings API] No jobs from API, keeping local data');
-                return;
-              }
-              console.info('[JobPostings API] Got', apiJobs.length, 'jobs from API');
+              if (!Array.isArray(apiJobs) || apiJobs.length === 0) return;
               setJobPostings(prev => {
                 const merged = [...prev];
                 let addedCount = 0;
@@ -848,27 +821,15 @@
                     addedCount++;
                   }
                 });
-                if (addedCount > 0) {
-                  console.info('[JobPostings API] Added', addedCount, 'new jobs');
-                  localStorage.setItem('jobPostings', JSON.stringify(merged));
-                }
+                if (addedCount > 0) localStorage.setItem('jobPostings', JSON.stringify(merged));
                 return merged;
               });
-            })
-            .catch(err => {
-              console.error('[JobPostings API] Fetch error:', err.message);
-              refreshFromLocal();
-            });
+            }).catch(() => refreshFromLocal());
         };
 
-        // İlk yükleme: önce local, sonra API
         refreshFromLocal();
         refreshFromApi();
-
-        // Farklı tab/pencereden değişiklikleri yakala (storage event)
         window.addEventListener('storage', refreshFromLocal);
-
-        // Her 2 saniyede: önce API, başarısız olursa local (daha hızlı sync)
         const timer = setInterval(refreshFromApi, 2000);
 
         return () => {
@@ -877,7 +838,6 @@
         };
       }, [auth.loggedIn, auth.role]);
 
-      // Persistence: Load user-specific data on login
       useEffect(() => {
         if (auth.loggedIn) {
           const savedPuan = localStorage.getItem(`puan_${auth.email}`);
@@ -893,59 +853,24 @@
         }
       }, [auth.loggedIn]);
 
-      // Persistence: Save to localStorage on changes
-      useEffect(() => {
-        localStorage.setItem('auth', JSON.stringify(auth));
-      }, [auth]);
-      useEffect(() => {
-        if (auth.loggedIn) {
-          localStorage.setItem(`puan_${auth.email}`, puan.toString());
-        }
-      }, [puan, auth.loggedIn]);
-      useEffect(() => {
-        if (auth.loggedIn) {
-          localStorage.setItem(`kullanilanlar_${auth.email}`, JSON.stringify(kullanilanlar));
-        }
-      }, [kullanilanlar, auth.loggedIn]);
-      useEffect(() => {
-        if (auth.loggedIn) {
-          localStorage.setItem(`assignedJobs_${auth.email}`, JSON.stringify(assignedJobs));
-        }
-      }, [assignedJobs, auth.loggedIn]);
-      useEffect(() => {
-        if (auth.loggedIn) {
-          localStorage.setItem(`jobChats_${auth.email}`, JSON.stringify(jobChats));
-        }
-      }, [jobChats, auth.loggedIn]);
-      useEffect(() => {
-        if (auth.loggedIn) {
-          localStorage.setItem(`cumulativeImpact_${auth.email}`, JSON.stringify(cumulativeImpact));
-        }
-      }, [cumulativeImpact, auth.loggedIn]);
-      useEffect(() => {
-        localStorage.setItem('jobPostings', JSON.stringify(jobPostings));
-      }, [jobPostings]);
-      useEffect(() => {
-        if (customerLocation) {
-          localStorage.setItem('customerLocation', JSON.stringify(customerLocation));
-        }
-      }, [customerLocation]);
-      useEffect(() => {
-        localStorage.setItem('locationPermissionAsked', locationPermissionAsked ? 'true' : 'false');
-      }, [locationPermissionAsked]);
-      useEffect(() => {
-        if (ustaLocation) {
-          localStorage.setItem('ustaLocation', JSON.stringify(ustaLocation));
-        }
-      }, [ustaLocation]);
-      useEffect(() => {
-        localStorage.setItem('ustaLocationPermissionAsked', ustaLocationPermissionAsked ? 'true' : 'false');
-      }, [ustaLocationPermissionAsked]);
+      useEffect(() => { localStorage.setItem('auth', JSON.stringify(auth)); }, [auth]);
+      useEffect(() => { if (auth.loggedIn) localStorage.setItem(`puan_${auth.email}`, puan.toString()); }, [puan, auth.loggedIn]);
+      useEffect(() => { if (auth.loggedIn) localStorage.setItem(`kullanilanlar_${auth.email}`, JSON.stringify(kullanilanlar)); }, [kullanilanlar, auth.loggedIn]);
+      useEffect(() => { if (auth.loggedIn) localStorage.setItem(`assignedJobs_${auth.email}`, JSON.stringify(assignedJobs)); }, [assignedJobs, auth.loggedIn]);
+      useEffect(() => { if (auth.loggedIn) localStorage.setItem(`jobChats_${auth.email}`, JSON.stringify(jobChats)); }, [jobChats, auth.loggedIn]);
+      useEffect(() => { if (auth.loggedIn) localStorage.setItem(`cumulativeImpact_${auth.email}`, JSON.stringify(cumulativeImpact)); }, [cumulativeImpact, auth.loggedIn]);
+      useEffect(() => { localStorage.setItem('jobPostings', JSON.stringify(jobPostings)); }, [jobPostings]);
+      useEffect(() => { if (customerLocation) localStorage.setItem('customerLocation', JSON.stringify(customerLocation)); }, [customerLocation]);
+      useEffect(() => { localStorage.setItem('locationPermissionAsked', locationPermissionAsked ? 'true' : 'false'); }, [locationPermissionAsked]);
+      useEffect(() => { if (ustaLocation) localStorage.setItem('ustaLocation', JSON.stringify(ustaLocation)); }, [ustaLocation]);
+      useEffect(() => { localStorage.setItem('ustaLocationPermissionAsked', ustaLocationPermissionAsked ? 'true' : 'false'); }, [ustaLocationPermissionAsked]);
 
       const handleShopSelect = (shop) => { setSelectedShop(shop); setView('merkezler'); };
 
+      // ==========================================
+      // KRİTİK DÜZELTME 1: Müşteri İlan Açma
+      // ==========================================
       const handlePostJob = async (form) => {
-        // Puan: kategori başı varsayılan kg × CO₂ faktörü × 10, müşteri seçemez
         const defaultKg = DEFAULT_KG[form.kategori] ?? 1;
         const impact = calcImpact(form.kategori, defaultKg);
         const newJob = {
@@ -955,7 +880,7 @@
           musteri: auth.email.split('@')[0],
           konum: 'Kadıköy (yaklaşık)',
           aciliyet: form.aciliyet,
-          ucret: String(impact.points),
+          ucret: impact.points, // DÜZELTME: String() sarmalı kaldırıldı
           co2: impact.co2,
           lat: customerLocation ? customerLocation.lat : (40.987 + (Math.random() - 0.5) * 0.014),
           lon: customerLocation ? customerLocation.lon : (29.045 + (Math.random() - 0.5) * 0.014),
@@ -965,35 +890,27 @@
           img: { 'Elektronik': 'telefon.png', 'Tekstil': 'dikis_makinesi.png', 'Bisiklet': 'bisiklet.png' }[form.kategori] || 'ingiliz_anahtari.png'
         };
 
-        // Her durumda localStorage + state'e ONCE yaz (garantili)
         setJobPostings(prev => {
           const next = [...prev, newJob];
           localStorage.setItem('jobPostings', JSON.stringify(next));
           return next;
         });
 
-        // Arka planda Supabase'e de gonder (feedback ile)
         fetch(`${apiBase}/api/jobpostings`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newJob)
         })
           .then(r => {
-            if (r.ok) {
-              console.log('[POST İLAN] Başarılı! ID:', newJob.id);
-              return r.json();
-            } else {
-              console.error('[POST İLAN] HTTP Error:', r.status);
-              throw new Error('HTTP ' + r.status);
-            }
+            if (r.ok) return r.json();
+            throw new Error('HTTP ' + r.status);
           })
           .then(data => {
-            console.log('[POST İLAN] API Response:', data);
             setMessages(prev => [...prev, { role: 'bot', text: '✅ İlanın başarıyla yayınlandı ve Supabase\'e kaydedildi!' }]);
           })
           .catch(err => {
-            console.warn('[POST İLAN] API hatası (local veri kaydedildi):', err.message);
-            setMessages(prev => [...prev, { role: 'bot', text: '⚠️ İlanın yayınlandı ama Supabase senkronizasyonunda sıkıntı. Sonra "Yenile" butonuna bas.' }]);
+            console.warn('[POST İLAN] API hatası:', err.message);
+            setMessages(prev => [...prev, { role: 'bot', text: '⚠️ İlanın yayınlandı ama Supabase senkronizasyonunda sıkıntı var.' }]);
           });
 
         alert('İlan yayınlandı!');
@@ -1087,7 +1004,6 @@
         alert(`Tebrikler! ${kampanya.title} ödülünü başarıyla aldın. Yeni puanın: ${puan - kampanya.points}`);
       };
 
-      // ── Tool Library handlers ──
       const borrowTool = (tool) => {
         if ((toolCounts[tool.id] ?? 0) <= 0) { alert('Bu alet şu an mevcut değil!'); return; }
         const now        = new Date();
@@ -1105,7 +1021,6 @@
         return Math.max(0, Math.ceil(diff / 86400000));
       };
 
-      // ── Waste handlers ──
       const handleAddWaste = (item) => setWasteItems(prev => [...prev, item]);
       const handleReserveWaste = (item) => {
         if (item.reserved)                     { alert('Bu atık zaten rezerve edilmiş!'); return; }
@@ -1117,21 +1032,35 @@
         setImpactModal({ ...impact, item: `${item.amount} adet ${item.desc}`, type: 'atik' });
       };
 
-      // ── Repair impact (from SON TAMİRLER click) ──
       const handleShowRepairImpact = (repair) => {
         setImpactModal({ co2: repair.co2, water: repair.water, trees: Math.max(1, Math.round(repair.co2 / 21)), points: repair.puan, item: repair.isim, type: 'tamir' });
       };
 
-      // ── Tamirci job take ──
+      // ==========================================
+      // KRİTİK DÜZELTME 2: Usta İşi Alma (PUT)
+      // ==========================================
       const handleJobTake = (job) => {
         const impact = calcImpact(job.kategori === 'Bisiklet' ? 'Bisiklet' : job.kategori, 1);
         setPuan(prev => prev + parseInt(job.ucret));
-        const deadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-        setJobPostings(prev => prev.map(j => j.id === job.id ? {...j, assignedTo: auth.email, assignedDate: new Date().toISOString(), deadline: deadline.toISOString()} : j));
-        setAssignedJobs(prev => ({...prev, [job.id]: {deadline: deadline.toISOString(), type: 'usta'}}));
+        const deadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        const assignedDateStr = new Date().toISOString();
+        const deadlineStr = deadline.toISOString();
+
+        setJobPostings(prev => prev.map(j => j.id === job.id ? {...j, assignedTo: auth.email, assignedDate: assignedDateStr, deadline: deadlineStr} : j));
+        setAssignedJobs(prev => ({...prev, [job.id]: {deadline: deadlineStr, type: 'usta'}}));
+
+        fetch(`${apiBase}/api/jobpostings`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: job.id,
+            assignedTo: auth.email,
+            assignedDate: assignedDateStr,
+            deadline: deadlineStr
+          })
+        }).catch(err => console.warn('[JobTake API] Backend güncellenemedi:', err));
       };
 
-      // ── Static data ──
       const ustaKampanyalarData = [
         { id: 1,  tag: 'Kültür-Sanat', title: 'KADIKÖY BELEDİYESİ TİYATROSU',  desc: 'Ücretsiz Tiyatro Bileti',         points: 350, color: 'bg-brandPink'           },
         { id: 2,  tag: 'Kültür-Sanat', title: 'MODA KÜLTÜR MERKEZİ',            desc: 'Sergi & Atölye Girişi',           points: 200, color: 'bg-brandYellow'         },
@@ -1165,7 +1094,6 @@
         { id: 12, tag: 'Sosyal',       title: 'KADIKÖY SOSYAL MARKET',           desc: 'Belediye Market İndirimi',        points: 300, color: 'bg-brandBlue text-white' },
       ];
 
-      // kg: tahmini ağırlık. CO2 = kg × 2.73 (landfill+üretim kaçınma faktörü, Kadıköy hesabı)
       const sonTamirlerData = [
         { id: 1, isim: 'TOST MAKİNESİ',  konum: 'Moda Merkezi',         tarih: '2026-03-25', puan: 50,  bg: 'bg-mainBg',    text: 'text-black', kg: 1.5, co2: 4,  water: 750  },
         { id: 2, isim: 'SANDALYE',        konum: 'Yeldeğirmeni Merkezi', tarih: '2026-03-12', puan: 150, bg: 'bg-brandPink', text: 'text-black', kg: 5.0, co2: 14, water: 1000 },
@@ -1178,7 +1106,6 @@
         { id: 3, baslik: 'Vites Ayarı',      kategori: 'Bisiklet',  musteri: 'Can B.',    konum: 'Osmanağa (800m)',      aciliyet: 'Düşük',  ucret: '200', img: 'bisiklet.png'       },
       ];
 
-      // ── Auth Screen ──
       if (!auth.loggedIn) {
         return html`
           <div class="min-h-[80vh] flex items-center justify-center relative z-10 flex-col space-y-12">
@@ -1221,9 +1148,8 @@
         `;
       }
 
-      // ── Tamirci Screen ──
       if (auth.role === 'tamirci') {
-        const ustaKullanilanlar = kullanilanlar; // shared state
+        const ustaKullanilanlar = kullanilanlar;
         return html`
           <div class="max-w-7xl mx-auto space-y-8 md:space-y-12 relative z-10">
             <header class="flex flex-col gap-4 border-b-8 border-black pb-6 md:pb-8 mt-4">
@@ -1274,20 +1200,16 @@
                         const saved = localStorage.getItem('jobPostings');
                         let localJobs = [];
                         if (saved) { try { localJobs = JSON.parse(saved) || []; } catch(_) {} }
-                        console.log('[YENİLE] Local jobs:', localJobs.length);
                         
                         const response = await fetch(`${apiBase}/api/jobpostings`);
                         if (!response.ok) {
-                          console.error('[YENİLE] API error:', response.status);
                           alert('⚠️ API bağlantı sorunu (HTTP ' + response.status + '). Local veriler gösteriliyor.');
                           return;
                         }
                         
                         const apiJobs = await response.json();
-                        console.log('[YENİLE] API jobs:', apiJobs.length, 'adet');
                         
                         if (!Array.isArray(apiJobs)) {
-                          console.warn('[YENİLE] Invalid API response format');
                           alert('⚠️ API veri formatı hatalı');
                           return;
                         }
@@ -1298,7 +1220,6 @@
                           return;
                         }
                         
-                        // Merge: API'den gelenleri local'e ekle
                         setJobPostings(prev => {
                           const merged = [...prev];
                           let addedCount = 0;
@@ -1309,12 +1230,10 @@
                             }
                           });
                           localStorage.setItem('jobPostings', JSON.stringify(merged));
-                          console.log('[YENİLE] Added', addedCount, 'new jobs. Total:', merged.length);
                           return merged;
                         });
                         alert('✅ ' + apiJobs.length + ' ilanın tümü yüklendi!');
                       } catch (err) {
-                        console.error('[YENİLE] Error:', err);
                         alert('❌ Hata: ' + err.message);
                       } finally {
                         setIsRefreshing(false);
@@ -1808,7 +1727,6 @@
               const totalCo2     = cumulativeImpact.co2 + sonTamirlerData.reduce((s, r) => s + r.co2, 0);
               const totalWater   = cumulativeImpact.water + sonTamirlerData.reduce((s, r) => s + r.water, 0);
               const totalTrees   = Math.max(1, Math.round(totalCo2 / 11));
-              const totalCars    = Math.max(0, Math.round(totalCo2 / 4587));
               const borrowedList = Object.entries(borrowedTools);
               return html`
               <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
@@ -1825,7 +1743,6 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 
-                  <!-- Sol Üst: Açtığım İlanlar -->
                   <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
                     <div class="inline-block bg-brandBlue border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000] text-white">📋 AÇTIĞIM İLANLAR</div>
                     ${(() => {
@@ -1845,7 +1762,6 @@
                     })()}
                   </div>
 
-                  <!-- Sağ Üst: Ödünç Alınan Aletler -->
                   <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
                     <div class="inline-block bg-brandPink border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">📦 ÖDÜNÇ ALINANLAR</div>
                     ${borrowedList.length === 0 ? html`
@@ -1868,7 +1784,6 @@
                     })}
                   </div>
 
-                  <!-- Sağ Üst: Yüklediğim Atıklar -->
                   <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
                     <div class="inline-block bg-brandYellow border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">♻️ YÜKLEDİĞİM ATIKLAR</div>
                     ${myWaste.length === 0 ? html`
@@ -1888,7 +1803,6 @@
                     `}
                   </div>
 
-                  <!-- Sol Alt: Etki + Puan -->
                   <div class="brutal-card p-5 md:p-6 bg-black text-white border-[5px] flex flex-col gap-5">
                     <div class="inline-block bg-brandYellow border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000] text-black">🌱 KAZANDIRDIĞIM ETKİ</div>
                     <div class="grid grid-cols-2 gap-3">
@@ -1915,7 +1829,6 @@
                     </div>
                   </div>
 
-                  <!-- Sağ Alt: Devam Eden İşler -->
                   <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
                     <div class="inline-block bg-brandPink border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">⏳ DEVAM EDEN İŞLER</div>
                     ${(() => {
