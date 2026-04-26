@@ -790,6 +790,13 @@
         }
       }, [auth, ustaView, ustaLocation, ustaLocationPermissionAsked]);
 
+      // Usta 'Yakındaki İşler' paneline her geçişte ilanları yenile
+      useEffect(() => {
+        if (auth.loggedIn && auth.role === 'tamirci' && ustaView === 'panel') {
+          loadJobPostings();
+        }
+      }, [ustaView]);
+
       // Persistence: Load user-specific data on login
       useEffect(() => {
         if (auth.loggedIn) {
@@ -858,6 +865,8 @@
       const handleShopSelect = (shop) => { setSelectedShop(shop); setView('merkezler'); };
 
       const handlePostJob = async (form) => {
+        // Puan CO₂ etkisine göre otomatik hesaplanır, müşteri seçemez
+        const impact = calcImpact(form.kategori, 1);
         const newJob = {
           id: Date.now(),
           baslik: form.baslik,
@@ -865,8 +874,10 @@
           musteri: auth.email.split('@')[0], // basit isim
           konum: 'Kadıköy (yaklaşık)', // basit
           aciliyet: form.aciliyet,
-          ucret: form.ucret,
-          lat: 40.987, lon: 29.045, // basit konum
+          ucret: String(impact.points), // CO₂ bazlı otomatik puan
+          co2: impact.co2,
+          lat: customerLocation ? customerLocation.lat : (40.987 + (Math.random() - 0.5) * 0.014),
+          lon: customerLocation ? customerLocation.lon : (29.045 + (Math.random() - 0.5) * 0.014),
           deadline: null,
           assignedTo: null,
           assignedDate: null,
@@ -1582,7 +1593,8 @@
             `}
 
             ${view === 'ilan-ac' && (() => {
-              const [ilanForm, setIlanForm] = useState({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta', ucret: '100' });
+              const [ilanForm, setIlanForm] = useState({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta' });
+              const ilanImpact = calcImpact(ilanForm.kategori, 1);
               return html`
               <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
                 <div class="inline-block relative mb-4 md:mb-6">
@@ -1611,11 +1623,25 @@
                         `)}
                       </div>
                     </div>
-                    <div>
-                      <h3 class="text-2xl font-black uppercase mb-4 text-black">Ücret (Puan)</h3>
-                      <input type="number" min="50" value=${ilanForm.ucret} onInput=${e => setIlanForm(f => ({...f, ucret: e.target.value}))} class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
+                    <div class="border-4 border-black p-5 bg-brandYellow/30 space-y-3">
+                      <h3 class="text-xl font-black uppercase text-black">🌱 Otomatik Hesaplanan Puan</h3>
+                      <p class="font-bold text-sm text-gray-600">Puan, seçtiğin kategorinin CO₂ etkisine göre otomatik belirlenir. Değiştiremezsin.</p>
+                      <div class="grid grid-cols-3 gap-3">
+                        <div class="border-4 border-black bg-white p-3 text-center">
+                          <p class="font-black text-2xl text-brandBlue">${ilanImpact.points}</p>
+                          <p class="font-bold text-xs uppercase text-gray-600">PUAN</p>
+                        </div>
+                        <div class="border-4 border-black bg-white p-3 text-center">
+                          <p class="font-black text-2xl">${ilanImpact.co2} kg</p>
+                          <p class="font-bold text-xs uppercase text-gray-600">CO₂ Önlenir</p>
+                        </div>
+                        <div class="border-4 border-black bg-white p-3 text-center">
+                          <p class="font-black text-2xl">${ilanImpact.trees} 🌳</p>
+                          <p class="font-bold text-xs uppercase text-gray-600">Ağaç Eşd.</p>
+                        </div>
+                      </div>
                     </div>
-                    <button onClick=${() => { if (!ilanForm.baslik.trim()) { alert('Başlık girin!'); return; } handlePostJob(ilanForm); setIlanForm({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta', ucret: '100' }); }} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl md:text-3xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-center items-center gap-3">
+                    <button onClick=${() => { if (!ilanForm.baslik.trim()) { alert('Başlık girin!'); return; } handlePostJob(ilanForm); setIlanForm({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta' }); }} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl md:text-3xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-center items-center gap-3">
                       <${IconWrench} /> İLANI YAYINLA
                     </button>
                   </div>
