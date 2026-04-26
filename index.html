@@ -896,23 +896,6 @@
           return next;
         });
 
-        fetch(`${apiBase}/api/jobpostings`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newJob)
-        })
-          .then(r => {
-            if (r.ok) return r.json();
-            throw new Error('HTTP ' + r.status);
-          })
-          .then(data => {
-            setMessages(prev => [...prev, { role: 'bot', text: '✅ İlanın başarıyla yayınlandı ve Supabase\'e kaydedildi!' }]);
-          })
-          .catch(err => {
-            console.warn('[POST İLAN] API hatası:', err.message);
-            setMessages(prev => [...prev, { role: 'bot', text: '⚠️ İlanın yayınlandı ama Supabase senkronizasyonunda sıkıntı var.' }]);
-          });
-
         alert('İlan yayınlandı!');
         setView('panel');
       };
