@@ -190,6 +190,33 @@ def export_users():
                     headers={'Content-Disposition': 'attachment; filename=kullanicilar.csv'})
 
 
+@app.route('/api/messages', methods=['GET', 'POST'])
+def messages():
+    if request.method == 'POST':
+        data = request.json or {}
+        job_id = data.get('jobId')
+        role = data.get('role')
+        name = data.get('name')
+        text = data.get('text')
+        time = data.get('time')
+        if not all([job_id, role, name, text, time]):
+            return jsonify({'error': 'Eksik parametre'}), 400
+        supabase.table('messages').insert({
+            'job_id': job_id,
+            'role': role,
+            'name': name,
+            'text': text,
+            'time': time
+        }).execute()
+        return jsonify({'status': 'ok'})
+    else:
+        job_id = request.args.get('jobId')
+        if not job_id:
+            return jsonify({'error': 'jobId gerekli'}), 400
+        result = supabase.table('messages').select('*').eq('job_id', job_id).order('time').execute()
+        return jsonify(result.data)
+
+
 @app.route('/api/export/conversations', methods=['GET'])
 def export_conversations():
     result = supabase.table('conversations').select(
