@@ -771,20 +771,27 @@
         }
       }, [auth, view, customerLocation, locationPermissionAsked]);
 
-      const loadJobPostings = async () => {
-        try {
-          const res = await fetch(`${apiBase}/api/jobpostings`);
-          if (!res.ok) throw new Error('jobpostings fetch failed');
-          const data = await res.json();
-          const jobs = Array.isArray(data) ? data : (data?.data || []);
-          if (Array.isArray(jobs)) {
-            setJobPostings(jobs);
-            localStorage.setItem('jobPostings', JSON.stringify(jobs));
-          }
-        } catch (error) {
-          const saved = localStorage.getItem('jobPostings');
-          if (saved) setJobPostings(JSON.parse(saved));
-        }
+      // ─── İlanları yükle: localStorage her zaman birincil kaynak ───────────
+      // API varsa Supabase ile merge et, API boş dönse bile localStorage korunur
+      const loadJobPostings = () => {
+        const saved = localStorage.getItem('jobPostings');
+        const localJobs = saved ? (() => { try { return JSON.parse(saved); } catch { return []; } })() : [];
+        if (localJobs.length > 0) setJobPostings(localJobs);
+
+        // Arka planda API'yi de kontrol et; sadece gerçek veri varsa merge et
+        fetch(`${apiBase}/api/jobpostings`)
+          .then(r => r.ok ? r.json() : [])
+          .then(apiJobs => {
+            if (!Array.isArray(apiJobs) || apiJobs.length === 0) return; // boşsa localStorage'a dokunma
+            // Merge: API + local — id'ye göre tekilleştir, local değişiklikleri koru
+            const merged = [...localJobs];
+            apiJobs.forEach(aj => {
+              if (!merged.find(lj => String(lj.id) === String(aj.id))) merged.push(aj);
+            });
+            setJobPostings(merged);
+            localStorage.setItem('jobPostings', JSON.stringify(merged));
+          })
+          .catch(() => {}); // API yoksa sessizce geç
       };
 
       useEffect(() => {
@@ -914,22 +921,21 @@
           assignedDate: null,
           img: { 'Elektronik': 'telefon.png', 'Tekstil': 'dikis_makinesi.png', 'Bisiklet': 'bisiklet.png' }[form.kategori] || 'ingiliz_anahtari.png'
         };
-        try {
-          const res = await fetch(`${apiBase}/api/jobpostings`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newJob)
-          });
-          if (!res.ok) throw new Error('job post failed');
-          await loadJobPostings();
-        } catch (_) {
-          // API yoksa localStorage üzerinden sakla ve state’i güncelle
-          setJobPostings(prev => {
-            const next = [...prev, newJob];
-            localStorage.setItem('jobPostings', JSON.stringify(next));
-            return next;
-          });
-        }
+
+        // Her durumda localStorage + state'e ONCE yaz (garantili)
+        setJobPostings(prev => {
+          const next = [...prev, newJob];
+          localStorage.setItem('jobPostings', JSON.stringify(next));
+          return next;
+        });
+
+        // Arka planda Supabase'e de gonder (sessizce)
+        fetch(`${apiBase}/api/jobpostings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newJob)
+        }).catch(() => {});
+
         alert('İlan yayınlandı!');
         setView('panel');
       };
