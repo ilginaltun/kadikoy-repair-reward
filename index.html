@@ -1023,14 +1023,6 @@
           const parsed = JSON.parse(savedAuth);
           setAuth(parsed);
         }
-        const savedCustomerLocation = localStorage.getItem('customerLocation');
-        if (savedCustomerLocation) setCustomerLocation(JSON.parse(savedCustomerLocation));
-        const savedLocationAsked = localStorage.getItem('locationPermissionAsked');
-        if (savedLocationAsked === 'true') setLocationPermissionAsked(true);
-        const savedUstaLocation = localStorage.getItem('ustaLocation');
-        if (savedUstaLocation) setUstaLocation(JSON.parse(savedUstaLocation));
-        const savedUstaLocationAsked = localStorage.getItem('ustaLocationPermissionAsked');
-        if (savedUstaLocationAsked === 'true') setUstaLocationPermissionAsked(true);
         const savedJobPostings = localStorage.getItem('globalJobPostings');
         if (savedJobPostings) setJobPostings(JSON.parse(savedJobPostings));
       }, []);
