@@ -1264,6 +1264,8 @@
           setAuth({ loggedIn: true, role: selectedRole, email: email.trim().toLowerCase() });
           setLocationPermissionAsked(false);
           setUstaLocationPermissionAsked(false);
+          setCustomerLocation(null);
+          setUstaLocation(null);
           setSelectedRole(null); setEmail(''); setPassword(''); setAuthError('');
           setMessages([{ role: 'bot', text: currentLang === 'en' ? (selectedRole === 'tamirci' ? 'Hey master! 🔧 There are jobs waiting nearby. Type "any jobs?" or a category, I\'ll list them!' : t('CHATBOT_GREETING')) : (selectedRole === 'tamirci' ? 'Selam usta! 🔧 Yakında bekleyen işlerin var. "iş var mı" yaz veya kategori söyle, hemen listelerim!' : t('CHATBOT_GREETING')) }]);
           setIsLoggingIn(false);
@@ -1280,6 +1282,8 @@
           setAuth({ loggedIn: true, role: selectedRole, email: data.email });
           setLocationPermissionAsked(false);
           setUstaLocationPermissionAsked(false);
+          setCustomerLocation(null);
+          setUstaLocation(null);
           setSelectedRole(null); setEmail(''); setPassword(''); setAuthError('');
           setMessages([{ role: 'bot', text: currentLang === 'en' ? (selectedRole === 'tamirci' ? 'Hey master! 🔧 There are jobs waiting nearby. Type "any jobs?" or a category, I\'ll list them!' : t('CHATBOT_GREETING')) : (selectedRole === 'tamirci' ? 'Selam usta! 🔧 Yakında bekleyen işlerin var. "iş var mı" yaz veya kategori söyle, hemen listelerim!' : t('CHATBOT_GREETING')) }]);
           setIsLoggingIn(false);
