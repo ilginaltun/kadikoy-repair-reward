@@ -153,6 +153,65 @@
 
     const translations = {
       tr: {
+        // App
+        APP_TITLE_1: 'TAMİR',
+        APP_TITLE_2: '& ÖDÜL',
+        PROMO_TEXT: 'TAMİRİ YAP <br class="md:hidden" /> İNDİRİMİ KAP!',
+        // Auth
+        LOGIN: 'HESAP GİRİŞİ',
+        CHOOSE_PROFILE: 'Devam etmek istediğin profili seç:',
+        CUSTOMER: 'MÜŞTERİ',
+        REPAIRER: 'TAMİRCİ',
+        LOGIN_BTN: 'GİRİŞ YAP / KAYIT OL',
+        LOGGING_IN: '⏳ GİRİŞ YAPILIYOR...',
+        BACK: 'GERİ',
+        EMAIL_PLACEHOLDER: 'E-posta',
+        PASS_PLACEHOLDER: 'Şifre',
+        CUSTOMER_ACC: 'MÜŞTERİ hesabı',
+        REPAIRER_ACC: 'TAMİRCİ hesabı',
+        LOGIN_HINT: 'E-posta ve şifrenle giriş yap veya yeni hesap oluştur.',
+        // Nav
+        NAV_PANEL: 'Panel',
+        NAV_FIND_MASTER: 'Usta Bul',
+        NAV_CAMPAIGNS: 'Kampanyalar',
+        NAV_CENTERS: 'Merkezler',
+        NAV_TOOLS: 'Alet',
+        NAV_WASTE: 'Atığın',
+        NAV_POST_JOB: 'İş İlanı Aç',
+        NAV_ACCOUNT: 'Hesap',
+        // Usta Nav
+        USTA_PANEL: 'USTA PANELİ',
+        NAV_NEARBY_JOBS: 'Yakın İşler',
+        NAV_MAP: 'Harita',
+        // Dashboard
+        LOCATE_ME: 'LOKASYONUMU BULSUN',
+        LOC_ACTIVE: 'LOKASYONUM AKTİF',
+        SEE_ON_MAP: 'HARİTADA GÖR',
+        HOW_TO_USE: 'NASIL KULLANILIR?',
+        STEP_1_TITLE: 'Usta Bul & Tamir Ettir',
+        STEP_1_DESC: 'Eşyanı tarif et, sana en yakın ustayı bulalım. Elektronik, tekstil, bisiklet — her şeyi tamir edebiliriz.',
+        STEP_2_TITLE: 'Atığını Paylaş',
+        STEP_2_DESC: '"Atığın" sekmesinden kullanmadığın eşyaları mahalle ile paylaş. Birinin işine yarayan şey çöpe gitmesin.',
+        STEP_3_TITLE: 'Alet Ödünç Al',
+        STEP_3_DESC: '"Alet" kütüphanesinden matkap, dikiş makinesi, avometre gibi aletleri ücretsiz ödünç al. Süresi dolunca iade et.',
+        STEP_4_TITLE: 'Puan Kazan & Kampanya Kullan',
+        STEP_4_DESC: 'Her tamir, atık paylaşımı ve ödünç işleminden puan kazanırsın. Puanlarınla belediye tiyatrosu, kafe, ulaşım gibi ayrıcalıklara ulaş.',
+        // Find Master
+        MATCH_MASTER: 'USTANLA EŞLEŞ',
+        Q1_TITLE: '1. Neyi Tamir Edeceğiz?',
+        Q2_TITLE: '2. Sorun Ne?',
+        Q2_PLACEHOLDER: 'Örn: Ekranı kırıldı, vitesi tutmuyor, fermuarı koptu...',
+        Q3_TITLE: '3. En Yakın',
+        MASTERS: 'Ustaları',
+        FIND_BEST_MASTER: 'EN İYİ USTAYI BUL',
+        DISTANCE_AWAY: 'km uzaklıkta',
+        // Campaigns
+        USE_REWARDS: 'ÖDÜLLERİ KULLAN',
+        POINTS: 'PUAN',
+        USED: 'KULLANILDI',
+        LOCKED: 'KİLİTLİ',
+        USE_BTN: 'KULLAN',
+        // Tools
         LAYERS: 'KATMANLAR',
         TOOL_LIBRARIAN: 'ALET',
         TOOL_DESC: 'Mahalle alet kütüphanesi • Ödünç al, işini bitir, geri getir',
@@ -168,6 +227,73 @@
         MAX_DAYS: (n) => `Maks. ${n} gün`,
         FREE: 'ÜCRETSİZ',
         BORROW: 'ÖDÜNÇ AL',
+        // Waste
+        YOUR_WASTE: 'ATIĞIN',
+        TAB_MAP: '🗺️ Harita',
+        TAB_LIST: '📋 Liste',
+        TAB_ADD: '➕ Ekle',
+        TOTAL_WASTE: 'Toplam Atık',
+        RECORDS: 'kayıt',
+        RESERVED: 'REZERVE EDİLDİ',
+        RESERVE_IT: 'REZERVE ET',
+        OWNER: 'Sahibi',
+        YOUR_OWN_WASTE: 'SENİN ATIĞIN',
+        ADD_NEW_WASTE: 'Yeni Atık Ekle',
+        CATEGORY: 'Kategori',
+        DESC_LABEL: 'Açıklama',
+        DESC_PLACEHOLDER: 'Örn: Kırık telefon, yırtık mont, eski sandalye...',
+        AMOUNT: 'Adet',
+        LOCATION: '📍 Konum',
+        SHARE_WASTE: 'ATIĞI PAYLAŞ',
+        NO_WASTE_YET: 'Henüz atık eklenmemiş.',
+        // Post Job
+        POST_JOB_TITLE: 'İŞ İLANI AÇ',
+        JOB_TITLE: 'Başlık',
+        JOB_TITLE_PH: 'Örn: Kırık Ekran Tamiri',
+        URGENCY: 'Aciliyet',
+        LOW: 'Düşük',
+        MEDIUM: 'Orta',
+        HIGH: 'Yüksek',
+        EARN_POINTS: 'Kazanacağın Puan',
+        EARN_HINT: 'kategorisi için otomatik hesaplanır',
+        PUBLISH_JOB: 'İLANI YAYINLA',
+        // Account
+        MY_ACCOUNT: 'HESABIM',
+        LOGOUT: 'ÇIKIŞ YAP',
+        POSTED_JOBS: '📋 AÇTIĞIM İLANLAR',
+        BORROWED_ITEMS: '📦 ÖDÜNÇ ALINANLAR',
+        UPLOADED_WASTE: '♻️ YÜKLEDİĞİM ATIKLAR',
+        IMPACT_MADE: '🌱 KAZANDIRDIĞIM ETKİ',
+        ONGOING_JOBS: '⏳ DEVAM EDEN İŞLER',
+        CO2_PREVENTED: 'CO₂ Önlendi',
+        WATER_SAVED: 'Su Tasarrufu',
+        TREES_EQ: 'Ağaç Eşdeğeri',
+        ITEMS_REPAIRED: 'Tamir Ettirilen',
+        CURRENT_POINTS: 'Mevcut Puan',
+        NO_POSTS_YET: 'Henüz ilan açmadınız.',
+        NO_BORROWS_YET: 'Henüz ödünç alınan alet yok.',
+        NO_WASTES_YET: 'Henüz paylaşılan atık yok.',
+        NO_ONGOING_JOBS: 'Henüz iş ilanınız yok.',
+        ASSIGNED: 'Atandı',
+        WAITING: 'Bekliyor',
+        MESSAGE: 'MESAJ',
+        DAYS_LEFT: 'GÜN KALDI',
+        // Usta specific
+        NEARBY_JOBS_TITLE: 'YAKINDAKİ İŞLER',
+        REFRESH: '🔄 YENİLE',
+        REFRESHING: '⏳ YÜKLENİYOR...',
+        OPEN_ADS: 'açık ilan',
+        NO_OPEN_ADS: 'Henüz açık iş ilanı yok',
+        NO_OPEN_ADS_HINT: 'Müşteri ilan açtığında burada görünecek. YENİLE butonuna bas veya bekle.',
+        CUSTOMER_LBL: 'Müşteri:',
+        TAKE_JOB: 'İŞİ AL',
+        PASS_JOB: 'PAS',
+        URGENT: 'ACİL',
+        USTA_CAMPAIGNS: 'USTA KAMPANYALARI',
+        USTA_CAMP_DESC: 'İş alarak puan kazan, belediye ayrıcalıklarından yararlan!',
+        REPAIRED_ITEMS: '🔧 TAMİR ETTİĞİM EŞYALAR',
+        REPAIRED: 'Tamir Edilen',
+        // Map
         SELECTED_MASTER: 'SEÇİLEN TAMİRCİ',
         CLOSE: 'KAPAT',
         VIEW_ON_MAP: '📍 Haritada görmek için tıkla',
@@ -175,48 +301,163 @@
         REPAIRERS_SUB: 'Terzi / Elektronik',
         PUBLIC_BUILDINGS: 'KAMU BİNALARI',
         PUBLIC_BUILDINGS_SUB: 'İSMEK / Kütüphane',
-        CUSTOMER_LOCATION: 'MÜŞTERİ LOKASYONUٌ',
+        CUSTOMER_LOCATION: 'MÜŞTERİ LOKASYONU',
         CUSTOMER_LOCATION_SUB: '400m Hizmet Alanı',
         OPEN_JOBS: 'AÇIK İŞ İLANLARI',
         OPEN_JOBS_SUB: 'Tamir İlanları',
         LEGEND: 'LEJAND',
-        TOTAL_WASTE: 'Toplam Atık',
-        RECORDS: 'kayıt',
-        RESERVED: 'rezerve edildi',
+        // Chat
         REPAIR_AI: 'TAMİR AI',
         TYPE_HERE: 'Buraya yaz...',
         ASK: 'SOR',
-        CATEGORY: 'Kategori',
-        SHOW_ON_MAP: 'Haritada göster',
         CHAT_INPUT_PLACEHOLDER: 'Buraya yaz...',
-        LOGIN: 'HESAP GİRİŞİ',
-        CHOOSE_PROFILE: 'Devam etmek istediğin profili seç:',
-        CUSTOMER: 'MÜŞTERİ',
-        REPAIRER: 'TAMİRCİ'
+        SEND: 'GÖNDER'
       },
       en: {
-        LAYERS: 'LAYERS',
+        // App
+        APP_TITLE_1: 'REPAIR',
+        APP_TITLE_2: '& REWARD',
+        PROMO_TEXT: 'MAKE A REPAIR <br class="md:hidden" /> GET A DISCOUNT!',
+        // Auth
         LOGIN: 'ACCOUNT LOGIN',
-        CHOOSE_PROFILE: 'Choose the profile you want to continue with:',
+        CHOOSE_PROFILE: 'Choose the profile to continue:',
         CUSTOMER: 'CUSTOMER',
         REPAIRER: 'REPAIRER',
+        LOGIN_BTN: 'LOGIN / REGISTER',
+        LOGGING_IN: '⏳ LOGGING IN...',
+        BACK: 'BACK',
+        EMAIL_PLACEHOLDER: 'Email',
+        PASS_PLACEHOLDER: 'Password',
+        CUSTOMER_ACC: 'CUSTOMER Account',
+        REPAIRER_ACC: 'REPAIRER Account',
+        LOGIN_HINT: 'Log in with your email and password or create a new account.',
+        // Nav
+        NAV_PANEL: 'Panel',
+        NAV_FIND_MASTER: 'Find Master',
+        NAV_CAMPAIGNS: 'Campaigns',
+        NAV_CENTERS: 'Centers',
+        NAV_TOOLS: 'Tools',
+        NAV_WASTE: 'Your Waste',
+        NAV_POST_JOB: 'Post Job',
+        NAV_ACCOUNT: 'Account',
+        // Usta Nav
+        USTA_PANEL: 'MASTER PANEL',
+        NAV_NEARBY_JOBS: 'Nearby Jobs',
+        NAV_MAP: 'Map',
+        // Dashboard
+        LOCATE_ME: 'FIND MY LOCATION',
+        LOC_ACTIVE: 'LOCATION ACTIVE',
+        SEE_ON_MAP: 'SEE ON MAP',
+        HOW_TO_USE: 'HOW TO USE?',
+        STEP_1_TITLE: 'Find a Master & Repair',
+        STEP_1_DESC: 'Describe your item, and we will find the nearest master. Electronics, textiles, bikes — we fix it all.',
+        STEP_2_TITLE: 'Share Your Waste',
+        STEP_2_DESC: 'Share unused items with the neighborhood from the "Your Waste" tab. Do not throw away what others can use.',
+        STEP_3_TITLE: 'Borrow Tools',
+        STEP_3_DESC: 'Borrow tools like drills, sewing machines, or multimeters for free from the "Tools" library. Return when time is up.',
+        STEP_4_TITLE: 'Earn Points & Use Campaigns',
+        STEP_4_DESC: 'Earn points from every repair, waste share, and borrowing. Use points for city theater, cafes, and transport.',
+        // Find Master
+        MATCH_MASTER: 'MATCH WITH MASTER',
+        Q1_TITLE: '1. What are we fixing?',
+        Q2_TITLE: '2. What is the issue?',
+        Q2_PLACEHOLDER: 'E.g., Broken screen, gears slipping, zipper torn...',
+        Q3_TITLE: '3. Nearest',
+        MASTERS: 'Masters',
+        FIND_BEST_MASTER: 'FIND BEST MASTER',
+        DISTANCE_AWAY: 'km away',
+        // Campaigns
+        USE_REWARDS: 'USE REWARDS',
+        POINTS: 'POINTS',
+        USED: 'USED',
+        LOCKED: 'LOCKED',
+        USE_BTN: 'USE',
+        // Tools
+        LAYERS: 'LAYERS',
         TOOL_LIBRARIAN: 'TOOLS',
-        TOOL_DESC: 'Neighborhood tool library • Borrow, finish your job, return',
-        BORROW_FREE: 'You can borrow tools for free!',
-        BORROW_HINT: 'Return the tool when your time is up — your neighbor is waiting.',
+        TOOL_DESC: 'Neighborhood tool library • Borrow, finish job, return',
+        BORROW_FREE: 'Borrow tools for free!',
+        BORROW_HINT: 'Return when time is up — your neighbor is waiting.',
         TOOL_AVAILABLE: 'AVAILABLE',
         TOOL_AVAILABLE_UNITS: (n) => `${n} AVAILABLE`,
         DAYS_LEFT_SUFFIX: 'DAYS left',
-        TIME_UP: '⚠️ Your time is up! Please return it.',
+        TIME_UP: '⚠️ Time is up! Please return.',
         RETURN: 'RETURN',
         OUT_OF_STOCK: 'OUT OF STOCK',
-        UNAVAILABLE: 'NOT AVAILABLE',
-        MAX_DAYS: (n) => `Max. ${n} days`,
+        UNAVAILABLE: 'UNAVAILABLE',
+        MAX_DAYS: (n) => `Max ${n} days`,
         FREE: 'FREE',
         BORROW: 'BORROW',
+        // Waste
+        YOUR_WASTE: 'YOUR WASTE',
+        TAB_MAP: '🗺️ Map',
+        TAB_LIST: '📋 List',
+        TAB_ADD: '➕ Add',
+        TOTAL_WASTE: 'Total Waste',
+        RECORDS: 'records',
+        RESERVED: 'RESERVED',
+        RESERVE_IT: 'RESERVE',
+        OWNER: 'Owner',
+        YOUR_OWN_WASTE: 'YOUR WASTE',
+        ADD_NEW_WASTE: 'Add New Waste',
+        CATEGORY: 'Category',
+        DESC_LABEL: 'Description',
+        DESC_PLACEHOLDER: 'E.g: Broken phone, torn jacket, old chair...',
+        AMOUNT: 'Amount',
+        LOCATION: '📍 Location',
+        SHARE_WASTE: 'SHARE WASTE',
+        NO_WASTE_YET: 'No waste added yet.',
+        // Post Job
+        POST_JOB_TITLE: 'POST A JOB',
+        JOB_TITLE: 'Title',
+        JOB_TITLE_PH: 'E.g: Broken Screen Repair',
+        URGENCY: 'Urgency',
+        LOW: 'Low',
+        MEDIUM: 'Medium',
+        HIGH: 'High',
+        EARN_POINTS: 'Points You Earn',
+        EARN_HINT: 'calculated automatically for category',
+        PUBLISH_JOB: 'PUBLISH JOB',
+        // Account
+        MY_ACCOUNT: 'MY ACCOUNT',
+        LOGOUT: 'LOGOUT',
+        POSTED_JOBS: '📋 POSTED JOBS',
+        BORROWED_ITEMS: '📦 BORROWED ITEMS',
+        UPLOADED_WASTE: '♻️ UPLOADED WASTE',
+        IMPACT_MADE: '🌱 IMPACT MADE',
+        ONGOING_JOBS: '⏳ ONGOING JOBS',
+        CO2_PREVENTED: 'CO₂ Prevented',
+        WATER_SAVED: 'Water Saved',
+        TREES_EQ: 'Trees Eq.',
+        ITEMS_REPAIRED: 'Items Repaired',
+        CURRENT_POINTS: 'Current Points',
+        NO_POSTS_YET: 'You have not posted any jobs.',
+        NO_BORROWS_YET: 'No tools borrowed yet.',
+        NO_WASTES_YET: 'No waste shared yet.',
+        NO_ONGOING_JOBS: 'No ongoing jobs.',
+        ASSIGNED: 'Assigned',
+        WAITING: 'Waiting',
+        MESSAGE: 'MESSAGE',
+        DAYS_LEFT: 'DAYS LEFT',
+        // Usta specific
+        NEARBY_JOBS_TITLE: 'NEARBY JOBS',
+        REFRESH: '🔄 REFRESH',
+        REFRESHING: '⏳ LOADING...',
+        OPEN_ADS: 'open ads',
+        NO_OPEN_ADS: 'No open jobs right now',
+        NO_OPEN_ADS_HINT: 'When customers post jobs, they appear here. Click REFRESH or wait.',
+        CUSTOMER_LBL: 'Customer:',
+        TAKE_JOB: 'TAKE JOB',
+        PASS_JOB: 'PASS',
+        URGENT: 'URGENT',
+        USTA_CAMPAIGNS: 'MASTER CAMPAIGNS',
+        USTA_CAMP_DESC: 'Take jobs, earn points, enjoy city benefits!',
+        REPAIRED_ITEMS: '🔧 ITEMS I REPAIRED',
+        REPAIRED: 'Repaired',
+        // Map
         SELECTED_MASTER: 'SELECTED MASTER',
         CLOSE: 'CLOSE',
-        VIEW_ON_MAP: '📍 Click to view on map',
+        VIEW_ON_MAP: '📍 View on map',
         REPAIRERS: 'REPAIRERS',
         REPAIRERS_SUB: 'Tailor / Electronics',
         PUBLIC_BUILDINGS: 'PUBLIC BUILDINGS',
@@ -226,20 +467,17 @@
         OPEN_JOBS: 'OPEN JOB POSTINGS',
         OPEN_JOBS_SUB: 'Repair Listings',
         LEGEND: 'LEGEND',
-        TOTAL_WASTE: 'Total Waste',
-        RECORDS: 'records',
-        RESERVED: 'reserved',
+        // Chat
         REPAIR_AI: 'REPAIR AI',
         TYPE_HERE: 'Type here...',
         ASK: 'ASK',
-        CATEGORY: 'Category',
-        SHOW_ON_MAP: 'Show on map',
-        CHAT_INPUT_PLACEHOLDER: 'Type here...'
+        CHAT_INPUT_PLACEHOLDER: 'Type here...',
+        SEND: 'SEND'
       }
     };
 
     const t = (key, ...args) => {
-      const text = translations[currentLang][key];
+      const text = translations[currentLang]?.[key] || key;
       return typeof text === 'function' ? text(...args) : text;
     };
 
@@ -299,28 +537,6 @@
       );
     }
 
-    // ── Language Toggle ────────────────────────────────────────────────────────
-    function LanguageToggle({ language, onLanguageChange }) {
-      return html`
-        <div style="position:fixed;top:16px;right:16px;z-index:10000;display:flex;gap:8px;">
-          <button onClick=${() => {
-            currentLang = 'tr';
-            localStorage.setItem('language', 'tr');
-            onLanguageChange('tr');
-          }} style="padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;${language === 'tr' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white'};cursor:pointer;">
-            TR
-          </button>
-          <button onClick=${() => {
-            currentLang = 'en';
-            localStorage.setItem('language', 'en');
-            onLanguageChange('en');
-          }} style="padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;${language === 'en' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white'};cursor:pointer;">
-            EN
-          </button>
-        </div>
-      `;
-    }
-
     // ── ChatBot ────────────────────────────────────────────────────────────
     function ChatBot({ isChatOpen, setIsChatOpen, messages, input, setInput, handleSend, allShops, onShopClick, title = null }) {
       title = title || t('REPAIR_AI');
@@ -359,10 +575,10 @@
       const mapRef = useRef(null);
       const highlightRef = useRef(null);
       const [layers, setLayers] = useState({
-        tamirciler: { active: true, title: 'TAMİRCİLER', sub: 'Terzi / Elektronik', color: 'bg-brandYellow', shape: 'square' },
-        kamu: { active: true, title: 'KAMU BİNALARI', sub: 'İSMEK / Kütüphane', color: 'bg-brandPink', shape: 'square' },
-        customerLocation: { active: true, title: 'MÜŞTERİ LOKASYONUٌ', sub: '400m Hizmet Alanı', color: 'bg-black', shape: 'square' },
-        jobPostings: { active: true, title: 'AÇIK İŞ İLANLARI', sub: 'Tamir İlanları', color: 'bg-brandBlue', shape: 'square' }
+        tamirciler: { active: true, title: 'REPAIRERS', sub: 'REPAIRERS_SUB', color: 'bg-brandYellow', shape: 'square' },
+        kamu: { active: true, title: 'PUBLIC_BUILDINGS', sub: 'PUBLIC_BUILDINGS_SUB', color: 'bg-brandPink', shape: 'square' },
+        customerLocation: { active: true, title: 'CUSTOMER_LOCATION', sub: 'CUSTOMER_LOCATION_SUB', color: 'bg-black', shape: 'square' },
+        jobPostings: { active: true, title: 'OPEN_JOBS', sub: 'OPEN_JOBS_SUB', color: 'bg-brandBlue', shape: 'square' }
       });
       const groupsRef = useRef(null);
       const mapInstance = useRef(null);
@@ -428,7 +644,7 @@
                 <div key=${key} class="flex items-start gap-6 cursor-pointer" onClick=${() => setLayers(p => ({ ...p, [key]: { ...l, active: !l.active } }))}>
                   <div class="map-checkbox">${l.active && html`<div class="w-4 h-4 bg-black" style="clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%)"></div>`}</div>
                   <div class="w-10 h-10 border-4 border-black shrink-0 shadow-[3px_3px_0px_#000] ${l.color}"></div>
-                  <div class="flex flex-col"><span class="text-2xl md:text-3xl font-black uppercase leading-none text-black">${key === 'tamirciler' ? t('REPAIRERS') : key === 'kamu' ? t('PUBLIC_BUILDINGS') : key === 'customerLocation' ? t('CUSTOMER_LOCATION') : t('OPEN_JOBS')}</span><span class="text-lg md:text-xl font-bold text-gray-500 uppercase mt-1">${key === 'tamirciler' ? t('REPAIRERS_SUB') : key === 'kamu' ? t('PUBLIC_BUILDINGS_SUB') : key === 'customerLocation' ? t('CUSTOMER_LOCATION_SUB') : t('OPEN_JOBS_SUB')}</span></div>
+                  <div class="flex flex-col"><span class="text-2xl md:text-3xl font-black uppercase leading-none text-black">${t(l.title)}</span><span class="text-lg md:text-xl font-bold text-gray-500 uppercase mt-1">${t(l.sub)}</span></div>
                 </div>
               `)}
             </div>
@@ -556,7 +772,7 @@
           if (wasteMapInst.current) { wasteMapInst.current.remove(); wasteMapInst.current = null; }
           return;
         }
-        const t = setTimeout(() => {
+        const tm = setTimeout(() => {
           if (!wasteMapRef.current) return;
           if (!wasteMapInst.current) {
             const map = window.L.map(wasteMapRef.current).setView([40.988, 29.045], 14);
@@ -565,7 +781,7 @@
           }
           addWasteMarkers(wasteMapInst.current, wasteItems);
         }, 80);
-        return () => clearTimeout(t);
+        return () => clearTimeout(tm);
       }, [tab, wasteItems]);
 
       useEffect(() => () => {
@@ -593,9 +809,9 @@
       };
 
       const tabs = [
-        { id: 'harita', label: '🗺️ Harita' },
-        { id: 'liste',  label: '📋 Liste'  },
-        { id: 'ekle',   label: '➕ Ekle'   },
+        { id: 'harita', label: t('TAB_MAP') },
+        { id: 'liste',  label: t('TAB_LIST')  },
+        { id: 'ekle',   label: t('TAB_ADD')   },
       ];
 
       return html`
@@ -604,15 +820,15 @@
             <div class="inline-block relative">
               <div class="absolute inset-0 bg-brandYellow transform translate-x-2 translate-y-2 border-4 border-black"></div>
               <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">
-                ATIĞIN
+                ${t('YOUR_WASTE')}
               </h2>
             </div>
             <div class="flex gap-2 flex-wrap">
-              ${tabs.map(t => html`
-                <button key=${t.id} onClick=${() => { setSelectedWaste(null); setTab(t.id); }}
+              ${tabs.map(tb => html`
+                <button key=${tb.id} onClick=${() => { setSelectedWaste(null); setTab(tb.id); }}
                         class="px-4 py-2 border-4 border-black font-black uppercase text-base brutal-btn
-                               ${tab === t.id ? 'bg-black text-white' : 'bg-white text-black'}">
-                  ${t.label}
+                               ${tab === tb.id ? 'bg-black text-white' : 'bg-white text-black'}">
+                  ${tb.label}
                 </button>
               `)}
             </div>
@@ -631,20 +847,20 @@
                 <div class="border-t-4 border-black pt-4">
                   <p class="font-black text-sm uppercase mb-1">${t('TOTAL_WASTE')}</p>
                   <p class="text-3xl font-black">${wasteItems.length} <span class="text-base font-bold text-gray-500">${t('RECORDS')}</span></p>
-                  <p class="text-sm font-bold text-gray-500">${wasteItems.filter(w => w.reserved).length} ${t('RESERVED')}</p>
+                  <p class="text-sm font-bold text-gray-500">${wasteItems.filter(w => w.reserved).length} ${t('RESERVED').toLowerCase()}</p>
                 </div>
                 ${selectedWaste && html`
                   <div class="border-4 border-black p-4 bg-brandPink space-y-2">
                     <p class="font-black text-lg uppercase leading-tight">${selectedWaste.desc}</p>
                     <p class="font-bold text-sm">${selectedWaste.amount} adet • ${selectedWaste.category}</p>
-                    <p class="font-bold text-xs text-gray-600">Sahibi: ${selectedWaste.ownerName}</p>
+                    <p class="font-bold text-xs text-gray-600">${t('OWNER')}: ${selectedWaste.ownerName}</p>
                     ${selectedWaste.reserved
-                      ? html`<div class="bg-gray-200 border-4 border-black p-2 text-center font-black uppercase text-sm">REZERVE EDİLDİ</div>`
+                      ? html`<div class="bg-gray-200 border-4 border-black p-2 text-center font-black uppercase text-sm">${t('RESERVED')}</div>`
                       : selectedWaste.ownerEmail === auth.email
-                        ? html`<div class="bg-brandYellow border-4 border-black p-2 text-center font-black uppercase text-sm">SENİN ATIĞIN</div>`
-                        : html`<button onClick=${() => onReserve(selectedWaste)} class="w-full bg-black text-white border-4 border-black p-3 font-black uppercase hover:bg-gray-800 transition-colors">REZERVE ET</button>`
+                        ? html`<div class="bg-brandYellow border-4 border-black p-2 text-center font-black uppercase text-sm">${t('YOUR_OWN_WASTE')}</div>`
+                        : html`<button onClick=${() => onReserve(selectedWaste)} class="w-full bg-black text-white border-4 border-black p-3 font-black uppercase hover:bg-gray-800 transition-colors">${t('RESERVE_IT')}</button>`
                     }
-                    <button onClick=${() => setSelectedWaste(null)} class="w-full bg-white border-4 border-black p-2 font-black uppercase text-sm">KAPAT</button>
+                    <button onClick=${() => setSelectedWaste(null)} class="w-full bg-white border-4 border-black p-2 font-black uppercase text-sm">${t('CLOSE')}</button>
                   </div>
                 `}
               </div>
@@ -655,24 +871,24 @@
           ${tab === 'liste' && html`
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               ${wasteItems.length === 0 && html`
-                <p class="col-span-3 text-center font-bold text-xl py-16 text-gray-400">Henüz atık eklenmemiş.</p>
+                <p class="col-span-3 text-center font-bold text-xl py-16 text-gray-400">${t('NO_WASTE_YET')}</p>
               `}
               ${wasteItems.map(item => html`
                 <div key=${item.id} class="brutal-card bg-white p-5 border-[5px] flex flex-col gap-3 ${item.reserved ? 'opacity-55' : 'hover:-translate-y-1'} transition-transform">
                   <div class="flex justify-between items-start">
                     <span class="text-4xl">${getCategoryEmoji(item.category)}</span>
                     <span class="${item.reserved ? 'bg-gray-300 text-gray-500' : 'bg-brandYellow'} border-2 border-black px-2 py-1 text-xs font-black uppercase">
-                      ${item.reserved ? 'REZERVE' : 'MEVCUT'}
+                      ${item.reserved ? t('RESERVED') : t('TOOL_AVAILABLE')}
                     </span>
                   </div>
                   <h3 class="text-xl font-black uppercase">${item.desc}</h3>
                   <p class="font-bold text-sm text-gray-600">${item.amount} adet • ${item.category}</p>
-                  <p class="font-bold text-xs text-gray-400 border-t-2 border-dashed border-gray-200 pt-2">Sahibi: ${item.ownerName}</p>
+                  <p class="font-bold text-xs text-gray-400 border-t-2 border-dashed border-gray-200 pt-2">${t('OWNER')}: ${item.ownerName}</p>
                   ${!item.reserved && item.ownerEmail !== auth.email
-                    ? html`<button onClick=${() => onReserve(item)} class="mt-auto w-full bg-brandPink border-4 border-black p-3 font-black uppercase brutal-btn">REZERVE ET</button>`
+                    ? html`<button onClick=${() => onReserve(item)} class="mt-auto w-full bg-brandPink border-4 border-black p-3 font-black uppercase brutal-btn">${t('RESERVE_IT')}</button>`
                     : item.ownerEmail === auth.email
-                      ? html`<div class="mt-auto bg-brandYellow border-4 border-black p-2 text-center font-black text-sm uppercase">SENİN ATIĞIN</div>`
-                      : html`<div class="mt-auto bg-gray-200 border-4 border-black p-2 text-center font-black text-sm uppercase">REZERVE EDİLDİ</div>`
+                      ? html`<div class="mt-auto bg-brandYellow border-4 border-black p-2 text-center font-black text-sm uppercase">${t('YOUR_OWN_WASTE')}</div>`
+                      : html`<div class="mt-auto bg-gray-200 border-4 border-black p-2 text-center font-black text-sm uppercase">${t('RESERVED')}</div>`
                   }
                 </div>
               `)}
@@ -681,10 +897,10 @@
 
           ${tab === 'ekle' && html`
             <div class="max-w-2xl mx-auto brutal-card p-6 md:p-10 bg-white space-y-6">
-              <h3 class="text-2xl font-black uppercase border-b-4 border-black pb-4">Yeni Atık Ekle</h3>
+              <h3 class="text-2xl font-black uppercase border-b-4 border-black pb-4">${t('ADD_NEW_WASTE')}</h3>
 
               <div>
-                <label class="font-black uppercase text-sm block mb-3">Kategori</label>
+                <label class="font-black uppercase text-sm block mb-3">${t('CATEGORY')}</label>
                 <div class="grid grid-cols-3 md:grid-cols-5 gap-2">
                   ${['Elektronik','Tekstil','Mobilya','Bisiklet','Diğer'].map(cat => html`
                     <button key=${cat} onClick=${() => setForm(f => ({...f, category: cat}))}
@@ -698,30 +914,30 @@
               </div>
 
               <div>
-                <label class="font-black uppercase text-sm block mb-2">Açıklama</label>
+                <label class="font-black uppercase text-sm block mb-2">${t('DESC_LABEL')}</label>
                 <input value=${form.desc} onInput=${e => setForm(f => ({...f, desc: e.target.value}))}
-                       placeholder="Örn: Kırık telefon, yırtık mont, eski sandalye..."
+                       placeholder="${t('DESC_PLACEHOLDER')}"
                        class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
               </div>
 
               <div>
-                <label class="font-black uppercase text-sm block mb-2">Adet</label>
+                <label class="font-black uppercase text-sm block mb-2">${t('AMOUNT')}</label>
                 <input type="number" min="1" value=${form.amount} onInput=${e => setForm(f => ({...f, amount: e.target.value}))}
                        class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
               </div>
 
               <div class="border-4 border-dashed border-gray-300 p-4 bg-mainBg">
-                <p class="font-black text-sm uppercase mb-1">📍 Konum</p>
+                <p class="font-black text-sm uppercase mb-1">${t('LOCATION')}</p>
                 <p class="font-bold text-sm text-gray-500">
                   ${customerLocation
-                    ? `${customerLocation.lat.toFixed(4)}, ${customerLocation.lon.toFixed(4)} — mevcut konumunuz kullanılacak`
-                    : 'Konum izni verilmemişse Kadıköy içinde rastgele konum atanır.'}
+                    ? `${customerLocation.lat.toFixed(4)}, ${customerLocation.lon.toFixed(4)}`
+                    : 'Kadıköy'}
                 </p>
               </div>
 
               <button onClick=${handleAdd}
                       class="w-full bg-brandYellow border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0_#000] hover:translate-y-1 hover:shadow-[4px_4px_0_#000] transition-all flex justify-center items-center gap-3">
-                <${IconLeaf} /> ATIĞI PAYLAŞ
+                <${IconLeaf} /> ${t('SHARE_WASTE')}
               </button>
             </div>
           `}
@@ -750,45 +966,34 @@
             <div class="grid grid-cols-1 gap-3">
               <div class="border-4 border-black p-4 bg-brandYellow flex justify-between items-center">
                 <div>
-                  <p class="font-black text-lg uppercase">Çöplük CO₂ Önlendi</p>
-                  <p class="font-bold text-xs text-gray-600 mt-0.5">Depolanmadan & yeniden üretimden kurtarıldı</p>
+                  <p class="font-black text-lg uppercase">${t('CO2_PREVENTED')}</p>
                 </div>
                 <p class="text-3xl md:text-4xl font-black">${data.co2} <span class="text-base">kg</span></p>
               </div>
 
-              <div class="border-4 border-black p-4 bg-orange-100 flex justify-between items-center">
-                <div>
-                  <p class="font-black text-lg uppercase">🔥 Yakma CO₂ Önlendi</p>
-                  <p class="font-bold text-xs text-gray-600 mt-0.5">Bu eşyanın yakılmasından kaçınılan emisyon</p>
-                </div>
-                <p class="text-3xl md:text-4xl font-black">${data.incin ?? 0} <span class="text-base">kg</span></p>
-              </div>
-
               <div class="border-4 border-black p-4 bg-brandPink flex justify-between items-center">
                 <div>
-                  <p class="font-black text-lg uppercase">Su Tasarrufu</p>
-                  <p class="font-bold text-xs text-gray-600 mt-0.5">Üretim sürecinde harcanan su</p>
+                  <p class="font-black text-lg uppercase">${t('WATER_SAVED')}</p>
                 </div>
                 <p class="text-3xl md:text-4xl font-black">${data.water >= 1000 ? (data.water/1000).toFixed(1)+'k' : data.water} <span class="text-base">L</span></p>
               </div>
 
               <div class="border-4 border-black p-4 bg-white flex justify-between items-center">
                 <div>
-                  <p class="font-black text-lg uppercase">Ağaç Eşdeğeri</p>
-                  <p class="font-bold text-xs text-gray-600 mt-0.5">Toplam CO₂ karşılığı (çöplük + yakma)</p>
+                  <p class="font-black text-lg uppercase">${t('TREES_EQ')}</p>
                 </div>
                 <p class="text-3xl md:text-4xl font-black">${data.trees} 🌳</p>
               </div>
             </div>
 
             <div class="border-4 border-black p-4 bg-black text-white flex justify-between items-center">
-              <p class="font-black text-xl uppercase">Kazanılan Puan</p>
+              <p class="font-black text-xl uppercase">${t('POINTS')}</p>
               <p class="text-4xl font-black text-brandYellow">+${data.points}</p>
             </div>
 
             <button onClick=${onClose}
                     class="w-full bg-black text-white border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0_#000] hover:bg-gray-800 transition-colors">
-              HARIKA! KAPAT
+              ${t('CLOSE')}
             </button>
           </div>
         </div>
@@ -797,16 +1002,13 @@
 
     // ── App ────────────────────────────────────────────────────────────────
     function App() {
-      const [language, setLanguage]                     = useState(currentLang);
-      const handleLanguageChange = (lang) => setLanguage(lang);
-
-      useEffect(() => {
-        const handleLangEvent = (e) => {
-          setLanguage(e.detail.lang);
-        };
-        window.addEventListener('languageChange', handleLangEvent);
-        return () => window.removeEventListener('languageChange', handleLangEvent);
-      }, []);
+      const [language, setLanguage] = useState(currentLang);
+      
+      const handleLanguageChange = (lang) => {
+        currentLang = lang;
+        localStorage.setItem('language', lang);
+        setLanguage(lang);
+      };
 
       const [auth, setAuth]                             = useState({ loggedIn: false, role: null, email: null });
       const [selectedRole, setSelectedRole]             = useState(null);
@@ -921,7 +1123,6 @@
         }
       }, [auth, ustaView, ustaLocation, ustaLocationPermissionAsked]);
 
-      // ─── BUTON KAYBOLMA (DOM Thrashing) ÇÖZÜMÜ ───
       useEffect(() => {
         if (!auth.loggedIn || auth.role !== 'tamirci') return;
 
@@ -931,7 +1132,6 @@
             try {
               const parsed = JSON.parse(saved);
               if (Array.isArray(parsed)) {
-                // Sadece değişiklik varsa güncelle (Gereksiz render'ı engeller)
                 setJobPostings(prev => JSON.stringify(prev) !== JSON.stringify(parsed) ? parsed : prev);
               }
             } catch (_) {}
@@ -962,7 +1162,7 @@
                   localStorage.setItem('globalJobPostings', JSON.stringify(next));
                   return next;
                 }
-                return prev; // Değişiklik yoksa render yapma
+                return prev;
               });
             }).catch(() => refreshFromLocal());
         };
@@ -1007,12 +1207,11 @@
 
       const handleShopSelect = (shop) => { setSelectedShop(shop); setView('merkezler'); };
 
-      // ─── GÜVENLİ İLAN AÇMA ───
       const handlePostJob = async (form) => {
         const defaultKg = DEFAULT_KG[form.kategori] ?? 1;
         const impact = calcImpact(form.kategori, defaultKg);
         const newJob = {
-          id: Date.now().toString(), // Veritabanı çökmesini engeller
+          id: Date.now().toString(),
           baslik: form.baslik,
           kategori: form.kategori,
           musteri: auth.email.split('@')[0],
@@ -1037,13 +1236,11 @@
           
           const dbRes = await res.json();
 
-          // EĞER VERİTABANI HATA VERİRSE EKRANA KAYDETME VE BİLGİ VER!
           if (!res.ok || dbRes.error) {
              alert('🚨 SUPABASE VERİTABANI HATASI!\n\nLütfen Github\'a kodları pushlayıp Vercel\'in güncellenmesini beklediğinizden emin olun!\n\nHata detayı:\n' + JSON.stringify(dbRes.error || dbRes));
              return;
           }
 
-          // Veritabanı sorunsuz çalıştıysa kendi ekranına ekle
           setJobPostings(prev => {
             const next = [...prev, newJob];
             localStorage.setItem('globalJobPostings', JSON.stringify(next));
@@ -1133,7 +1330,7 @@
       };
 
       const triggerMatch = () => {
-        if (!matchCategory || !matchDesc) { alert('Kanka lütfen bir kategori seçip sorunu kısaca anlat!'); return; }
+        if (!matchCategory || !matchDesc) { alert('Lütfen bir kategori seçip sorunu kısaca anlat!'); return; }
         const query = `Kategori: ${matchCategory}. Eşyamın sorunu şu: "${matchDesc}". Bana veri tabanındaki tamircilerden en uygununu önerir misin?`;
         setIsChatOpen(true); handleSend(query); setMatchDesc(''); setMatchCategory('');
       };
@@ -1247,9 +1444,13 @@
       if (!auth.loggedIn) {
         return html`
           <div class="min-h-[80vh] flex items-center justify-center relative z-10 flex-col space-y-12">
+            <div style="position:fixed;top:16px;right:16px;z-index:10000;display:flex;gap:8px;">
+              <button onClick=${() => handleLanguageChange('tr')} style="${'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;' + (language === 'tr' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white') + ';cursor:pointer;'}">TR</button>
+              <button onClick=${() => handleLanguageChange('en')} style="${'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;' + (language === 'en' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white') + ';cursor:pointer;'}">EN</button>
+            </div>
             <div class="text-center">
               <h1 class="text-6xl md:text-9xl font-black tracking-tighter uppercase leading-[0.8] text-black drop-shadow-md">
-                TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL
+                ${t('APP_TITLE_1')}<br/><span class="text-brandBlue">${t('APP_TITLE_2')}</span>
               </h1>
             </div>
             <div class="brutal-card p-8 md:p-12 bg-white max-w-lg w-full space-y-8 text-center border-[6px]">
@@ -1265,18 +1466,18 @@
               ` : html`
                 <div class="space-y-6 text-left">
                   <div class="border-4 border-black p-6 bg-mainBg">
-                    <p class="text-2xl font-black uppercase">${selectedRole === 'musteri' ? 'MÜŞTERİ' : 'TAMİRCİ'} hesabı</p>
-                    <p class="text-sm font-bold opacity-80 mt-2">E-posta ve şifrenle giriş yap veya yeni hesap oluştur.</p>
+                    <p class="text-2xl font-black uppercase">${selectedRole === 'musteri' ? t('CUSTOMER_ACC') : t('REPAIRER_ACC')}</p>
+                    <p class="text-sm font-bold opacity-80 mt-2">${t('LOGIN_HINT')}</p>
                   </div>
                   <div class="space-y-4">
-                    <input type="email" value=${email} onInput=${e => setEmail(e.target.value)} placeholder="E-posta" class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
-                    <input type="password" value=${password} onInput=${e => setPassword(e.target.value)} placeholder="Şifre" class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
+                    <input type="email" value=${email} onInput=${e => setEmail(e.target.value)} placeholder="${t('EMAIL_PLACEHOLDER')}" class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
+                    <input type="password" value=${password} onInput=${e => setPassword(e.target.value)} placeholder="${t('PASS_PLACEHOLDER')}" class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
                     ${authError && html`<div class="text-red-600 font-bold">${authError}</div>`}
                     <div class="flex flex-col gap-3 md:flex-row">
                       <button onClick=${handleAuthSubmit} disabled=${isLoggingIn} class="flex-1 bg-black text-white border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-wait">
-                        ${isLoggingIn ? '⏳ GİRİŞ YAPILIYOR...' : 'GİRİŞ YAP / KAYIT OL'}
+                        ${isLoggingIn ? t('LOGGING_IN') : t('LOGIN_BTN')}
                       </button>
-                      <button onClick=${() => { setSelectedRole(null); setAuthError(''); setEmail(''); setPassword(''); }} class="flex-1 bg-white text-black border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0px_#000]">GERİ</button>
+                      <button onClick=${() => { setSelectedRole(null); setAuthError(''); setEmail(''); setPassword(''); }} class="flex-1 bg-white text-black border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0px_#000]">${t('BACK')}</button>
                     </div>
                   </div>
                 </div>
@@ -1290,22 +1491,26 @@
         const ustaKullanilanlar = kullanilanlar;
         return html`
           <div class="max-w-7xl mx-auto space-y-8 md:space-y-12 relative z-10">
+            <div style="position:fixed;top:16px;right:16px;z-index:10000;display:flex;gap:8px;">
+              <button onClick=${() => handleLanguageChange('tr')} style="${'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;' + (language === 'tr' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white') + ';cursor:pointer;'}">TR</button>
+              <button onClick=${() => handleLanguageChange('en')} style="${'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;' + (language === 'en' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white') + ';cursor:pointer;'}">EN</button>
+            </div>
             <header class="flex flex-col gap-4 border-b-8 border-black pb-6 md:pb-8 mt-4">
               <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h1 class="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-[0.8] text-black">USTA<br/><span class="text-brandBlue">PANELİ</span></h1>
+                <h1 class="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-[0.8] text-black whitespace-pre-line">${t('USTA_PANEL')}</h1>
               </div>
               <nav class="flex gap-2 flex-wrap">
                 <button onClick=${() => setUstaView('panel')} class="flex items-center gap-2 px-6 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap ${ustaView === 'panel' ? 'bg-black text-white' : 'bg-white text-black'}">
-                  <${IconSearch} /> Yakın İşler
+                  <${IconSearch} /> ${t('NAV_NEARBY_JOBS')}
                 </button>
                 <button onClick=${() => setUstaView('harita')} class="flex items-center gap-2 px-6 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap ${ustaView === 'harita' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
-                  <${IconMap} /> Harita
+                  <${IconMap} /> ${t('NAV_MAP')}
                 </button>
                 <button onClick=${() => setUstaView('kampanyalar')} class="flex items-center gap-2 px-6 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap ${ustaView === 'kampanyalar' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
-                  <${IconGift} /> Kampanyalar
+                  <${IconGift} /> ${t('NAV_CAMPAIGNS')}
                 </button>
                 <button onClick=${() => setUstaView('hesap')} class="flex items-center gap-2 px-6 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap ${ustaView === 'hesap' ? 'bg-black text-white' : 'bg-brandPink text-black'}">
-                  <${IconGlobe} /> Hesabım
+                  <${IconGlobe} /> ${t('NAV_ACCOUNT')}
                 </button>
               </nav>
             </header>
@@ -1315,35 +1520,35 @@
                 <div class="space-y-8">
                   ${!ustaLocation ? html`
                     <button onClick=${requestUstaLocationPermission} class="w-full brutal-card p-6 md:p-8 bg-brandPink text-black font-black text-2xl md:text-3xl uppercase hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#000] transition-all flex items-center justify-center gap-4">
-                      <span class="text-5xl">📍</span><span>LOKASYONUMU BULSUN</span>
+                      <span class="text-5xl">📍</span><span>${t('LOCATE_ME')}</span>
                     </button>
                   ` : html`
                     <div class="brutal-card p-4 md:p-6 bg-brandPink text-black font-black text-lg uppercase flex items-center gap-4">
                       <span class="text-4xl">✔️</span>
                       <div>
-                        <div>LOKASYONUM AKTİF</div>
+                        <div>${t('LOC_ACTIVE')}</div>
                         <div class="text-sm font-bold opacity-70">${ustaLocation.lat.toFixed(4)}, ${ustaLocation.lon.toFixed(4)}</div>
                       </div>
-                      <button onClick=${() => setUstaView('harita')} class="ml-auto bg-black text-white px-4 py-2 font-black text-sm border-2 border-black hover:bg-gray-800 transition-colors whitespace-nowrap">HARITADA GÖR</button>
+                      <button onClick=${() => setUstaView('harita')} class="ml-auto bg-black text-white px-4 py-2 font-black text-sm border-2 border-black hover:bg-gray-800 transition-colors whitespace-nowrap">${t('SEE_ON_MAP')}</button>
                     </div>
                   `}
                   <div class="flex flex-wrap items-center gap-4">
                     <div class="inline-block relative">
                       <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
-                      <h2 class="relative bg-black text-white px-6 py-3 text-3xl md:text-4xl font-black uppercase tracking-tighter border-4 border-black">YAKINDAKİ İŞLER</h2>
+                      <h2 class="relative bg-black text-white px-6 py-3 text-3xl md:text-4xl font-black uppercase tracking-tighter border-4 border-black">${t('NEARBY_JOBS_TITLE')}</h2>
                     </div>
                     <button onClick=${async () => {
                       setIsRefreshing(true);
                       try {
                         const response = await fetch(`${apiBase}/api/jobpostings`);
                         if (!response.ok) {
-                          alert('⚠️ API bağlantı sorunu. (Kodları Vercel\'e pushladınız mı?)');
+                          alert('⚠️ API bağlantı sorunu.');
                           return;
                         }
                         const apiJobs = await response.json();
                         
                         if (apiJobs.length === 0) {
-                          alert('ℹ️ Henüz açık ilan yok');
+                          alert('ℹ️ ' + t('NO_OPEN_ADS'));
                           setJobPostings([]);
                           return;
                         }
@@ -1356,15 +1561,15 @@
                         setIsRefreshing(false);
                       }
                     }} disabled=${isRefreshing} class="bg-brandYellow border-4 border-black px-4 py-2 font-black text-base uppercase brutal-btn shadow-[4px_4px_0px_#000] hover:translate-y-1 hover:shadow-[2px_2px_0px_#000] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                      ${isRefreshing ? '⏳' : '🔄'} ${isRefreshing ? 'YÜKLÜNİYOR...' : 'YENİLE'}
+                      ${isRefreshing ? '⏳' : '🔄'} ${isRefreshing ? t('REFRESHING') : t('REFRESH').replace('🔄 ', '')}
                     </button>
-                    <span class="font-bold text-sm text-gray-500 border-2 border-dashed border-gray-300 px-3 py-1">${jobPostings.filter(j => !j.assignedTo).length} açık ilan</span>
+                    <span class="font-bold text-sm text-gray-500 border-2 border-dashed border-gray-300 px-3 py-1">${jobPostings.filter(j => !j.assignedTo).length} ${t('OPEN_ADS')}</span>
                   </div>
                   ${jobPostings.filter(j => !j.assignedTo).length === 0 ? html`
                     <div class="brutal-card p-8 bg-white border-4 border-dashed border-gray-300 text-center col-span-3">
                       <p class="text-5xl mb-4">🔍</p>
-                      <p class="font-black text-xl uppercase text-gray-500">Henüz açık iş ilanı yok</p>
-                      <p class="font-bold text-sm text-gray-400 mt-2">Müşteri ilan açtığında burada görünecek. YENİLE butonuna bas veya bekle.</p>
+                      <p class="font-black text-xl uppercase text-gray-500">${t('NO_OPEN_ADS')}</p>
+                      <p class="font-bold text-sm text-gray-400 mt-2">${t('NO_OPEN_ADS_HINT')}</p>
                     </div>
                   ` : ''}
                   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
@@ -1379,16 +1584,16 @@
                             <img src="${is.img || 'tamir.png'}" alt="${is.baslik}" class="w-32 h-32 object-contain" />
                             <h3 class="text-2xl md:text-3xl font-black uppercase leading-none">${is.baslik}</h3>
                           </div>
-                          <p class="font-bold text-gray-600 mb-6 border-b-2 border-dashed border-gray-300 pb-4">Müşteri: ${is.musteri}</p>
+                          <p class="font-bold text-gray-600 mb-6 border-b-2 border-dashed border-gray-300 pb-4">${t('CUSTOMER_LBL')} ${is.musteri}</p>
                         </div>
                         <div class="space-y-4">
                           <div class="flex justify-between items-center bg-mainBg p-3 border-4 border-black">
-                            <span class="font-black text-xl text-brandBlue">${is.ucret} Puan</span>
-                            <span class="${is.aciliyet === 'Yüksek' ? 'text-red-600 animate-pulse' : 'text-black'} font-black uppercase">${is.aciliyet} ACİL</span>
+                            <span class="font-black text-xl text-brandBlue">${is.ucret} ${t('POINTS')}</span>
+                            <span class="${is.aciliyet === 'Yüksek' || is.aciliyet === 'High' ? 'text-red-600 animate-pulse' : 'text-black'} font-black uppercase">${is.aciliyet} ${t('URGENT')}</span>
                           </div>
                           <div class="flex gap-2 mt-4">
-                            <button onClick=${() => handleJobTake(is)} class="w-2/3 bg-brandYellow text-black border-4 border-black p-3 font-black text-lg uppercase brutal-btn shadow-[4px_4px_0px_#000]">İŞİ AL</button>
-                            <button class="w-1/3 bg-white text-black border-4 border-black p-3 font-black text-lg uppercase hover:bg-gray-200 transition-colors">PAS</button>
+                            <button onClick=${() => handleJobTake(is)} class="w-2/3 bg-brandYellow text-black border-4 border-black p-3 font-black text-lg uppercase brutal-btn shadow-[4px_4px_0px_#000]">${t('TAKE_JOB')}</button>
+                            <button class="w-1/3 bg-white text-black border-4 border-black p-3 font-black text-lg uppercase hover:bg-gray-200 transition-colors">${t('PASS_JOB')}</button>
                           </div>
                         </div>
                       </div>
@@ -1417,34 +1622,34 @@
                   <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div class="inline-block relative">
                       <div class="absolute inset-0 bg-brandBlue transform translate-x-2 translate-y-2 border-4 border-black"></div>
-                      <h2 class="relative bg-black text-white px-5 py-2 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">HESABIM</h2>
+                      <h2 class="relative bg-black text-white px-5 py-2 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('MY_ACCOUNT')}</h2>
                     </div>
                     <div class="flex items-center gap-4">
-                      <div class="bg-brandYellow text-black border-4 border-black px-4 py-2 font-black uppercase text-lg shadow-[4px_4px_0px_#000]">${puan} PUAN</div>
+                      <div class="bg-brandYellow text-black border-4 border-black px-4 py-2 font-black uppercase text-lg shadow-[4px_4px_0px_#000]">${puan} ${t('POINTS')}</div>
                       <span class="font-bold text-gray-600 border-4 border-black px-4 py-2 bg-white">${auth.email}</span>
-                      <button onClick=${() => setAuth({loggedIn: false, role: null, email: null})} class="bg-red-600 text-white border-4 border-black px-5 py-2 font-black uppercase brutal-btn">ÇIKIŞ YAP</button>
+                      <button onClick=${() => setAuth({loggedIn: false, role: null, email: null})} class="bg-red-600 text-white border-4 border-black px-5 py-2 font-black uppercase brutal-btn">${t('LOGOUT')}</button>
                     </div>
                   </div>
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                     <div class="brutal-card p-5 md:p-6 bg-black text-white border-[5px] flex flex-col gap-5">
-                      <div class="inline-block bg-brandYellow border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000] text-black">🔧 TAMİR ETTİĞİM EŞYALAR</div>
+                      <div class="inline-block bg-brandYellow border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000] text-black">${t('REPAIRED_ITEMS')}</div>
                       <div class="grid grid-cols-2 gap-3">
                         <div class="border-4 border-white/30 p-4">
-                          <p class="font-bold text-xs uppercase opacity-60">Tamir Edilen</p>
-                          <p class="font-black text-3xl mt-1">${totalRepaired} <span class="text-base font-bold opacity-70">ürün</span></p>
+                          <p class="font-bold text-xs uppercase opacity-60">${t('REPAIRED')}</p>
+                          <p class="font-black text-3xl mt-1">${totalRepaired} <span class="text-base font-bold opacity-70">adet</span></p>
                         </div>
                         <div class="border-4 border-white/30 p-4">
-                          <p class="font-bold text-xs uppercase opacity-60">CO₂ Önlendi</p>
+                          <p class="font-bold text-xs uppercase opacity-60">${t('CO2_PREVENTED')}</p>
                           <p class="font-black text-3xl mt-1">${totalCo2} <span class="text-base font-bold opacity-70">kg</span></p>
                         </div>
                       </div>
                     </div>
 
                     <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
-                      <div class="inline-block bg-brandPink border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">⏳ DEVAM EDEN İŞLER</div>
+                      <div class="inline-block bg-brandPink border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">${t('ONGOING_JOBS')}</div>
                       ${myJobs.length === 0 ? html`
-                        <p class="font-bold text-gray-400 text-center py-8">Henüz alınan iş yok.</p>
+                        <p class="font-bold text-gray-400 text-center py-8">${t('NO_ONGOING_JOBS')}</p>
                       ` : myJobs.map(([id, info]) => {
                         const job = jobPostings.find(j => String(j.id) === String(id));
                         const rem = Math.max(0, Math.ceil((new Date(info.deadline) - new Date()) / (24 * 60 * 60 * 1000)));
@@ -1453,13 +1658,13 @@
                           <div key=${id} class="border-4 border-black p-4 flex justify-between items-center ${rem === 0 ? 'bg-red-100' : 'bg-brandYellow/40'}">
                             <div class="flex-1">
                               <p class="font-black uppercase">${job.baslik}</p>
-                              <p class="font-bold text-sm text-gray-600 mt-1">Müşteri: ${job.musteri}</p>
+                              <p class="font-bold text-sm text-gray-600 mt-1">${t('CUSTOMER_LBL')} ${job.musteri}</p>
                             </div>
                             <div class="flex gap-2">
-                              <button onClick=${() => setChatJobId(id)} class="bg-black text-white px-3 py-1 font-black text-sm uppercase">MESAJ</button>
+                              <button onClick=${() => setChatJobId(id)} class="bg-black text-white px-3 py-1 font-black text-sm uppercase">${t('MESSAGE')}</button>
                               <div class="text-right shrink-0 ml-4">
                                 <p class="font-black text-2xl ${rem === 0 ? 'text-red-600' : 'text-brandBlue'}">${rem}</p>
-                                <p class="font-bold text-xs uppercase">GÜN KALDI</p>
+                                <p class="font-bold text-xs uppercase">${t('DAYS_LEFT')}</p>
                               </div>
                             </div>
                           </div>
@@ -1474,20 +1679,20 @@
                 <div class="space-y-6 md:space-y-8">
                   <div class="inline-block relative mb-4 md:mb-6">
                     <div class="absolute inset-0 bg-brandYellow transform translate-x-2 translate-y-2 border-4 border-black"></div>
-                    <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">USTA KAMPANYALARI</h2>
+                    <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('USTA_CAMPAIGNS')}</h2>
                   </div>
                   <div class="brutal-card p-4 bg-brandYellow/60 border-4 border-black flex items-start gap-4">
                     <span class="text-3xl shrink-0">🎁</span>
                     <div>
-                      <p class="font-black uppercase">İş alarak puan kazan, belediye ayrıcalıklarından yararlan!</p>
-                      <p class="font-bold text-sm opacity-70 mt-1">Mevcut puan: <strong>${puan}</strong></p>
+                      <p class="font-black uppercase">${t('USTA_CAMP_DESC')}</p>
+                      <p class="font-bold text-sm opacity-70 mt-1">${t('CURRENT_POINTS')}: <strong>${puan}</strong></p>
                     </div>
                   </div>
                   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     ${ustaKampanyalarData.map(k => {
                       const isUsed   = ustaKullanilanlar.includes(k.id + 100);
                       const isLocked = puan < k.points;
-                      const btnText  = isUsed ? 'KULLANILDI' : (isLocked ? 'KİLİTLİ' : 'KULLAN');
+                      const btnText  = isUsed ? t('USED') : (isLocked ? t('LOCKED') : t('USE_BTN'));
                       const btnClass = (isUsed || isLocked)
                         ? 'bg-[#c0c0c0] text-gray-600 cursor-not-allowed'
                         : 'bg-brandYellow text-black active:translate-y-1 active:shadow-none transition-all shadow-[3px_3px_0px_0px_#000]';
@@ -1501,7 +1706,7 @@
                           <hr class="border-t-4 border-black my-4" />
                           <div class="flex justify-between items-center mt-auto">
                             <div class="bg-white border-4 border-black px-3 py-1">
-                              <span class="text-xl font-black uppercase text-black">${k.points} PUAN</span>
+                              <span class="text-xl font-black uppercase text-black">${k.points} ${t('POINTS')}</span>
                             </div>
                             <button onClick=${() => {
                               if (isUsed || isLocked) return;
@@ -1552,7 +1757,7 @@
                 <div class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/70">
                   <div class="brutal-card bg-white max-w-md w-full p-6 md:p-10 space-y-5 border-[6px] max-h-[80vh] flex flex-col">
                     <div class="flex items-center justify-between">
-                      <h3 class="text-2xl font-black uppercase">${job.baslik} - ${otherName} ile Mesajlar</h3>
+                      <h3 class="text-2xl font-black uppercase">${job.baslik} - ${otherName}</h3>
                       <button onClick=${() => setChatJobId(null)} class="text-3xl hover:scale-125 transition-transform">×</button>
                     </div>
                     <div class="flex-grow overflow-y-auto space-y-4 max-h-64">
@@ -1565,8 +1770,8 @@
                     </div>
                     <div class="flex gap-2">
                       <input value=${chatInputItem} onInput=${e => setChatInputItem(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSendChat()}
-                             class="flex-grow p-2 border-4 border-black outline-none font-bold" placeholder="Mesaj yaz..." />
-                      <button onClick=${handleSendChat} class="bg-black text-white px-4 border-4 border-black font-black">GÖNDER</button>
+                             class="flex-grow p-2 border-4 border-black outline-none font-bold" placeholder="${t('CHAT_INPUT_PLACEHOLDER')}" />
+                      <button onClick=${handleSendChat} class="bg-black text-white px-4 border-4 border-black font-black">${t('SEND')}</button>
                     </div>
                   </div>
                 </div>
@@ -1579,8 +1784,8 @@
       // ── Customer Screen ──
       return html`
         <div style="position:fixed;top:16px;right:16px;z-index:10000;display:flex;gap:8px;">
-          <button onClick=${() => { currentLang = 'tr'; localStorage.setItem('language', 'tr'); handleLanguageChange('tr'); }} style="${'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;' + (language === 'tr' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white') + ';cursor:pointer;'}">TR</button>
-          <button onClick=${() => { currentLang = 'en'; localStorage.setItem('language', 'en'); handleLanguageChange('en'); }} style="${'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;' + (language === 'en' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white') + ';cursor:pointer;'}">EN</button>
+          <button onClick=${() => handleLanguageChange('tr')} style="${'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;' + (language === 'tr' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white') + ';cursor:pointer;'}">TR</button>
+          <button onClick=${() => handleLanguageChange('en')} style="${'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;' + (language === 'en' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white') + ';cursor:pointer;'}">EN</button>
         </div>
         <img src="1.png" alt="" class="absolute pointer-events-none sticker-drop w-16 md:w-28 top-5 left-[-10px] md:left-[5%] rotate-[-15deg] z-0 md:z-50 opacity-40 md:opacity-90" />
         <img src="2.png" alt="" class="hidden md:block absolute pointer-events-none sticker-drop w-40 top-32 left-[-20px] rotate-[10deg] z-50" />
@@ -1595,39 +1800,39 @@
           <header class="flex flex-col gap-6 md:gap-8 border-b-8 border-black pb-6 md:pb-8">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
               <h1 class="text-6xl md:text-9xl font-black tracking-tighter uppercase leading-[0.8] shrink-0 text-left bg-mainBg/80 md:bg-transparent px-2 md:px-0 text-black">
-                TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL
+                ${t('APP_TITLE_1')}<br/><span class="text-brandBlue">${t('APP_TITLE_2')}</span>
               </h1>
               <div class="text-left md:text-right shrink-0 relative mt-2 md:mt-0 flex justify-start md:justify-end w-full md:w-auto">
                 <div class="bg-brandYellow border-4 border-black shadow-[6px_6px_0px_0px_#000] md:shadow-[8px_8px_0px_0px_#000] p-4 md:p-8 transform rotate-1 -skew-x-6 w-full md:max-w-2xl">
-                  <p class="text-3xl md:text-5xl font-black uppercase text-black leading-tight whitespace-nowrap">TAMİRİ YAP <br class="md:hidden" /> İNDİRİMİ KAP!</p>
+                  <p class="text-3xl md:text-5xl font-black uppercase text-black leading-tight whitespace-nowrap" dangerouslySetInnerHTML=${{__html: t('PROMO_TEXT')}}></p>
                 </div>
               </div>
             </div>
 
             <nav class="nav-scroll flex flex-row flex-nowrap justify-start w-full gap-2 pb-3">
               <button onClick=${() => setView('panel')} class="flex items-center gap-2 px-5 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'panel' ? 'bg-black text-white' : 'bg-white text-black'}">
-                <${IconHome} /> Panel
+                <${IconHome} /> ${t('NAV_PANEL')}
               </button>
               <button onClick=${() => setView('ustalar')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'ustalar' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
-                <${IconSearch} /> Usta Bul
+                <${IconSearch} /> ${t('NAV_FIND_MASTER')}
               </button>
               <button onClick=${() => setView('kampanyalar')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'kampanyalar' ? 'bg-black text-white' : 'bg-white text-black'}">
-                <${IconGift} /> Kampanyalar
+                <${IconGift} /> ${t('NAV_CAMPAIGNS')}
               </button>
               <button onClick=${() => setView('merkezler')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'merkezler' ? 'bg-black text-white' : 'bg-white text-black'}">
-                <${IconMap} /> Merkezler
+                <${IconMap} /> ${t('NAV_CENTERS')}
               </button>
               <button onClick=${() => setView('aletler')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'aletler' ? 'bg-black text-white' : 'bg-brandPink text-black'}">
-                <${IconBox} /> Alet
+                <${IconBox} /> ${t('NAV_TOOLS')}
               </button>
               <button onClick=${() => setView('atig')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'atig' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
-                <${IconLeaf} /> Atığın
+                <${IconLeaf} /> ${t('NAV_WASTE')}
               </button>
               <button onClick=${() => setView('ilan-ac')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'ilan-ac' ? 'bg-black text-white' : 'bg-brandPink text-black'}">
-                <${IconWrench} /> İş İlanı Aç
+                <${IconWrench} /> ${t('NAV_POST_JOB')}
               </button>
               <button onClick=${() => setView('hesap')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'hesap' ? 'bg-black text-white' : 'bg-brandPink text-black'}">
-                <${IconGlobe} /> Hesap
+                <${IconGlobe} /> ${t('NAV_ACCOUNT')}
               </button>
             </nav>
           </header>
@@ -1637,12 +1842,12 @@
               <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
                 <div class="inline-block relative mb-4 md:mb-6">
                   <div class="absolute inset-0 bg-brandBlue transform translate-x-1 translate-y-1 md:translate-x-2 md:translate-y-2 border-4 border-black"></div>
-                  <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">USTANLA EŞLEŞ</h2>
+                  <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('MATCH_MASTER')}</h2>
                 </div>
                 <div class="max-w-4xl mx-auto brutal-card p-6 md:p-10 bg-white">
                   <div class="space-y-8">
                     <div>
-                      <h3 class="text-2xl font-black uppercase mb-4 text-black">1. Neyi Tamir Edeceğiz?</h3>
+                      <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('Q1_TITLE')}</h3>
                       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         ${['Elektronik', 'Mobilya', 'Tekstil', 'Diğer'].map(cat => html`
                           <button key=${cat} onClick=${() => setMatchCategory(cat)} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${matchCategory === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">${cat}</button>
@@ -1650,18 +1855,18 @@
                       </div>
                     </div>
                     <div>
-                      <h3 class="text-2xl font-black uppercase mb-4 text-black">2. Sorun Ne?</h3>
-                      <textarea value=${matchDesc} onInput=${e => setMatchDesc(e.target.value)} class="w-full border-4 border-black p-4 font-bold text-lg outline-none h-32 resize-none bg-mainBg" placeholder="Örn: Ekranı kırıldı, vitesi tutmuyor, fermuarı koptu..."></textarea>
+                      <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('Q2_TITLE')}</h3>
+                      <textarea value=${matchDesc} onInput=${e => setMatchDesc(e.target.value)} class="w-full border-4 border-black p-4 font-bold text-lg outline-none h-32 resize-none bg-mainBg" placeholder="${t('Q2_PLACEHOLDER')}"></textarea>
                     </div>
                     ${matchCategory && customerLocation && html`
                       <div>
-                        <h3 class="text-2xl font-black uppercase mb-4 text-black">3. En Yakın ${matchCategory} Ustaları</h3>
+                        <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('Q3_TITLE')} ${matchCategory} ${t('MASTERS')}</h3>
                         <div class="space-y-4">
                           ${allShops.filter(s => s.kategori === matchCategory).map(s => ({...s, distance: getDistance(customerLocation.lat, customerLocation.lon, s.lat, s.lon)})).sort((a,b) => a.distance-b.distance).slice(0,3).map((shop, idx) => html`
                             <div key=${shop.id || idx} class="border-4 border-black p-4 bg-mainBg flex justify-between items-center cursor-pointer hover:bg-brandPink/50 transition-colors" onClick=${() => { setSelectedShop(shop); setView('merkezler'); }}>
                               <div>
                                 <div class="text-xl font-black uppercase">${shop.name}</div>
-                                <div class="text-sm font-bold text-gray-600">${shop.kategori} • ${(shop.distance/1000).toFixed(1)} km uzaklıkta</div>
+                                <div class="text-sm font-bold text-gray-600">${shop.kategori} • ${(shop.distance/1000).toFixed(1)} ${t('DISTANCE_AWAY')}</div>
                               </div>
                               <div class="text-2xl">📍</div>
                             </div>
@@ -1670,7 +1875,7 @@
                       </div>
                     `}
                     <button onClick=${triggerMatch} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl md:text-3xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-center items-center gap-3">
-                      <${IconWrench} /> EN İYİ USTAYI BUL
+                      <${IconWrench} /> ${t('FIND_BEST_MASTER')}
                     </button>
                   </div>
                 </div>
@@ -1681,52 +1886,52 @@
               <div class="space-y-8 md:space-y-12 mt-6 md:mt-8 relative z-10">
                 ${!customerLocation ? html`
                   <button onClick=${requestLocationPermission} class="w-full brutal-card p-6 md:p-8 bg-brandPink text-black font-black text-2xl md:text-3xl uppercase hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#000] transition-all flex items-center justify-center gap-4">
-                    <span class="text-5xl">📍</span><span>LOKASYONUMU BULSUN</span>
+                    <span class="text-5xl">📍</span><span>${t('LOCATE_ME')}</span>
                   </button>
                 ` : html`
                   <div class="brutal-card p-4 md:p-6 bg-brandPink text-black font-black text-lg uppercase flex items-center gap-4">
                     <span class="text-4xl">✔️</span>
                     <div>
-                      <div>LOKASYONUM AKTİF</div>
+                      <div>${t('LOC_ACTIVE')}</div>
                       <div class="text-sm font-bold opacity-70">${customerLocation.lat.toFixed(4)}, ${customerLocation.lon.toFixed(4)}</div>
                     </div>
-                    <button onClick=${() => setView('merkezler')} class="ml-auto bg-black text-white px-4 py-2 font-black text-sm border-2 border-black hover:bg-gray-800 transition-colors whitespace-nowrap">HARITADA GÖR</button>
+                    <button onClick=${() => setView('merkezler')} class="ml-auto bg-black text-white px-4 py-2 font-black text-sm border-2 border-black hover:bg-gray-800 transition-colors whitespace-nowrap">${t('SEE_ON_MAP')}</button>
                   </div>
                 `}
 
                 <div class="brutal-card p-6 md:p-10 bg-white border-[5px]">
                   <div class="inline-block relative mb-8">
                     <div class="absolute inset-0 bg-brandYellow transform translate-x-2 translate-y-2 border-4 border-black"></div>
-                    <h2 class="relative bg-black text-white px-5 py-2 text-2xl md:text-4xl font-black uppercase tracking-tighter border-4 border-black">NASIL KULLANILIR?</h2>
+                    <h2 class="relative bg-black text-white px-5 py-2 text-2xl md:text-4xl font-black uppercase tracking-tighter border-4 border-black">${t('HOW_TO_USE')}</h2>
                   </div>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                     <div class="space-y-5">
                       <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandPink">
                         <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">1</div>
                         <div>
-                          <p class="font-black uppercase text-base">Usta Bul & Tamir Ettir</p>
-                          <p class="font-bold text-sm text-gray-700 mt-1">Eşyanı tarif et, sana en yakın ustayı bulalım. Elektronik, tekstil, bisiklet — her şeyi tamir edebiliriz.</p>
+                          <p class="font-black uppercase text-base">${t('STEP_1_TITLE')}</p>
+                          <p class="font-bold text-sm text-gray-700 mt-1">${t('STEP_1_DESC')}</p>
                         </div>
                       </div>
                       <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandYellow">
                         <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">2</div>
                         <div>
-                          <p class="font-black uppercase text-base">Atığını Paylaş</p>
-                          <p class="font-bold text-sm text-gray-700 mt-1">"Atığın" sekmesinden kullanmadığın eşyaları mahalle ile paylaş. Birinin işine yarayan şey çöpe gitmesin.</p>
+                          <p class="font-black uppercase text-base">${t('STEP_2_TITLE')}</p>
+                          <p class="font-bold text-sm text-gray-700 mt-1">${t('STEP_2_DESC')}</p>
                         </div>
                       </div>
                       <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandPink">
                         <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">3</div>
                         <div>
-                          <p class="font-black uppercase text-base">Alet Ödünç Al</p>
-                          <p class="font-bold text-sm text-gray-700 mt-1">"Alet" kütüphanesinden matkap, dikiş makinesi, avometre gibi aletleri ücretsiz ödünç al. Süresi dolunca iade et.</p>
+                          <p class="font-black uppercase text-base">${t('STEP_3_TITLE')}</p>
+                          <p class="font-bold text-sm text-gray-700 mt-1">${t('STEP_3_DESC')}</p>
                         </div>
                       </div>
                       <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandYellow">
                         <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">4</div>
                         <div>
-                          <p class="font-black uppercase text-base">Puan Kazan & Kampanya Kullan</p>
-                          <p class="font-bold text-sm text-gray-700 mt-1">Her tamir, atık paylaşımı ve ödünç işleminden puan kazanırsın. Puanlarınla belediye tiyatrosu, kafe, ulaşım gibi ayrıcalıklara ulaş.</p>
+                          <p class="font-black uppercase text-base">${t('STEP_4_TITLE')}</p>
+                          <p class="font-bold text-sm text-gray-700 mt-1">${t('STEP_4_DESC')}</p>
                         </div>
                       </div>
                     </div>
@@ -1744,13 +1949,13 @@
               <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
                 <div class="inline-block relative mb-4 md:mb-6">
                   <div class="absolute inset-0 bg-brandYellow transform translate-x-1 translate-y-1 md:translate-x-2 md:translate-y-2 border-4 border-black"></div>
-                  <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">ÖDÜLLERİ KULLAN</h2>
+                  <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('USE_REWARDS')}</h2>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
                   ${kampanyalarData.map(k => {
                     const isUsed   = kullanilanlar.includes(k.id);
                     const isLocked = puan < k.points;
-                    const btnText  = isUsed ? 'KULLANILDI' : (isLocked ? 'KİLİTLİ' : 'KULLAN');
+                    const btnText  = isUsed ? t('USED') : (isLocked ? t('LOCKED') : t('USE_BTN'));
                     const btnClass = (isUsed || isLocked)
                       ? 'bg-[#c0c0c0] text-gray-600 cursor-not-allowed'
                       : 'bg-brandYellow text-black active:translate-y-1 active:translate-x-1 active:shadow-none transition-all shadow-[2px_2px_0px_0px_#000] md:shadow-[3px_3px_0px_0px_#000]';
@@ -1764,7 +1969,7 @@
                         <hr class="border-t-[4px] md:border-t-[6px] border-black my-4 md:my-5" />
                         <div class="flex justify-between items-center mt-auto">
                           <div class="bg-white border-[3px] md:border-[4px] border-black px-2 md:px-3 py-1">
-                            <span class="text-xl md:text-2xl font-black uppercase text-black">${k.points} PUAN</span>
+                            <span class="text-xl md:text-2xl font-black uppercase text-black">${k.points} ${t('POINTS')}</span>
                           </div>
                           <button onClick=${() => handleKullan(k)} class="px-3 md:px-5 py-1 md:py-2 border-[3px] md:border-[4px] border-black font-black text-lg md:text-xl uppercase ${btnClass}">${btnText}</button>
                         </div>
@@ -1802,16 +2007,16 @@
               <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
                 <div class="inline-block relative mb-4 md:mb-6">
                   <div class="absolute inset-0 bg-brandBlue transform translate-x-1 translate-y-1 md:translate-x-2 md:translate-y-2 border-4 border-black"></div>
-                  <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">İŞ İLANI AÇ</h2>
+                  <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('POST_JOB_TITLE')}</h2>
                 </div>
                 <div class="max-w-4xl mx-auto brutal-card p-6 md:p-10 bg-white">
                   <div class="space-y-8">
                     <div>
-                      <h3 class="text-2xl font-black uppercase mb-4 text-black">Başlık</h3>
-                      <input value=${ilanForm.baslik} onInput=${e => setIlanForm(f => ({...f, baslik: e.target.value}))} placeholder="Örn: Kırık Ekran Tamiri" class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
+                      <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('JOB_TITLE')}</h3>
+                      <input value=${ilanForm.baslik} onInput=${e => setIlanForm(f => ({...f, baslik: e.target.value}))} placeholder="${t('JOB_TITLE_PH')}" class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
                     </div>
                     <div>
-                      <h3 class="text-2xl font-black uppercase mb-4 text-black">Kategori</h3>
+                      <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('CATEGORY')}</h3>
                       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         ${['Elektronik', 'Tekstil', 'Mobilya', 'Bisiklet'].map(cat => html`
                           <button key=${cat} onClick=${() => setIlanForm(f => ({...f, kategori: cat}))} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${ilanForm.kategori === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">${getCategoryEmoji(cat)} ${cat}</button>
@@ -1819,22 +2024,22 @@
                       </div>
                     </div>
                     <div>
-                      <h3 class="text-2xl font-black uppercase mb-4 text-black">Aciliyet</h3>
+                      <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('URGENCY')}</h3>
                       <div class="grid grid-cols-3 gap-4">
-                        ${['Düşük', 'Orta', 'Yüksek'].map(ac => html`
-                          <button key=${ac} onClick=${() => setIlanForm(f => ({...f, aciliyet: ac}))} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${ilanForm.aciliyet === ac ? 'bg-brandYellow text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandYellow/50'}">${ac}</button>
+                        ${[{k: 'Düşük', v: t('LOW')}, {k: 'Orta', v: t('MEDIUM')}, {k: 'Yüksek', v: t('HIGH')}].map(ac => html`
+                          <button key=${ac.k} onClick=${() => setIlanForm(f => ({...f, aciliyet: ac.k}))} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${ilanForm.aciliyet === ac.k ? 'bg-brandYellow text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandYellow/50'}">${ac.v}</button>
                         `)}
                       </div>
                     </div>
                     <div class="border-4 border-black bg-black text-white p-6 flex items-center justify-between gap-4">
                       <div>
-                        <p class="font-black text-xl uppercase">Kazanacağın Puan</p>
-                        <p class="font-bold text-sm opacity-60 mt-1">${ilanForm.kategori} kategorisi için otomatik hesaplanır</p>
+                        <p class="font-black text-xl uppercase">${t('EARN_POINTS')}</p>
+                        <p class="font-bold text-sm opacity-60 mt-1">${ilanForm.kategori} ${t('EARN_HINT')}</p>
                       </div>
                       <p class="font-black text-6xl text-brandYellow">${ilanImpact.points}</p>
                     </div>
                     <button onClick=${() => { if (!ilanForm.baslik.trim()) { alert('Başlık girin!'); return; } handlePostJob(ilanForm); setIlanForm({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta' }); }} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl md:text-3xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-center items-center gap-3">
-                      <${IconWrench} /> İLANI YAYINLA
+                      <${IconWrench} /> ${t('PUBLISH_JOB')}
                     </button>
                   </div>
                 </div>
@@ -1852,29 +2057,29 @@
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                   <div class="inline-block relative">
                     <div class="absolute inset-0 bg-brandBlue transform translate-x-2 translate-y-2 border-4 border-black"></div>
-                    <h2 class="relative bg-black text-white px-5 py-2 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">HESABIM</h2>
+                    <h2 class="relative bg-black text-white px-5 py-2 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('MY_ACCOUNT')}</h2>
                   </div>
                   <div class="flex items-center gap-4">
                     <span class="font-bold text-gray-600 border-4 border-black px-4 py-2 bg-white">${auth.email}</span>
-                    <button onClick=${() => setAuth({loggedIn: false, role: null, email: null})} class="bg-red-600 text-white border-4 border-black px-5 py-2 font-black uppercase brutal-btn">ÇIKIŞ YAP</button>
+                    <button onClick=${() => setAuth({loggedIn: false, role: null, email: null})} class="bg-red-600 text-white border-4 border-black px-5 py-2 font-black uppercase brutal-btn">${t('LOGOUT')}</button>
                   </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 
                   <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
-                    <div class="inline-block bg-brandBlue border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000] text-white">📋 AÇTIĞIM İLANLAR</div>
+                    <div class="inline-block bg-brandBlue border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000] text-white">${t('POSTED_JOBS')}</div>
                     ${(() => {
                       const myPosts = jobPostings.filter(j => j.musteri === auth.email.split('@')[0]);
                       return myPosts.length === 0 ? html`
-                        <p class="font-bold text-gray-400 text-center py-8">Henüz ilan açmadınız.</p>
+                        <p class="font-bold text-gray-400 text-center py-8">${t('NO_POSTS_YET')}</p>
                       ` : myPosts.map(job => html`
                         <div key=${job.id} class="border-4 border-black p-3 bg-brandYellow/40">
                           <h4 class="text-lg font-black uppercase truncate">${job.baslik}</h4>
-                          <span class="text-gray-600 font-bold text-xs truncate block mt-0.5">${job.kategori} • ${job.ucret} Puan • ${job.aciliyet}</span>
+                          <span class="text-gray-600 font-bold text-xs truncate block mt-0.5">${job.kategori} • ${job.ucret} ${t('POINTS')} • ${job.aciliyet}</span>
                           <div class="mt-2 flex justify-between items-center">
-                            <span class="text-sm font-bold ${job.assignedTo ? 'text-green-600' : 'text-red-600'}">${job.assignedTo ? 'Atandı' : 'Bekliyor'}</span>
-                            ${job.assignedTo && html`<button onClick=${() => setChatJobId(job.id)} class="bg-black text-white px-3 py-1 font-black text-sm uppercase">MESAJ</button>`}
+                            <span class="text-sm font-bold ${job.assignedTo ? 'text-green-600' : 'text-red-600'}">${job.assignedTo ? t('ASSIGNED') : t('WAITING')}</span>
+                            ${job.assignedTo && html`<button onClick=${() => setChatJobId(job.id)} class="bg-black text-white px-3 py-1 font-black text-sm uppercase">${t('MESSAGE')}</button>`}
                           </div>
                         </div>
                       `);
@@ -1882,9 +2087,9 @@
                   </div>
 
                   <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
-                    <div class="inline-block bg-brandPink border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">📦 ÖDÜNÇ ALINANLAR</div>
+                    <div class="inline-block bg-brandPink border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">${t('BORROWED_ITEMS')}</div>
                     ${borrowedList.length === 0 ? html`
-                      <p class="font-bold text-gray-400 text-center py-8">Henüz ödünç alınan alet yok.</p>
+                      <p class="font-bold text-gray-400 text-center py-8">${t('NO_BORROWS_YET')}</p>
                     ` : borrowedList.map(([id, info]) => {
                       const rem = getRemainingDays(info.returnDate);
                       const due = new Date(info.returnDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
@@ -1896,7 +2101,7 @@
                           </div>
                           <div class="text-right shrink-0 ml-4">
                             <p class="font-black text-2xl ${rem === 0 ? 'text-red-600' : 'text-brandBlue'}">${rem}</p>
-                            <p class="font-bold text-xs uppercase">GÜN KALDI</p>
+                            <p class="font-bold text-xs uppercase">${t('DAYS_LEFT')}</p>
                           </div>
                         </div>
                       `;
@@ -1904,9 +2109,9 @@
                   </div>
 
                   <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
-                    <div class="inline-block bg-brandYellow border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">♻️ YÜKLEDİĞİM ATIKLAR</div>
+                    <div class="inline-block bg-brandYellow border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">${t('UPLOADED_WASTE')}</div>
                     ${myWaste.length === 0 ? html`
-                      <p class="font-bold text-gray-400 text-center py-8">Henüz paylaşılan atık yok.</p>
+                      <p class="font-bold text-gray-400 text-center py-8">${t('NO_WASTES_YET')}</p>
                     ` : html`
                       <div class="space-y-3 max-h-64 overflow-y-auto hide-scrollbar">
                         ${myWaste.map(w => html`
@@ -1915,7 +2120,7 @@
                               <p class="font-black uppercase text-sm leading-tight">${w.desc}</p>
                               <p class="font-bold text-xs text-gray-500 mt-1">${w.amount} adet • ${w.category}</p>
                             </div>
-                            <span class="${w.reserved ? 'bg-gray-300 text-gray-600' : 'bg-brandYellow'} border-2 border-black px-2 py-1 text-xs font-black uppercase shrink-0 ml-2">${w.reserved ? 'REZERVE' : 'MEVCUT'}</span>
+                            <span class="${w.reserved ? 'bg-gray-300 text-gray-600' : 'bg-brandYellow'} border-2 border-black px-2 py-1 text-xs font-black uppercase shrink-0 ml-2">${w.reserved ? t('RESERVED') : t('TOOL_AVAILABLE')}</span>
                           </div>
                         `)}
                       </div>
@@ -1923,37 +2128,37 @@
                   </div>
 
                   <div class="brutal-card p-5 md:p-6 bg-black text-white border-[5px] flex flex-col gap-5">
-                    <div class="inline-block bg-brandYellow border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000] text-black">🌱 KAZANDIRDIĞIM ETKİ</div>
+                    <div class="inline-block bg-brandYellow border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000] text-black">${t('IMPACT_MADE')}</div>
                     <div class="grid grid-cols-2 gap-3">
                       <div class="border-4 border-white/30 p-4">
-                        <p class="font-bold text-xs uppercase opacity-60">CO₂ Önlendi</p>
+                        <p class="font-bold text-xs uppercase opacity-60">${t('CO2_PREVENTED')}</p>
                         <p class="font-black text-3xl mt-1">${totalCo2} <span class="text-base font-bold opacity-70">kg</span></p>
                       </div>
                       <div class="border-4 border-white/30 p-4">
-                        <p class="font-bold text-xs uppercase opacity-60">Su Tasarrufu</p>
+                        <p class="font-bold text-xs uppercase opacity-60">${t('WATER_SAVED')}</p>
                         <p class="font-black text-3xl mt-1">${totalWater >= 1000 ? (totalWater/1000).toFixed(1)+'k' : totalWater} <span class="text-base font-bold opacity-70">L</span></p>
                       </div>
                       <div class="border-4 border-white/30 p-4">
-                        <p class="font-bold text-xs uppercase opacity-60">Ağaç Eşdeğeri</p>
+                        <p class="font-bold text-xs uppercase opacity-60">${t('TREES_EQ')}</p>
                         <p class="font-black text-3xl mt-1">${totalTrees} <span class="text-xl">🌳</span></p>
                       </div>
                       <div class="border-4 border-white/30 p-4">
-                        <p class="font-bold text-xs uppercase opacity-60">Tamir Ettirilen</p>
+                        <p class="font-bold text-xs uppercase opacity-60">${t('ITEMS_REPAIRED')}</p>
                         <p class="font-black text-3xl mt-1">${sonTamirlerData.length} <span class="text-base font-bold opacity-70">ürün</span></p>
                       </div>
                     </div>
                     <div class="border-4 border-brandYellow p-4 flex justify-between items-center">
-                      <p class="font-black text-xl uppercase">Mevcut Puan</p>
+                      <p class="font-black text-xl uppercase">${t('CURRENT_POINTS')}</p>
                       <p class="text-4xl font-black text-brandYellow">${puan}</p>
                     </div>
                   </div>
 
                   <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
-                    <div class="inline-block bg-brandPink border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">⏳ DEVAM EDEN İŞLER</div>
+                    <div class="inline-block bg-brandPink border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">${t('ONGOING_JOBS')}</div>
                     ${(() => {
                       const myJobs = Object.entries(assignedJobs).filter(([id, info]) => info.type === 'musteri');
                       return myJobs.length === 0 ? html`
-                        <p class="font-bold text-gray-400 text-center py-8">Henüz iş ilanınız yok.</p>
+                        <p class="font-bold text-gray-400 text-center py-8">${t('NO_ONGOING_JOBS')}</p>
                       ` : myJobs.map(([id, info]) => {
                         const job = jobPostings.find(j => String(j.id) === String(id));
                         const rem = Math.max(0, Math.ceil((new Date(info.deadline) - new Date()) / (24 * 60 * 60 * 1000)));
@@ -1962,13 +2167,13 @@
                           <div key=${id} class="border-4 border-black p-3 flex justify-between items-center ${rem === 0 ? 'bg-red-100' : 'bg-brandYellow/40'}">
                             <div class="flex-1 min-w-0 pr-2">
                               <h4 class="text-lg font-black uppercase truncate">${job.baslik}</h4>
-                              <span class="text-gray-600 font-bold text-xs truncate block mt-0.5">${job.kategori} • ${job.ucret} Puan</span>
+                              <span class="text-gray-600 font-bold text-xs truncate block mt-0.5">${job.kategori} • ${job.ucret} ${t('POINTS')}</span>
                             </div>
                             <div class="flex gap-2">
-                              <button onClick=${() => setChatJobId(id)} class="bg-black text-white px-3 py-1 font-black text-sm uppercase">MESAJ</button>
+                              <button onClick=${() => setChatJobId(id)} class="bg-black text-white px-3 py-1 font-black text-sm uppercase">${t('MESSAGE')}</button>
                               <div class="text-right shrink-0 ml-4">
                                 <p class="font-black text-2xl ${rem === 0 ? 'text-red-600' : 'text-brandBlue'}">${rem}</p>
-                                <p class="font-bold text-xs uppercase">GÜN KALDI</p>
+                                <p class="font-bold text-xs uppercase">${t('DAYS_LEFT')}</p>
                               </div>
                             </div>
                           </div>
@@ -1999,27 +2204,6 @@
     }
 
     render(html`<${App} />`, document.getElementById('root'));
-
-    // ── Language Toggle Buttons (after render) ──
-    setTimeout(() => {
-      const langDiv = document.createElement('div');
-      langDiv.style.cssText = 'position:fixed;top:16px;right:16px;z-index:10000;display:flex;gap:8px;';
-
-      const createBtn = (lang, label) => {
-        const btn = document.createElement('button');
-        btn.textContent = label;
-        btn.style.cssText = 'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;background:' + (currentLang === lang ? '#dcfc75' : 'white') + ';cursor:pointer;box-shadow:' + (currentLang === lang ? '4px 4px 0px #000' : 'none') + ';';
-        btn.onclick = () => {
-          localStorage.setItem('language', lang);
-          location.reload();
-        };
-        return btn;
-      };
-
-      langDiv.appendChild(createBtn('tr', 'TR'));
-      langDiv.appendChild(createBtn('en', 'EN'));
-      document.body.appendChild(langDiv);
-    }, 100);
   </script>
 </body>
 </html>
