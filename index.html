@@ -1025,10 +1025,12 @@
         }
         const savedCustomerLocation = localStorage.getItem('customerLocation');
         if (savedCustomerLocation) setCustomerLocation(JSON.parse(savedCustomerLocation));
-       
+        const savedLocationAsked = localStorage.getItem('locationPermissionAsked');
+        if (savedLocationAsked === 'true') setLocationPermissionAsked(true);
         const savedUstaLocation = localStorage.getItem('ustaLocation');
         if (savedUstaLocation) setUstaLocation(JSON.parse(savedUstaLocation));
-        
+        const savedUstaLocationAsked = localStorage.getItem('ustaLocationPermissionAsked');
+        if (savedUstaLocationAsked === 'true') setUstaLocationPermissionAsked(true);
         const savedJobPostings = localStorage.getItem('globalJobPostings');
         if (savedJobPostings) setJobPostings(JSON.parse(savedJobPostings));
       }, []);
@@ -1196,20 +1198,10 @@
       useEffect(() => { if (auth.loggedIn) localStorage.setItem(`cumulativeImpact_${auth.email}`, JSON.stringify(cumulativeImpact)); }, [cumulativeImpact, auth.loggedIn]);
       useEffect(() => { localStorage.setItem('globalJobPostings', JSON.stringify(jobPostings)); }, [jobPostings]);
       useEffect(() => { if (customerLocation) localStorage.setItem('customerLocation', JSON.stringify(customerLocation)); }, [customerLocation]);
-      
+      useEffect(() => { localStorage.setItem('locationPermissionAsked', locationPermissionAsked ? 'true' : 'false'); }, [locationPermissionAsked]);
       useEffect(() => { if (ustaLocation) localStorage.setItem('ustaLocation', JSON.stringify(ustaLocation)); }, [ustaLocation]);
-      // ESKİLERİNİ BUNLARLA DEĞİŞTİR:
-      useEffect(() => {
-       if (auth.loggedIn && auth.role === 'musteri' && !customerLocation && !locationPermissionAsked) {
-        requestLocationPermission();
-       }
-}, [auth, customerLocation, locationPermissionAsked]);
+      useEffect(() => { localStorage.setItem('ustaLocationPermissionAsked', ustaLocationPermissionAsked ? 'true' : 'false'); }, [ustaLocationPermissionAsked]);
 
-      useEffect(() => {
-      if (auth.loggedIn && auth.role === 'tamirci' && !ustaLocation && !ustaLocationPermissionAsked) {
-        requestUstaLocationPermission();
-      }
-}, [auth, ustaLocation, ustaLocationPermissionAsked]);
       const handleShopSelect = (shop) => { setSelectedShop(shop); setView('merkezler'); };
 
       // ─── GÜVENLİ İLAN AÇMA ───
@@ -1270,6 +1262,8 @@
 
         const localLogin = () => {
           setAuth({ loggedIn: true, role: selectedRole, email: email.trim().toLowerCase() });
+          setLocationPermissionAsked(false);
+          setUstaLocationPermissionAsked(false);
           setSelectedRole(null); setEmail(''); setPassword(''); setAuthError('');
           setMessages([{ role: 'bot', text: currentLang === 'en' ? (selectedRole === 'tamirci' ? 'Hey master! 🔧 There are jobs waiting nearby. Type "any jobs?" or a category, I\'ll list them!' : t('CHATBOT_GREETING')) : (selectedRole === 'tamirci' ? 'Selam usta! 🔧 Yakında bekleyen işlerin var. "iş var mı" yaz veya kategori söyle, hemen listelerim!' : t('CHATBOT_GREETING')) }]);
           setIsLoggingIn(false);
@@ -1284,6 +1278,8 @@
           const data = await res.json();
           if (!res.ok) { setAuthError(data.error || 'Giriş başarısız.'); setIsLoggingIn(false); return; }
           setAuth({ loggedIn: true, role: selectedRole, email: data.email });
+          setLocationPermissionAsked(false);
+          setUstaLocationPermissionAsked(false);
           setSelectedRole(null); setEmail(''); setPassword(''); setAuthError('');
           setMessages([{ role: 'bot', text: currentLang === 'en' ? (selectedRole === 'tamirci' ? 'Hey master! 🔧 There are jobs waiting nearby. Type "any jobs?" or a category, I\'ll list them!' : t('CHATBOT_GREETING')) : (selectedRole === 'tamirci' ? 'Selam usta! 🔧 Yakında bekleyen işlerin var. "iş var mı" yaz veya kategori söyle, hemen listelerim!' : t('CHATBOT_GREETING')) }]);
           setIsLoggingIn(false);
@@ -2246,5 +2242,3 @@
   </script>
 </body>
 </html>
-
-//lalalala
