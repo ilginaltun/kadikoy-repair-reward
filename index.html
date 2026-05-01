@@ -148,6 +148,101 @@
     const getCategoryEmoji = (cat) =>
       ({ 'Elektronik': '📱', 'Tekstil': '👗', 'Mobilya': '🪑', 'Bisiklet': '🚲', 'Diğer': '📦' })[cat] ?? '📦';
 
+    // ── Translations ───────────────────────────────────────────────────────────
+    let currentLang = localStorage.getItem('language') || 'tr';
+
+    const translations = {
+      tr: {
+        LAYERS: 'KATMANLAR',
+        TOOL_LIBRARIAN: 'ALET',
+        TOOL_DESC: 'Mahalle alet kütüphanesi • Ödünç al, işini bitir, geri getir',
+        BORROW_FREE: 'Aletleri ücretsiz ödünç alabilirsin!',
+        BORROW_HINT: 'Süre dolunca aleti iade et — bir sonraki komşun bekliyor.',
+        TOOL_AVAILABLE: 'MEVCUT',
+        TOOL_AVAILABLE_UNITS: (n) => `${n} MEVCUT`,
+        DAYS_LEFT_SUFFIX: 'GÜN hakkınız kaldı',
+        TIME_UP: '⚠️ Süreniz doldu! Lütfen iade edin.',
+        RETURN: 'İADE ET',
+        OUT_OF_STOCK: 'STOKTA YOK',
+        UNAVAILABLE: 'MEVCUT DEĞİL',
+        MAX_DAYS: (n) => `Maks. ${n} gün`,
+        FREE: 'ÜCRETSİZ',
+        BORROW: 'ÖDÜNÇ AL',
+        SELECTED_MASTER: 'SEÇİLEN TAMİRCİ',
+        CLOSE: 'KAPAT',
+        VIEW_ON_MAP: '📍 Haritada görmek için tıkla',
+        REPAIRERS: 'TAMİRCİLER',
+        REPAIRERS_SUB: 'Terzi / Elektronik',
+        PUBLIC_BUILDINGS: 'KAMU BİNALARI',
+        PUBLIC_BUILDINGS_SUB: 'İSMEK / Kütüphane',
+        CUSTOMER_LOCATION: 'MÜŞTERİ LOKASYONUٌ',
+        CUSTOMER_LOCATION_SUB: '400m Hizmet Alanı',
+        OPEN_JOBS: 'AÇIK İŞ İLANLARI',
+        OPEN_JOBS_SUB: 'Tamir İlanları',
+        LEGEND: 'LEJAND',
+        TOTAL_WASTE: 'Toplam Atık',
+        RECORDS: 'kayıt',
+        RESERVED: 'rezerve edildi',
+        REPAIR_AI: 'TAMİR AI',
+        TYPE_HERE: 'Buraya yaz...',
+        ASK: 'SOR',
+        CATEGORY: 'Kategori',
+        SHOW_ON_MAP: 'Haritada göster',
+        CHAT_INPUT_PLACEHOLDER: 'Buraya yaz...',
+        LOGIN: 'HESAP GİRİŞİ',
+        CHOOSE_PROFILE: 'Devam etmek istediğin profili seç:',
+        CUSTOMER: 'MÜŞTERİ',
+        REPAIRER: 'TAMİRCİ'
+      },
+      en: {
+        LAYERS: 'LAYERS',
+        LOGIN: 'ACCOUNT LOGIN',
+        CHOOSE_PROFILE: 'Choose the profile you want to continue with:',
+        CUSTOMER: 'CUSTOMER',
+        REPAIRER: 'REPAIRER',
+        TOOL_LIBRARIAN: 'TOOLS',
+        TOOL_DESC: 'Neighborhood tool library • Borrow, finish your job, return',
+        BORROW_FREE: 'You can borrow tools for free!',
+        BORROW_HINT: 'Return the tool when your time is up — your neighbor is waiting.',
+        TOOL_AVAILABLE: 'AVAILABLE',
+        TOOL_AVAILABLE_UNITS: (n) => `${n} AVAILABLE`,
+        DAYS_LEFT_SUFFIX: 'DAYS left',
+        TIME_UP: '⚠️ Your time is up! Please return it.',
+        RETURN: 'RETURN',
+        OUT_OF_STOCK: 'OUT OF STOCK',
+        UNAVAILABLE: 'NOT AVAILABLE',
+        MAX_DAYS: (n) => `Max. ${n} days`,
+        FREE: 'FREE',
+        BORROW: 'BORROW',
+        SELECTED_MASTER: 'SELECTED MASTER',
+        CLOSE: 'CLOSE',
+        VIEW_ON_MAP: '📍 Click to view on map',
+        REPAIRERS: 'REPAIRERS',
+        REPAIRERS_SUB: 'Tailor / Electronics',
+        PUBLIC_BUILDINGS: 'PUBLIC BUILDINGS',
+        PUBLIC_BUILDINGS_SUB: 'İSMEK / Library',
+        CUSTOMER_LOCATION: 'CUSTOMER LOCATION',
+        CUSTOMER_LOCATION_SUB: '400m Service Area',
+        OPEN_JOBS: 'OPEN JOB POSTINGS',
+        OPEN_JOBS_SUB: 'Repair Listings',
+        LEGEND: 'LEGEND',
+        TOTAL_WASTE: 'Total Waste',
+        RECORDS: 'records',
+        RESERVED: 'reserved',
+        REPAIR_AI: 'REPAIR AI',
+        TYPE_HERE: 'Type here...',
+        ASK: 'ASK',
+        CATEGORY: 'Category',
+        SHOW_ON_MAP: 'Show on map',
+        CHAT_INPUT_PLACEHOLDER: 'Type here...'
+      }
+    };
+
+    const t = (key, ...args) => {
+      const text = translations[currentLang][key];
+      return typeof text === 'function' ? text(...args) : text;
+    };
+
     const DEFAULT_KG = {
       'Elektronik': 0.5,
       'Tekstil':    0.65,
@@ -204,8 +299,31 @@
       );
     }
 
+    // ── Language Toggle ────────────────────────────────────────────────────────
+    function LanguageToggle({ language, onLanguageChange }) {
+      return html`
+        <div style="position:fixed;top:16px;right:16px;z-index:10000;display:flex;gap:8px;">
+          <button onClick=${() => {
+            currentLang = 'tr';
+            localStorage.setItem('language', 'tr');
+            onLanguageChange('tr');
+          }} style="padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;${language === 'tr' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white'};cursor:pointer;">
+            TR
+          </button>
+          <button onClick=${() => {
+            currentLang = 'en';
+            localStorage.setItem('language', 'en');
+            onLanguageChange('en');
+          }} style="padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;${language === 'en' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white'};cursor:pointer;">
+            EN
+          </button>
+        </div>
+      `;
+    }
+
     // ── ChatBot ────────────────────────────────────────────────────────────
-    function ChatBot({ isChatOpen, setIsChatOpen, messages, input, setInput, handleSend, allShops, onShopClick, title = 'TAMİR AI' }) {
+    function ChatBot({ isChatOpen, setIsChatOpen, messages, input, setInput, handleSend, allShops, onShopClick, title = null }) {
+      title = title || t('REPAIR_AI');
       return html`
         <div class="fixed bottom-10 right-5 md:right-10 z-[9999]">
           ${isChatOpen && html`
@@ -223,8 +341,8 @@
               </div>
               <div class="p-4 border-t-4 border-black flex gap-2 bg-white">
                 <input value=${input} onInput=${e => setInput(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSend()}
-                       class="flex-grow p-2 border-4 border-black outline-none font-bold" placeholder="Buraya yaz..." />
-                <button onClick=${() => handleSend()} class="bg-black text-white px-4 border-4 border-black font-black">SOR</button>
+                       class="flex-grow p-2 border-4 border-black outline-none font-bold" placeholder="${t('CHAT_INPUT_PLACEHOLDER')}" />
+                <button onClick=${() => handleSend()} class="bg-black text-white px-4 border-4 border-black font-black">${t('ASK')}</button>
               </div>
             </div>
           `}
@@ -292,17 +410,17 @@
       return html`
         <div class="flex flex-col lg:flex-row gap-12 relative z-10">
           <div class="w-full lg:w-[450px] brutal-card p-6 md:p-10 space-y-10 bg-white/90 backdrop-blur-sm">
-            <h3 class="text-4xl md:text-6xl font-black uppercase tracking-tighter border-b-8 border-black pb-4 italic">KATMANLAR</h3>
+            <h3 class="text-4xl md:text-6xl font-black uppercase tracking-tighter border-b-8 border-black pb-4 italic">${t('LAYERS')}</h3>
             ${selectedShop && html`
               <div class="mb-6 border-b-4 border-black pb-6">
-                <h4 class="text-2xl md:text-3xl font-black uppercase tracking-tight mb-4">SEÇİLEN TAMİRCİ</h4>
+                <h4 class="text-2xl md:text-3xl font-black uppercase tracking-tight mb-4">${t('SELECTED_MASTER')}</h4>
                 <div onClick=${() => { if (mapInstance.current && selectedShop) { mapInstance.current.flyTo([selectedShop.lat, selectedShop.lon], 17, { duration: 1 }); if (highlightRef.current) setTimeout(() => highlightRef.current.openPopup(), 1100); } }}
                   class="cursor-pointer border-4 border-black p-4 bg-brandBlue text-white shadow-[6px_6px_0px_#000] hover:translate-y-[-2px] hover:shadow-[6px_8px_0px_#000] transition-all">
                   <div class="text-xl md:text-2xl font-black uppercase leading-tight">${selectedShop.name}</div>
                   <div class="text-sm md:text-base font-bold mt-2 opacity-80 uppercase">${selectedShop.kategori}</div>
-                  <div class="text-xs md:text-sm font-bold mt-2 opacity-60">📍 Haritada görmek için tıkla</div>
+                  <div class="text-xs md:text-sm font-bold mt-2 opacity-60">${t('VIEW_ON_MAP')}</div>
                 </div>
-                <button onClick=${() => setSelectedShop(null)} class="mt-3 w-full bg-black text-white border-4 border-black p-2 font-black uppercase text-base hover:bg-gray-800 transition-colors">KAPAT</button>
+                <button onClick=${() => setSelectedShop(null)} class="mt-3 w-full bg-black text-white border-4 border-black p-2 font-black uppercase text-base hover:bg-gray-800 transition-colors">${t('CLOSE')}</button>
               </div>
             `}
             <div class="space-y-8">
@@ -310,7 +428,7 @@
                 <div key=${key} class="flex items-start gap-6 cursor-pointer" onClick=${() => setLayers(p => ({ ...p, [key]: { ...l, active: !l.active } }))}>
                   <div class="map-checkbox">${l.active && html`<div class="w-4 h-4 bg-black" style="clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%)"></div>`}</div>
                   <div class="w-10 h-10 border-4 border-black shrink-0 shadow-[3px_3px_0px_#000] ${l.color}"></div>
-                  <div class="flex flex-col"><span class="text-2xl md:text-3xl font-black uppercase leading-none text-black">${l.title}</span><span class="text-lg md:text-xl font-bold text-gray-500 uppercase mt-1">${l.sub}</span></div>
+                  <div class="flex flex-col"><span class="text-2xl md:text-3xl font-black uppercase leading-none text-black">${key === 'tamirciler' ? t('REPAIRERS') : key === 'kamu' ? t('PUBLIC_BUILDINGS') : key === 'customerLocation' ? t('CUSTOMER_LOCATION') : t('OPEN_JOBS')}</span><span class="text-lg md:text-xl font-bold text-gray-500 uppercase mt-1">${key === 'tamirciler' ? t('REPAIRERS_SUB') : key === 'kamu' ? t('PUBLIC_BUILDINGS_SUB') : key === 'customerLocation' ? t('CUSTOMER_LOCATION_SUB') : t('OPEN_JOBS_SUB')}</span></div>
                 </div>
               `)}
             </div>
@@ -337,17 +455,17 @@
             <div class="inline-block relative">
               <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
               <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">
-                ALET
+                ${t('TOOL_LIBRARIAN')}
               </h2>
             </div>
-            <p class="font-bold text-base text-gray-500 pb-1">Mahalle alet kütüphanesi • Ödünç al, işini bitir, geri getir</p>
+            <p class="font-bold text-base text-gray-500 pb-1">${t('TOOL_DESC')}</p>
           </div>
 
           <div class="brutal-card p-4 md:p-5 bg-brandYellow/60 border-4 border-black flex items-start gap-4">
             <span class="text-3xl shrink-0">📦</span>
             <div>
-              <p class="font-black uppercase">Aletleri ücretsiz ödünç alabilirsin!</p>
-              <p class="font-bold text-sm opacity-70 mt-1">Süre dolunca aleti iade et — bir sonraki komşun bekliyor.</p>
+              <p class="font-black uppercase">${t('BORROW_FREE')}</p>
+              <p class="font-bold text-sm opacity-70 mt-1">${t('BORROW_HINT')}</p>
             </div>
           </div>
 
@@ -364,7 +482,7 @@
                             ${isBorrowed ? 'border-brandBlue shadow-[8px_8px_0px_#054ff0]' : isUnavailable ? 'opacity-60' : 'hover:-translate-y-1'}">
                   <div class="flex justify-between items-start">
                     <span class="text-5xl">${alet.emoji}</span>
-                    <span class="font-black text-xs uppercase border-2 border-black px-2 py-1 ${available === 0 && !isBorrowed ? 'bg-red-100 text-red-600' : 'bg-mainBg'}">${available} MEVCUT</span>
+                    <span class="font-black text-xs uppercase border-2 border-black px-2 py-1 ${available === 0 && !isBorrowed ? 'bg-red-100 text-red-600' : 'bg-mainBg'}">${t('TOOL_AVAILABLE_UNITS', available)}</span>
                   </div>
                   <div>
                     <h3 class="text-xl md:text-2xl font-black uppercase leading-tight">${alet.name}</h3>
@@ -375,27 +493,27 @@
                       <div class="${isOverdue ? 'bg-red-100 border-red-500 text-red-700' : 'bg-brandYellow'} border-4 border-black p-3 text-center">
                         <p class="font-black text-sm uppercase leading-snug">
                           ${isOverdue
-                            ? '⚠️ Süreniz doldu! Lütfen iade edin.'
-                            : html`⏳ <span class="text-brandBlue text-xl">${remaining}</span> GÜN hakkınız kaldı`}
+                            ? t('TIME_UP')
+                            : html`⏳ <span class="text-brandBlue text-xl">${remaining}</span> ${t('DAYS_LEFT_SUFFIX')}`}
                         </p>
                       </div>
                       <button onClick=${() => onReturn(alet.id)} class="w-full bg-white border-4 border-black p-3 font-black text-lg uppercase brutal-btn hover:bg-gray-100 transition-colors">
-                        İADE ET
+                        ${t('RETURN')}
                       </button>
                     ` : isUnavailable ? html`
                       <div class="bg-gray-100 border-4 border-black p-3 text-center">
-                        <p class="font-black text-sm uppercase text-gray-500">STOKTA YOK</p>
+                        <p class="font-black text-sm uppercase text-gray-500">${t('OUT_OF_STOCK')}</p>
                       </div>
                       <button disabled class="w-full bg-gray-200 border-4 border-gray-400 p-3 font-black text-xl uppercase text-gray-400 cursor-not-allowed">
-                        MEVCUT DEĞİL
+                        ${t('UNAVAILABLE')}
                       </button>
                     ` : html`
                       <div class="flex justify-between items-center">
-                        <span class="font-bold text-sm text-gray-500">Maks. ${alet.days} gün</span>
-                        <span class="bg-brandYellow border-2 border-black px-2 py-1 text-xs font-black uppercase">ÜCRETSİZ</span>
+                        <span class="font-bold text-sm text-gray-500">${t('MAX_DAYS', alet.days)}</span>
+                        <span class="bg-brandYellow border-2 border-black px-2 py-1 text-xs font-black uppercase">${t('FREE')}</span>
                       </div>
                       <button onClick=${() => onBorrow(alet)} class="w-full bg-brandPink border-4 border-black p-3 font-black text-xl uppercase shadow-[4px_4px_0px_#000] hover:translate-y-1 hover:shadow-[2px_2px_0px_#000] transition-all">
-                        ÖDÜNÇ AL
+                        ${t('BORROW')}
                       </button>
                     `}
                   </div>
@@ -503,7 +621,7 @@
           ${tab === 'harita' && html`
             <div class="flex flex-col lg:flex-row gap-8">
               <div class="w-full lg:w-[320px] brutal-card p-5 bg-white space-y-4 shrink-0">
-                <h3 class="text-2xl font-black uppercase border-b-4 border-black pb-3">LEJAND</h3>
+                <h3 class="text-2xl font-black uppercase border-b-4 border-black pb-3">${t('LEGEND')}</h3>
                 ${['Elektronik','Tekstil','Mobilya','Bisiklet','Diğer'].map(cat => html`
                   <div key=${cat} class="flex items-center gap-3">
                     <div class="w-9 h-9 border-4 border-black flex items-center justify-center text-base shrink-0">${getCategoryEmoji(cat)}</div>
@@ -511,9 +629,9 @@
                   </div>
                 `)}
                 <div class="border-t-4 border-black pt-4">
-                  <p class="font-black text-sm uppercase mb-1">Toplam Atık</p>
-                  <p class="text-3xl font-black">${wasteItems.length} <span class="text-base font-bold text-gray-500">kayıt</span></p>
-                  <p class="text-sm font-bold text-gray-500">${wasteItems.filter(w => w.reserved).length} rezerve edildi</p>
+                  <p class="font-black text-sm uppercase mb-1">${t('TOTAL_WASTE')}</p>
+                  <p class="text-3xl font-black">${wasteItems.length} <span class="text-base font-bold text-gray-500">${t('RECORDS')}</span></p>
+                  <p class="text-sm font-bold text-gray-500">${wasteItems.filter(w => w.reserved).length} ${t('RESERVED')}</p>
                 </div>
                 ${selectedWaste && html`
                   <div class="border-4 border-black p-4 bg-brandPink space-y-2">
@@ -679,6 +797,9 @@
 
     // ── App ────────────────────────────────────────────────────────────────
     function App() {
+      const [language, setLanguage]                     = useState(currentLang);
+      const handleLanguageChange = (lang) => setLanguage(lang);
+
       const [auth, setAuth]                             = useState({ loggedIn: false, role: null, email: null });
       const [selectedRole, setSelectedRole]             = useState(null);
       const [email, setEmail]                           = useState('');
@@ -1124,14 +1245,14 @@
               </h1>
             </div>
             <div class="brutal-card p-8 md:p-12 bg-white max-w-lg w-full space-y-8 text-center border-[6px]">
-              <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tighter bg-brandBlue text-white px-4 py-2 border-4 border-black inline-block transform -rotate-2">HESAP GİRİŞİ</h2>
+              <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tighter bg-brandBlue text-white px-4 py-2 border-4 border-black inline-block transform -rotate-2">${t('LOGIN')}</h2>
               ${!selectedRole ? html`
-                <p class="font-bold text-xl mb-8">Devam etmek istediğin profili seç:</p>
+                <p class="font-bold text-xl mb-8">${t('CHOOSE_PROFILE')}</p>
                 <button onClick=${() => setSelectedRole('musteri')} class="w-full bg-brandPink text-black border-4 border-black p-4 md:p-6 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-between items-center group">
-                  <span>MÜŞTERİ</span><img src="musteri.png" alt="Müşteri" class="w-24 h-24 object-contain group-hover:scale-110 transition-transform" />
+                  <span>${t('CUSTOMER')}</span><img src="musteri.png" alt="Müşteri" class="w-24 h-24 object-contain group-hover:scale-110 transition-transform" />
                 </button>
                 <button onClick=${() => setSelectedRole('tamirci')} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-between items-center group">
-                  <span>TAMİRCİ</span><img src="ingiliz_anahtari.png" alt="İngiliz Anahtarı" class="w-24 h-24 object-contain group-hover:scale-110 transition-transform" />
+                  <span>${t('REPAIRER')}</span><img src="ingiliz_anahtari.png" alt="İngiliz Anahtarı" class="w-24 h-24 object-contain group-hover:scale-110 transition-transform" />
                 </button>
               ` : html`
                 <div class="space-y-6 text-left">
@@ -1449,6 +1570,10 @@
 
       // ── Customer Screen ──
       return html`
+        <div style="position:fixed;top:16px;right:16px;z-index:10000;display:flex;gap:8px;">
+          <button onClick=${() => { currentLang = 'tr'; localStorage.setItem('language', 'tr'); handleLanguageChange('tr'); }} style="${'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;' + (language === 'tr' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white') + ';cursor:pointer;'}">TR</button>
+          <button onClick=${() => { currentLang = 'en'; localStorage.setItem('language', 'en'); handleLanguageChange('en'); }} style="${'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;' + (language === 'en' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white') + ';cursor:pointer;'}">EN</button>
+        </div>
         <img src="1.png" alt="" class="absolute pointer-events-none sticker-drop w-16 md:w-28 top-5 left-[-10px] md:left-[5%] rotate-[-15deg] z-0 md:z-50 opacity-40 md:opacity-90" />
         <img src="2.png" alt="" class="hidden md:block absolute pointer-events-none sticker-drop w-40 top-32 left-[-20px] rotate-[10deg] z-50" />
         <img src="3.png" alt="" class="absolute pointer-events-none sticker-drop w-32 md:w-64 top-40 md:top-64 right-[-20px] md:right-[-40px] rotate-[-5deg] z-0 md:z-50 transition-opacity duration-300 ${isChatOpen ? 'opacity-0' : 'opacity-40 md:opacity-100'}" />
@@ -1866,6 +1991,28 @@
     }
 
     render(html`<${App} />`, document.getElementById('root'));
+
+    // ── Language Toggle Buttons (after render) ──
+    setTimeout(() => {
+      const langDiv = document.createElement('div');
+      langDiv.style.cssText = 'position:fixed;top:16px;right:16px;z-index:10000;display:flex;gap:8px;';
+
+      const createBtn = (lang, label) => {
+        const btn = document.createElement('button');
+        btn.textContent = label;
+        btn.style.cssText = 'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;background:' + (currentLang === lang ? '#dcfc75' : 'white') + ';cursor:pointer;box-shadow:' + (currentLang === lang ? '4px 4px 0px #000' : 'none') + ';';
+        btn.onclick = () => {
+          currentLang = lang;
+          localStorage.setItem('language', lang);
+          location.reload();
+        };
+        return btn;
+      };
+
+      langDiv.appendChild(createBtn('tr', 'TR'));
+      langDiv.appendChild(createBtn('en', 'EN'));
+      document.body.appendChild(langDiv);
+    }, 100);
   </script>
 </body>
 </html>
