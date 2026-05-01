@@ -800,6 +800,14 @@
       const [language, setLanguage]                     = useState(currentLang);
       const handleLanguageChange = (lang) => setLanguage(lang);
 
+      useEffect(() => {
+        const handleLangEvent = (e) => {
+          setLanguage(e.detail.lang);
+        };
+        window.addEventListener('languageChange', handleLangEvent);
+        return () => window.removeEventListener('languageChange', handleLangEvent);
+      }, []);
+
       const [auth, setAuth]                             = useState({ loggedIn: false, role: null, email: null });
       const [selectedRole, setSelectedRole]             = useState(null);
       const [email, setEmail]                           = useState('');
@@ -2004,7 +2012,7 @@
         btn.onclick = () => {
           currentLang = lang;
           localStorage.setItem('language', lang);
-          location.reload();
+          window.dispatchEvent(new CustomEvent('languageChange', {detail: {lang: lang}}));
         };
         return btn;
       };
