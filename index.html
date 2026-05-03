@@ -147,6 +147,7 @@
       }
     }
   </script>
+  <script src="https://unpkg.com/ml5@1/dist/ml5.min.js"></script>
 </head>
 
 <body class="p-4 md:p-10 relative min-h-screen">
@@ -723,6 +724,7 @@
 
       useEffect(() => {
         let alive = true;
+        let isClassifying = true;
         (async () => {
           try {
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -730,20 +732,66 @@
             });
             if (!alive) { stream.getTracks().forEach(t => t.stop()); return; }
             streamRef.current = stream;
-            if (videoRef.current) videoRef.current.srcObject = stream;
-            setTimeout(() => {
-              if (alive) {
-                const picked = tools[Math.floor(Math.random() * tools.length)];
-                setDetectedTool(picked);
-                setPhase('detected');
-              }
-            }, 2000);
+            
+            if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+              
+              const classifier = await new Promise((resolve) => {
+                if (window.ml5) {
+                  const clf = window.ml5.imageClassifier('MobileNet', () => resolve(clf));
+                } else {
+                  console.error('ml5.js not loaded!');
+                  resolve(null);
+                }
+              });
+
+              if (!alive || !classifier) return;
+
+              const mapLabelToTool = (label) => {
+                const lower = label.toLowerCase();
+                if (lower.includes('drill') || lower.includes('power drill')) return 1;
+                if (lower.includes('ladder') || lower.includes('step stool')) return 2;
+                if (lower.includes('sewing machine')) return 3;
+                if (lower.includes('screwdriver')) return 4;
+                if (lower.includes('multimeter') || lower.includes('voltmeter')) return 5;
+                if (lower.includes('measuring') || lower.includes('rule') || lower.includes('tape')) return 6;
+                return null;
+              };
+
+              const loopClassify = () => {
+                if (!alive || !isClassifying || !videoRef.current) return;
+                classifier.classify(videoRef.current, (err, results) => {
+                  if (err || !alive || !isClassifying) return;
+                  if (results && results.length > 0) {
+                    for (let i = 0; i < results.length; i++) {
+                      const matchId = mapLabelToTool(results[i].label);
+                      if (matchId) {
+                        const matchedTool = tools.find(t => t.id === matchId);
+                        if (matchedTool) {
+                          setDetectedTool(matchedTool);
+                          setPhase('detected');
+                          isClassifying = false;
+                          return;
+                        }
+                      }
+                    }
+                  }
+                  setTimeout(loopClassify, 250);
+                });
+              };
+
+              videoRef.current.onloadeddata = () => {
+                if (alive && isClassifying) loopClassify();
+              };
+            }
           } catch (e) {
+            console.error(e);
             if (alive) { setCamError(true); setPhase('error'); }
           }
         })();
         return () => {
           alive = false;
+          isClassifying = false;
           if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
         };
       }, []);
