@@ -710,10 +710,16 @@
       const [showCaution, setShowCaution] = useState(true);
       const [cycleIndex, setCycleIndex]   = useState(0);
       const [detectedTool, setDetectedTool] = useState(null);
+      const [currentScan, setCurrentScan] = useState('');
 
       useEffect(() => {
         document.body.classList.add('ar-open');
-        return () => document.body.classList.remove('ar-open');
+        const langToggle = document.getElementById('lang-toggle');
+        if (langToggle) langToggle.style.display = 'none';
+        return () => {
+          document.body.classList.remove('ar-open');
+          if (langToggle) langToggle.style.display = 'flex';
+        };
       }, []);
 
       useEffect(() => {
@@ -764,6 +770,7 @@
                 classifier.classify(videoRef.current, 15, (err, results) => {
                   if (err || !alive || !isClassifying) return;
                   if (results && results.length > 0) {
+                    setCurrentScan(results[0].label);
                     for (let i = 0; i < results.length; i++) {
                       const matchId = mapLabelToTool(results[i].label);
                       if (matchId) {
@@ -840,10 +847,11 @@
               <!-- center emoji -->
               <div class="absolute inset-0 flex flex-col items-center justify-center gap-3">
                 <span class="text-7xl" style="filter:drop-shadow(0 0 16px rgba(5,79,240,0.8))">${phase === 'detected' && dt ? dt.emoji : tools[cycleIndex].emoji}</span>
-                <div class="border-4 ${phase === 'detected' ? 'border-brandYellow bg-brandYellow ar-badge-flash' : 'border-brandBlue bg-brandBlue'} px-3 py-1">
+                <div class="border-4 ${phase === 'detected' ? 'border-brandYellow bg-brandYellow ar-badge-flash' : 'border-brandBlue bg-brandBlue'} px-3 py-1 flex flex-col items-center">
                   <span class="font-black text-xs uppercase text-black tracking-widest">
                     ${phase === 'detected' ? t('AR_DETECTED') : t('AR_SCANNING')}
                   </span>
+                  ${phase === 'scanning' && currentScan && html`<span class="text-[10px] text-white opacity-80 mt-1 uppercase text-center max-w-[150px] truncate">${currentScan.split(',')[0]}</span>`}
                 </div>
               </div>
             </div>
