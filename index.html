@@ -99,6 +99,33 @@
       100% { transform: scale(1) translateY(0); opacity: 1; }
     }
     .impact-pop { animation: impact-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+    @keyframes ar-scan {
+      0%   { top: 8%; opacity: 1; }
+      48%  { opacity: 1; }
+      50%  { top: 88%; opacity: 1; }
+      98%  { opacity: 1; }
+      100% { top: 8%; opacity: 1; }
+    }
+    .ar-scan-line { animation: ar-scan 2.2s linear infinite; }
+
+    @keyframes ar-corner-blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.35; }
+    }
+    .ar-corner { animation: ar-corner-blink 1s ease-in-out infinite; }
+
+    @keyframes ar-pop-up {
+      0%   { transform: translateY(110%); opacity: 0; }
+      100% { transform: translateY(0);    opacity: 1; }
+    }
+    .ar-card-pop { animation: ar-pop-up 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+    @keyframes ar-badge-flash {
+      0%, 100% { background: #dcfc75; }
+      50%       { background: #fff; }
+    }
+    .ar-badge-flash { animation: ar-badge-flash 0.6s ease-in-out 3; }
   </style>
 
   <script>
@@ -279,6 +306,14 @@
         NO_MESSAGES: 'Henüz mesaj yok.',
         MESSAGES_WITH: (title, name) => `${title} - ${name} ile Mesajlar`,
         JOB_POST_SUCCESS: '✅ İlan başarıyla kaydedildi ve Usta paneline ulaştı!',
+        TOOL_SEARCH_PLACEHOLDER: 'Alet ara...',
+        TOOL_NO_RESULTS: 'Arama sonucu bulunamadı.',
+        AR_VIEW: 'AR GÖRÜNÜM',
+        AR_SCANNING: 'TARANIYOR...',
+        AR_DETECTED: 'TESPİT EDİLDİ',
+        AR_NO_CAMERA: 'Kamera erişimi gerekiyor',
+        AR_NO_CAMERA_HINT: 'Tarayıcı ayarlarından kamera iznini vermelisin.',
+        AR_CLOSE: 'KAPAT',
         TOOL_BORROW_SUCCESS: (name, days) => `${name} başarıyla ödünç alındı! ${days} gün içinde iade etmeyi unutma.`,
         CAMPAIGN_USE_SUCCESS: (title, pts) => `Tebrikler! ${title} ödülünü başarıyla aldın. Yeni puanın: ${pts}`,
         USTA_CAMPAIGN_SUCCESS: (title) => `Tebrikler! ${title} ödülünü aldın!`,
@@ -414,6 +449,14 @@
         NO_MESSAGES: 'No messages yet.',
         MESSAGES_WITH: (title, name) => `${title} - Messages with ${name}`,
         JOB_POST_SUCCESS: '✅ Listing saved successfully and sent to Master panel!',
+        TOOL_SEARCH_PLACEHOLDER: 'Search tools...',
+        TOOL_NO_RESULTS: 'No results found.',
+        AR_VIEW: 'AR VIEW',
+        AR_SCANNING: 'SCANNING...',
+        AR_DETECTED: 'DETECTED',
+        AR_NO_CAMERA: 'Camera access required',
+        AR_NO_CAMERA_HINT: 'Please grant camera permission in browser settings.',
+        AR_CLOSE: 'CLOSE',
         TOOL_BORROW_SUCCESS: (name, days) => `${name} successfully borrowed! Remember to return within ${days} days.`,
         CAMPAIGN_USE_SUCCESS: (title, pts) => `Congratulations! You received ${title}. New points: ${pts}`,
         USTA_CAMPAIGN_SUCCESS: (title) => `Congratulations! You got ${title}!`,
@@ -604,6 +647,18 @@
         if (layers.jobPostings.active) groupsRef.current.jobPostings.addTo(mapInstance.current);
       }, [jobPostings, layers]);
 
+      useEffect(() => {
+        if (!mapInstance.current || !groupsRef.current) return;
+        groupsRef.current.customerLocation.clearLayers();
+        if (customerLocation) {
+          const icon = window.L.divIcon({ className: '', html: `<div style="width:32px;height:32px;background:#000;border:4px solid #000;box-shadow:4px 4px 0px #000;display:flex;align-items:center;justify-content:center;"><div style="width:10px;height:10px;background:#fff;border-radius:50%;"></div></div>`, iconSize: [32, 32], iconAnchor: [16, 16] });
+          window.L.marker([customerLocation.lat, customerLocation.lon], { icon }).bindPopup('<b>Konumunuz</b>').addTo(groupsRef.current.customerLocation);
+          window.L.circle([customerLocation.lat, customerLocation.lon], { radius: 400, color: '#000', weight: 3, fillColor: '#000', fillOpacity: 0.07, dashArray: '6,6' }).addTo(groupsRef.current.customerLocation);
+          mapInstance.current.flyTo([customerLocation.lat, customerLocation.lon], 15, { duration: 1.2 });
+        }
+        if (layers.customerLocation.active) groupsRef.current.customerLocation.addTo(mapInstance.current);
+      }, [customerLocation]);
+
       return html`
         <div class="flex flex-col lg:flex-row gap-12 relative z-10">
           <div class="w-full lg:w-[450px] brutal-card p-6 md:p-10 space-y-10 bg-white/90 backdrop-blur-sm">
@@ -635,8 +690,167 @@
       `;
     }
 
+    // ── ARView ─────────────────────────────────────────────────────────────
+    function ARView({ tool, onClose, onBorrow, onReturn, isBorrowed, remaining, isOverdue, available }) {
+      const videoRef  = useRef(null);
+      const streamRef = useRef(null);
+      const [phase, setPhase]       = useState('scanning'); // scanning | detected | error
+      const [camError, setCamError] = useState(null);
+
+      useEffect(() => {
+        let alive = true;
+        (async () => {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+            });
+            if (!alive) { stream.getTracks().forEach(t => t.stop()); return; }
+            streamRef.current = stream;
+            if (videoRef.current) videoRef.current.srcObject = stream;
+            setTimeout(() => { if (alive) setPhase('detected'); }, 2000);
+          } catch (e) {
+            if (alive) { setCamError(true); setPhase('error'); }
+          }
+        })();
+        return () => {
+          alive = false;
+          if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+        };
+      }, []);
+
+      const isUnavailable = !isBorrowed && available <= 0;
+
+      return html`
+        <div class="fixed inset-0 z-50 bg-black flex flex-col overflow-hidden" style="touch-action:none">
+
+          <!-- Camera feed -->
+          <video ref=${videoRef} autoplay playsinline muted
+            class="absolute inset-0 w-full h-full object-cover"
+            style="opacity:${phase === 'error' ? 0 : 1}">
+          </video>
+
+          <!-- Blue grid overlay -->
+          <div class="absolute inset-0 pointer-events-none"
+            style="background: repeating-linear-gradient(0deg,transparent,transparent 48px,rgba(5,79,240,0.12) 48px,rgba(5,79,240,0.12) 49px), repeating-linear-gradient(90deg,transparent,transparent 48px,rgba(5,79,240,0.12) 48px,rgba(5,79,240,0.12) 49px)">
+          </div>
+
+          <!-- Scanning line -->
+          ${phase === 'scanning' && html`
+            <div class="ar-scan-line absolute left-0 right-0 h-1 pointer-events-none"
+              style="background: linear-gradient(90deg, transparent, #054ff0, #dcfc75, #054ff0, transparent); box-shadow: 0 0 12px 3px #054ff0;">
+            </div>
+          `}
+
+          <!-- Corner brackets (center target box) -->
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div class="relative" style="width:220px;height:220px">
+              <!-- corners -->
+              ${[
+                'top-0 left-0 border-t-4 border-l-4',
+                'top-0 right-0 border-t-4 border-r-4',
+                'bottom-0 left-0 border-b-4 border-l-4',
+                'bottom-0 right-0 border-b-4 border-r-4',
+              ].map(cls => html`
+                <div class="absolute w-10 h-10 ${cls} ${phase === 'detected' ? 'border-brandYellow' : 'border-brandBlue ar-corner'}"></div>
+              `)}
+              <!-- center emoji -->
+              <div class="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <span class="text-7xl" style="filter:drop-shadow(0 0 16px rgba(5,79,240,0.8))">${tool.emoji}</span>
+                <div class="border-4 ${phase === 'detected' ? 'border-brandYellow bg-brandYellow ar-badge-flash' : 'border-brandBlue bg-brandBlue'} px-3 py-1">
+                  <span class="font-black text-xs uppercase text-black tracking-widest">
+                    ${phase === 'detected' ? t('AR_DETECTED') : t('AR_SCANNING')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top bar -->
+          <div class="absolute top-0 left-0 right-0 flex items-center justify-between p-4 z-10"
+            style="background:linear-gradient(to bottom, rgba(0,0,0,0.65), transparent)">
+            <div class="border-4 border-white bg-black/60 px-3 py-1">
+              <span class="font-black text-white text-sm uppercase tracking-widest">
+                ${currentLang === 'en' ? tool.nameEn : tool.name} — AR
+              </span>
+            </div>
+            <button onClick=${onClose}
+              class="bg-black text-white border-4 border-white px-4 py-2 font-black text-base shadow-[4px_4px_0px_#fff] active:shadow-[1px_1px_0px_#fff] active:translate-x-1 active:translate-y-1 transition-all">
+              ✕ ${t('AR_CLOSE')}
+            </button>
+          </div>
+
+          <!-- Tool info card (slides up after detection) -->
+          ${phase === 'detected' && html`
+            <div class="absolute bottom-0 left-0 right-0 p-4 z-10 ar-card-pop">
+              <div class="bg-white border-4 border-black shadow-[0_-6px_0px_#000] p-5 space-y-4">
+                <div class="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 class="text-2xl font-black uppercase leading-tight">
+                      ${currentLang === 'en' ? tool.nameEn : tool.name}
+                    </h3>
+                    <p class="text-sm font-bold text-gray-500 mt-0.5">
+                      ${currentLang === 'en' ? tool.descEn : tool.desc}
+                    </p>
+                  </div>
+                  <span class="font-black text-xs uppercase border-2 border-black px-2 py-1 shrink-0
+                    ${available === 0 && !isBorrowed ? 'bg-red-100 text-red-600' : 'bg-brandYellow'}">
+                    ${t('TOOL_AVAILABLE_UNITS', available)}
+                  </span>
+                </div>
+                <div class="border-t-4 border-black pt-3">
+                  ${isBorrowed ? html`
+                    <div class="${isOverdue ? 'bg-red-100 border-red-500 text-red-700' : 'bg-brandYellow'} border-4 border-black p-3 text-center mb-3">
+                      <p class="font-black text-sm uppercase">
+                        ${isOverdue ? t('TIME_UP') : html`⏳ <span class="text-brandBlue text-xl">${remaining}</span> ${t('DAYS_LEFT_SUFFIX')}`}
+                      </p>
+                    </div>
+                    <button onClick=${() => { onReturn(tool.id); onClose(); }}
+                      class="w-full bg-white border-4 border-black p-3 font-black text-lg uppercase brutal-btn hover:bg-gray-100 transition-colors">
+                      ${t('RETURN')}
+                    </button>
+                  ` : isUnavailable ? html`
+                    <button disabled class="w-full bg-gray-200 border-4 border-gray-400 p-3 font-black text-lg uppercase text-gray-400 cursor-not-allowed">
+                      ${t('UNAVAILABLE')}
+                    </button>
+                  ` : html`
+                    <div class="flex justify-between items-center mb-3">
+                      <span class="font-bold text-sm text-gray-500">${t('MAX_DAYS', tool.days)}</span>
+                      <span class="bg-brandYellow border-2 border-black px-2 py-1 text-xs font-black uppercase">${t('FREE')}</span>
+                    </div>
+                    <button onClick=${() => { onBorrow(tool); onClose(); }}
+                      class="w-full bg-brandPink border-4 border-black p-3 font-black text-xl uppercase shadow-[4px_4px_0px_#000] hover:translate-y-1 hover:shadow-[2px_2px_0px_#000] transition-all">
+                      ${t('BORROW')}
+                    </button>
+                  `}
+                </div>
+              </div>
+            </div>
+          `}
+
+          <!-- Camera error overlay -->
+          ${phase === 'error' && html`
+            <div class="absolute inset-0 flex items-center justify-center z-20 p-6"
+              style="background:rgba(0,0,0,0.85)">
+              <div class="bg-white border-4 border-black shadow-[8px_8px_0px_#000] p-8 text-center w-full max-w-sm">
+                <span class="text-5xl">📷</span>
+                <h3 class="font-black text-xl uppercase mt-4">${t('AR_NO_CAMERA')}</h3>
+                <p class="font-bold text-sm text-gray-500 mt-2">${t('AR_NO_CAMERA_HINT')}</p>
+                <button onClick=${onClose}
+                  class="mt-6 w-full bg-black text-white border-4 border-black p-3 font-black text-lg uppercase brutal-btn">
+                  ${t('AR_CLOSE')}
+                </button>
+              </div>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
     // ── AletEdevat ─────────────────────────────────────────────────────────
     function AletEdevat({ borrowedTools, onBorrow, onReturn, getRemainingDays, toolCounts }) {
+      const [search, setSearch] = useState('');
+      const [arTool, setArTool]  = useState(null);
+
       const aletler = [
         { id: 1, name: 'MATKAP',          nameEn: 'DRILL',            emoji: '🔩', desc: 'Kordonsuz 18V Matkap',             descEn: 'Cordless 18V Drill',            days: 7, total: 3 },
         { id: 2, name: 'MERDİVEN',        nameEn: 'LADDER',           emoji: '🪜', desc: '3 Basamaklı Çelik Merdiven',       descEn: '3-Step Steel Ladder',           days: 3, total: 2 },
@@ -645,6 +859,13 @@
         { id: 5, name: 'AVOMETRE',        nameEn: 'MULTIMETER',       emoji: '🔌', desc: 'Dijital Multimetre / Test Cihazı', descEn: 'Digital Multimeter / Test Device', days: 3, total: 2 },
         { id: 6, name: 'ÖLÇÜM SETİ',     nameEn: 'MEASURING SET',    emoji: '📐', desc: 'Lazer Terazi & Dijital Metre',     descEn: 'Laser Level & Digital Meter',   days: 7, total: 3 },
       ];
+
+      const q = search.trim().toLowerCase();
+      const filteredAletler = q
+        ? aletler.filter(a =>
+            (a.name + ' ' + a.nameEn + ' ' + a.desc + ' ' + a.descEn).toLowerCase().includes(q)
+          )
+        : aletler;
 
       return html`
         <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
@@ -666,8 +887,31 @@
             </div>
           </div>
 
+          <div class="relative flex items-center">
+            <span class="absolute left-4 text-black pointer-events-none"><${IconSearch} /></span>
+            <input
+              type="text"
+              value=${search}
+              onInput=${e => setSearch(e.target.value)}
+              placeholder=${t('TOOL_SEARCH_PLACEHOLDER')}
+              class="w-full border-4 border-black bg-white pl-14 pr-4 py-3 text-lg font-bold uppercase placeholder:font-bold placeholder:text-gray-400 shadow-[4px_4px_0px_#000] focus:outline-none focus:shadow-[6px_6px_0px_#000] transition-all"
+            />
+            ${search && html`
+              <button
+                onClick=${() => setSearch('')}
+                class="absolute right-4 font-black text-xl text-gray-500 hover:text-black leading-none"
+                aria-label="Temizle"
+              >✕</button>
+            `}
+          </div>
+
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            ${aletler.map(alet => {
+            ${filteredAletler.length === 0 ? html`
+              <div class="col-span-full brutal-card bg-white p-10 text-center border-4 border-black">
+                <p class="text-4xl mb-3">🔍</p>
+                <p class="font-black text-xl uppercase">${t('TOOL_NO_RESULTS')}</p>
+              </div>
+            ` : filteredAletler.map(alet => {
               const isBorrowed = !!borrowedTools[alet.id];
               const remaining  = isBorrowed ? getRemainingDays(borrowedTools[alet.id].returnDate) : null;
               const isOverdue  = isBorrowed && remaining === 0;
@@ -678,7 +922,13 @@
                 <div key=${alet.id} class="brutal-card bg-white p-5 md:p-6 flex flex-col gap-4 border-[5px] transition-all
                             ${isBorrowed ? 'border-brandBlue shadow-[8px_8px_0px_#054ff0]' : isUnavailable ? 'opacity-60' : 'hover:-translate-y-1'}">
                   <div class="flex justify-between items-start">
-                    <span class="text-5xl">${alet.emoji}</span>
+                    <div class="flex flex-col gap-2">
+                      <span class="text-5xl">${alet.emoji}</span>
+                      <button onClick=${(e) => { e.stopPropagation(); setArTool(alet); }}
+                        class="text-xs font-black border-2 border-black px-2 py-1 bg-brandBlue text-white shadow-[2px_2px_0_#000] hover:shadow-[1px_1px_0_#000] hover:translate-x-px hover:translate-y-px transition-all w-max">
+                        📷 AR
+                      </button>
+                    </div>
                     <span class="font-black text-xs uppercase border-2 border-black px-2 py-1 ${available === 0 && !isBorrowed ? 'bg-red-100 text-red-600' : 'bg-mainBg'}">${t('TOOL_AVAILABLE_UNITS', available)}</span>
                   </div>
                   <div>
@@ -719,6 +969,19 @@
             })}
           </div>
         </div>
+
+        ${arTool && html`
+          <${ARView}
+            tool=${arTool}
+            onClose=${() => setArTool(null)}
+            onBorrow=${onBorrow}
+            onReturn=${onReturn}
+            isBorrowed=${!!borrowedTools[arTool.id]}
+            remaining=${borrowedTools[arTool.id] ? getRemainingDays(borrowedTools[arTool.id].returnDate) : null}
+            isOverdue=${borrowedTools[arTool.id] ? getRemainingDays(borrowedTools[arTool.id].returnDate) === 0 : false}
+            available=${toolCounts[arTool.id] ?? arTool.total}
+          />
+        `}
       `;
     }
 
