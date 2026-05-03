@@ -180,13 +180,12 @@
     };
 
     const getCategoryEmoji = (cat) =>
-      ({ 'Elektronik': '📱', 'Tekstil': '👗', 'Mobilya': '🪑', 'Dikiş Makinesi': '🧵', 'Diğer': '📦' })[cat] ?? '📦';
+      ({ 'Elektronik': '📱', 'Tekstil': '👗', 'Mobilya': '🪑', 'Diğer': '📦' })[cat] ?? '📦';
 
     const catName = (cat) => ({
       'Elektronik': currentLang === 'en' ? 'Electronics' : 'Elektronik',
       'Tekstil':    currentLang === 'en' ? 'Textile'     : 'Tekstil',
       'Mobilya':    currentLang === 'en' ? 'Furniture'   : 'Mobilya',
-      'Dikiş Makinesi': currentLang === 'en' ? 'Sewing Machine' : 'Dikiş Makinesi',
       'Diğer':      currentLang === 'en' ? 'Other'       : 'Diğer',
     })[cat] ?? cat;
 
@@ -501,7 +500,6 @@
       'Elektronik': 0.5,
       'Tekstil':    0.65,
       'Mobilya':    3.0,
-      'Dikiş Makinesi': 15.0,
       'Diğer':      1.0,
     };
 
@@ -510,7 +508,6 @@
         'Elektronik': { co2: 70,  water: 13000, incin: 28 },
         'Tekstil':    { co2: 15,  water: 5000,  incin: 6  },
         'Mobilya':    { co2: 30,  water: 200,   incin: 12 },
-        'Dikiş Makinesi': { co2: 50, water: 8000, incin: 20 },
         'Diğer':      { co2: 40,  water: 300,   incin: 10 },
       }[category] ?? { co2: 40, water: 300, incin: 10 };
       const co2   = Math.round(f.co2 * amount);
@@ -1212,7 +1209,7 @@
             <div class="flex flex-col lg:flex-row gap-8">
               <div class="w-full lg:w-[320px] brutal-card p-5 bg-white space-y-4 shrink-0">
                 <h3 class="text-2xl font-black uppercase border-b-4 border-black pb-3">${t('LEGEND')}</h3>
-                ${['Elektronik','Tekstil','Mobilya','Dikiş Makinesi','Diğer'].map(cat => html`
+                ${['Elektronik','Tekstil','Mobilya','Diğer'].map(cat => html`
                   <div key=${cat} class="flex items-center gap-3">
                     <div class="w-9 h-9 border-4 border-black flex items-center justify-center text-base shrink-0">${getCategoryEmoji(cat)}</div>
                     <span class="font-bold uppercase text-sm">${catName(cat)}</span>
@@ -1275,8 +1272,8 @@
 
               <div>
                 <label class="font-black uppercase text-sm block mb-3">${t('CATEGORY')}</label>
-                <div class="flex flex-wrap gap-2">
-                  ${['Elektronik','Tekstil','Mobilya','Dikiş Makinesi','Diğer'].map(cat => html`
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  ${['Elektronik','Tekstil','Mobilya','Diğer'].map(cat => html`
                     <button key=${cat} onClick=${() => setForm(f => ({...f, category: cat}))}
                             class="border-4 border-black p-2 font-black text-sm uppercase text-center transition-all
                                    ${form.category === cat ? 'bg-brandPink shadow-[3px_3px_0_#000] -translate-y-0.5' : 'bg-mainBg hover:bg-brandPink/40'}">
@@ -2233,8 +2230,8 @@
                   <div class="space-y-8">
                     <div>
                       <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('FIND_STEP1')}</h3>
-                      <div class="flex flex-wrap gap-4">
-                        ${['Elektronik', 'Mobilya', 'Tekstil', 'Dikiş Makinesi', 'Diğer'].map(cat => html`
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        ${['Elektronik', 'Mobilya', 'Tekstil', 'Diğer'].map(cat => html`
                           <button key=${cat} onClick=${() => setMatchCategory(cat)} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${matchCategory === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">${catName(cat)}</button>
                         `)}
                       </div>
@@ -2420,8 +2417,8 @@
                     </div>
                     <div>
                       <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('JOB_CATEGORY_LABEL')}</h3>
-                      <div class="flex flex-wrap gap-4">
-                        ${['Elektronik', 'Tekstil', 'Mobilya', 'Dikiş Makinesi', 'Diğer'].map(cat => html`
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        ${['Elektronik', 'Tekstil', 'Mobilya', 'Diğer'].map(cat => html`
                           <button key=${cat} onClick=${() => setIlanForm(f => ({...f, kategori: cat}))} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${ilanForm.kategori === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">${getCategoryEmoji(cat)} ${catName(cat)}</button>
                         `)}
                       </div>
