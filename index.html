@@ -714,12 +714,7 @@
 
       useEffect(() => {
         document.body.classList.add('ar-open');
-        const langToggle = document.getElementById('lang-toggle');
-        if (langToggle) langToggle.style.display = 'none';
-        return () => {
-          document.body.classList.remove('ar-open');
-          if (langToggle) langToggle.style.display = 'flex';
-        };
+        return () => document.body.classList.remove('ar-open');
       }, []);
 
       useEffect(() => {
@@ -824,7 +819,6 @@
 
       return html`
         <div class="fixed inset-0 z-50 bg-black flex flex-col overflow-hidden" style="touch-action:none">
-          <style>#lang-toggle { display: none !important; }</style>
 
           <!-- Camera feed -->
           <video ref=${videoRef} autoplay playsinline muted
@@ -870,18 +864,18 @@
           </div>
 
           <!-- Top bar -->
-          <div class="absolute top-0 left-0 right-0 flex items-center justify-between p-4 z-10"
+          <div class="absolute top-0 left-0 right-0 p-4 z-10"
             style="background:linear-gradient(to bottom, rgba(0,0,0,0.65), transparent)">
-            <div class="border-4 border-white bg-black/60 px-3 py-1">
+            <div class="border-4 border-white bg-black/60 px-3 py-1 inline-block">
               <span class="font-black text-white text-sm uppercase tracking-widest">
                 ${phase === 'detected' && dt ? (currentLang === 'en' ? dt.nameEn : dt.name) + ' — AR' : 'AR'}
               </span>
             </div>
-            <button onClick=${onClose}
-              class="bg-black text-white border-4 border-white px-4 py-2 font-black text-base shadow-[4px_4px_0px_#fff] active:shadow-[1px_1px_0px_#fff] active:translate-x-1 active:translate-y-1 transition-all">
-              ✕ ${t('AR_CLOSE')}
-            </button>
           </div>
+          <button onClick=${onClose}
+            class="absolute top-[64px] right-4 z-20 bg-black text-white border-4 border-white px-4 py-2 font-black text-base shadow-[4px_4px_0px_#fff] active:shadow-[1px_1px_0px_#fff] active:translate-x-1 active:translate-y-1 transition-all">
+            ✕ ${t('AR_CLOSE')}
+          </button>
 
           <!-- Tool info card (slides up after detection) -->
           ${phase === 'detected' && dt && html`
