@@ -126,6 +126,11 @@
       50%       { background: #fff; }
     }
     .ar-badge-flash { animation: ar-badge-flash 0.6s ease-in-out 3; }
+
+    .ar-open .sticker-drop {
+      opacity: 0 !important;
+      transition: opacity 0.2s ease;
+    }
   </style>
 
   <script>
@@ -314,6 +319,8 @@
         AR_NO_CAMERA: 'Kamera erişimi gerekiyor',
         AR_NO_CAMERA_HINT: 'Tarayıcı ayarlarından kamera iznini vermelisin.',
         AR_CLOSE: 'KAPAT',
+        CAUTION_TITLE: '⚠️ DİKKAT!',
+        CAUTION_DISMISS: 'ANLADIM',
         TOOL_BORROW_SUCCESS: (name, days) => `${name} başarıyla ödünç alındı! ${days} gün içinde iade etmeyi unutma.`,
         CAMPAIGN_USE_SUCCESS: (title, pts) => `Tebrikler! ${title} ödülünü başarıyla aldın. Yeni puanın: ${pts}`,
         USTA_CAMPAIGN_SUCCESS: (title) => `Tebrikler! ${title} ödülünü aldın!`,
@@ -457,6 +464,8 @@
         AR_NO_CAMERA: 'Camera access required',
         AR_NO_CAMERA_HINT: 'Please grant camera permission in browser settings.',
         AR_CLOSE: 'CLOSE',
+        CAUTION_TITLE: '⚠️ CAUTION!',
+        CAUTION_DISMISS: 'GOT IT',
         TOOL_BORROW_SUCCESS: (name, days) => `${name} successfully borrowed! Remember to return within ${days} days.`,
         CAMPAIGN_USE_SUCCESS: (title, pts) => `Congratulations! You received ${title}. New points: ${pts}`,
         USTA_CAMPAIGN_SUCCESS: (title) => `Congratulations! You got ${title}!`,
@@ -694,8 +703,14 @@
     function ARView({ tool, onClose, onBorrow, onReturn, isBorrowed, remaining, isOverdue, available }) {
       const videoRef  = useRef(null);
       const streamRef = useRef(null);
-      const [phase, setPhase]       = useState('scanning'); // scanning | detected | error
-      const [camError, setCamError] = useState(null);
+      const [phase, setPhase]         = useState('scanning'); // scanning | detected | error
+      const [camError, setCamError]   = useState(null);
+      const [showCaution, setShowCaution] = useState(true);
+
+      useEffect(() => {
+        document.body.classList.add('ar-open');
+        return () => document.body.classList.remove('ar-open');
+      }, []);
 
       useEffect(() => {
         let alive = true;
@@ -781,7 +796,40 @@
 
           <!-- Tool info card (slides up after detection) -->
           ${phase === 'detected' && html`
-            <div class="absolute bottom-0 left-0 right-0 p-4 z-10 ar-card-pop">
+            <div class="absolute bottom-0 left-0 right-0 z-10 ar-card-pop" style="max-height:70vh;overflow-y:auto">
+              <div class="p-4 space-y-0">
+
+                <!-- Caution balloon -->
+                ${showCaution && html`
+                  <div class="relative mb-0">
+                    <!-- tail pointing down toward tool card -->
+                    <div class="flex justify-center">
+                      <div style="width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:16px solid #000"></div>
+                    </div>
+                    <div class="flex justify-center" style="margin-top:-14px">
+                      <div style="width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:14px solid #dcfc75"></div>
+                    </div>
+                    <div class="bg-brandYellow border-4 border-black shadow-[6px_6px_0_#000] p-4">
+                      <div class="flex items-center justify-between mb-3">
+                        <span class="font-black text-lg uppercase tracking-widest">${t('CAUTION_TITLE')}</span>
+                        <button onClick=${() => setShowCaution(false)}
+                          class="border-2 border-black bg-black text-brandYellow font-black text-xs px-3 py-1 uppercase shadow-[2px_2px_0_#555] hover:shadow-[1px_1px_0_#555] hover:translate-x-px hover:translate-y-px transition-all">
+                          ${t('CAUTION_DISMISS')}
+                        </button>
+                      </div>
+                      <ul class="space-y-2">
+                        ${(currentLang === 'en' ? tool.cautionEn : tool.caution).map((item, i) => html`
+                          <li key=${i} class="flex items-start gap-2 text-sm font-bold leading-snug">
+                            <span class="font-black shrink-0 mt-px">▸</span>
+                            <span>${item}</span>
+                          </li>
+                        `)}
+                      </ul>
+                    </div>
+                  </div>
+                `}
+
+              </div>
               <div class="bg-white border-4 border-black shadow-[0_-6px_0px_#000] p-5 space-y-4">
                 <div class="flex items-center justify-between gap-4">
                   <div>
@@ -852,12 +900,24 @@
       const [arTool, setArTool]  = useState(null);
 
       const aletler = [
-        { id: 1, name: 'MATKAP',          nameEn: 'DRILL',            emoji: '🔩', desc: 'Kordonsuz 18V Matkap',             descEn: 'Cordless 18V Drill',            days: 7, total: 3 },
-        { id: 2, name: 'MERDİVEN',        nameEn: 'LADDER',           emoji: '🪜', desc: '3 Basamaklı Çelik Merdiven',       descEn: '3-Step Steel Ladder',           days: 3, total: 2 },
-        { id: 3, name: 'DİKİŞ MAKİNESİ', nameEn: 'SEWING MACHINE',   emoji: '🧵', desc: 'Ev Tipi Dikiş Makinesi',           descEn: 'Home Type Sewing Machine',      days: 5, total: 2 },
-        { id: 4, name: 'TORNAVIDA SETİ', nameEn: 'SCREWDRIVER SET',  emoji: '🪛', desc: 'Profesyonel Tornavida Takımı',     descEn: 'Professional Screwdriver Set',  days: 7, total: 4 },
-        { id: 5, name: 'AVOMETRE',        nameEn: 'MULTIMETER',       emoji: '🔌', desc: 'Dijital Multimetre / Test Cihazı', descEn: 'Digital Multimeter / Test Device', days: 3, total: 2 },
-        { id: 6, name: 'ÖLÇÜM SETİ',     nameEn: 'MEASURING SET',    emoji: '📐', desc: 'Lazer Terazi & Dijital Metre',     descEn: 'Laser Level & Digital Meter',   days: 7, total: 3 },
+        { id: 1, name: 'MATKAP',          nameEn: 'DRILL',           emoji: '🔩', desc: 'Kordonsuz 18V Matkap',             descEn: 'Cordless 18V Drill',              days: 7, total: 3,
+          caution:   ['Koruyucu gözlük tak', 'Duvarda boru / elektrik hattı olup olmadığını kontrol et', 'Tetik serbest değilken matkabı fişe takma'],
+          cautionEn: ['Wear protective goggles', 'Check wall for hidden pipes & live cables', 'Never plug in while trigger is engaged'] },
+        { id: 2, name: 'MERDİVEN',        nameEn: 'LADDER',          emoji: '🪜', desc: '3 Basamaklı Çelik Merdiven',       descEn: '3-Step Steel Ladder',             days: 3, total: 2,
+          caution:   ['Yalnızca düz ve sağlam zemine koy', 'En üst basamağa asla çıkma', 'Bir elin her zaman merdivenle temas halinde olsun'],
+          cautionEn: ['Place only on flat and stable ground', 'Never stand on the top step', 'Keep one hand on the ladder at all times'] },
+        { id: 3, name: 'DİKİŞ MAKİNESİ', nameEn: 'SEWING MACHINE',  emoji: '🧵', desc: 'Ev Tipi Dikiş Makinesi',           descEn: 'Home Type Sewing Machine',        days: 5, total: 2,
+          caution:   ['Parmakları iğnenin yolundan uzak tut', 'Başlatmadan önce ipliği doğru yerleştir', 'Kullanım sonrası iğneyi aşağı konuma al'],
+          cautionEn: ['Keep fingers clear of the needle path', 'Thread correctly before starting', 'Lower needle to safe position after use'] },
+        { id: 4, name: 'TORNAVIDA SETİ', nameEn: 'SCREWDRIVER SET', emoji: '🪛', desc: 'Profesyonel Tornavida Takımı',     descEn: 'Professional Screwdriver Set',    days: 7, total: 4,
+          caution:   ['Yanlış uç cıvatayı bozar — doğru boyutu seç', 'Kayma tehlikesine karşı güçlü baskıyla çalış', 'Elektrikli devreler için yalıtımlı model kullan'],
+          cautionEn: ['Wrong bit strips screws — always match the size', 'Apply firm pressure to prevent slipping', 'Use insulated handle for electrical work'] },
+        { id: 5, name: 'AVOMETRE',        nameEn: 'MULTIMETER',      emoji: '🔌', desc: 'Dijital Multimetre / Test Cihazı', descEn: 'Digital Multimeter / Test Device', days: 3, total: 2,
+          caution:   ['Ölçüm öncesi doğru modu seç (AC / DC)', 'Probları bağlamadan önce devreyi kapat', 'Probları doğru terminale bağla (+ ve −)'],
+          cautionEn: ['Select correct mode (AC / DC) before measuring', 'Turn off circuit before connecting probes', 'Connect probes to correct terminals (+ and −)'] },
+        { id: 6, name: 'ÖLÇÜM SETİ',     nameEn: 'MEASURING SET',   emoji: '📐', desc: 'Lazer Terazi & Dijital Metre',     descEn: 'Laser Level & Digital Meter',     days: 7, total: 3,
+          caution:   ['Lazer ışınını kesinlikle gözlere yöneltme', 'Lazer teraziyi metal yüzey üzerinde kalibre et', 'Uzun kullanım öncesinde pil seviyesini kontrol et'],
+          cautionEn: ['Never point laser beam at eyes', 'Calibrate laser level on a flat metal surface', 'Check battery level before extended use'] },
       ];
 
       const q = search.trim().toLowerCase();
