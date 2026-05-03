@@ -762,13 +762,15 @@
                 if (lower.includes('screwdriver')) return 4;
                 if (lower.includes('multimeter') || lower.includes('voltmeter')) return 5;
                 if (lower.includes('measuring') || lower.includes('rule') || lower.includes('tape')) return 6;
+                if (lower.includes('pencil') || lower.includes('pen') || lower.includes('crayon') || lower.includes('marker')) return 7;
                 return null;
               };
 
-              const loopClassify = () => {
+              const loopClassify = async () => {
                 if (!alive || !isClassifying || !videoRef.current) return;
-                classifier.classify(videoRef.current, 15, (err, results) => {
-                  if (err || !alive || !isClassifying) return;
+                try {
+                  const results = await classifier.classify(videoRef.current);
+                  if (!alive || !isClassifying) return;
                   if (results && results.length > 0) {
                     setCurrentScan(results[0].label);
                     for (let i = 0; i < results.length; i++) {
@@ -784,13 +786,22 @@
                       }
                     }
                   }
-                  setTimeout(loopClassify, 250);
-                });
+                } catch (err) {
+                  console.error("ml5 err:", err);
+                }
+                setTimeout(loopClassify, 250);
               };
 
-              videoRef.current.onloadeddata = () => {
-                if (alive && isClassifying) loopClassify();
+              const startClassification = () => {
+                if (videoRef.current && videoRef.current.readyState >= 2) {
+                  loopClassify();
+                } else if (videoRef.current) {
+                  videoRef.current.onloadeddata = () => {
+                    if (alive && isClassifying) loopClassify();
+                  };
+                }
               };
+              startClassification();
             }
           } catch (e) {
             console.error(e);
@@ -813,6 +824,7 @@
 
       return html`
         <div class="fixed inset-0 z-50 bg-black flex flex-col overflow-hidden" style="touch-action:none">
+          <style>#lang-toggle { display: none !important; }</style>
 
           <!-- Camera feed -->
           <video ref=${videoRef} autoplay playsinline muted
@@ -994,6 +1006,9 @@
         { id: 6, name: 'ÖLÇÜM SETİ',     nameEn: 'MEASURING SET',   emoji: '📐', desc: 'Lazer Terazi & Dijital Metre',     descEn: 'Laser Level & Digital Meter',     days: 7, total: 3,
           caution:   ['Lazer ışınını kesinlikle gözlere yöneltme', 'Lazer teraziyi metal yüzey üzerinde kalibre et', 'Uzun kullanım öncesinde pil seviyesini kontrol et'],
           cautionEn: ['Never point laser beam at eyes', 'Calibrate laser level on a flat metal surface', 'Check battery level before extended use'] },
+        { id: 7, name: 'KURŞUN KALEM',   nameEn: 'PENCIL',          emoji: '✏️', desc: 'Sıradan Kurşun Kalem (Test)',      descEn: 'Regular Pencil (Test)',           days: 1, total: 10,
+          caution:   ['Ucuna dikkat et', 'Çok bastırma'],
+          cautionEn: ['Watch the tip', 'Do not press too hard'] },
       ];
 
       const q = search.trim().toLowerCase();
