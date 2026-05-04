@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, send_from_directory
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
@@ -286,6 +286,33 @@ def export_conversations():
         w.writerow([r['user_email'], r['user_role'], r['sender'], r['message'], r['created_at']])
     return Response(out.getvalue(), mimetype='text/csv',
                     headers={'Content-Disposition': 'attachment; filename=konusmalar.csv'})
+
+
+MIME_TYPES = {
+    '.reality': 'model/vnd.reality',
+    '.usdz':    'model/vnd.usdz+zip',
+    '.js':      'application/javascript',
+    '.css':     'text/css',
+    '.html':    'text/html',
+    '.json':    'application/json',
+    '.png':     'image/png',
+    '.jpg':     'image/jpeg',
+    '.jpeg':    'image/jpeg',
+    '.svg':     'image/svg+xml',
+    '.ico':     'image/x-icon',
+    '.woff2':   'font/woff2',
+    '.woff':    'font/woff',
+}
+
+@app.route('/', defaults={'path': 'index.html'})
+@app.route('/<path:path>')
+def serve_static(path):
+    full = os.path.join(BASE_DIR, path)
+    if os.path.isfile(full):
+        ext = os.path.splitext(path)[1].lower()
+        mime = MIME_TYPES.get(ext)
+        return send_from_directory(BASE_DIR, path, mimetype=mime)
+    return send_from_directory(BASE_DIR, 'index.html')
 
 
 if __name__ == '__main__':
