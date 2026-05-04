@@ -753,11 +753,13 @@
                 const lower = label.toLowerCase();
                 if (lower.includes('drill') || lower.includes('power drill')) return 1;
                 if (lower.includes('ladder') || lower.includes('step stool')) return 2;
-                if (lower.includes('sewing machine') || lower.includes('loom') || lower.includes('bobbin') || lower.includes('spinning wheel')) return 3;
+                if (lower.includes('sewing machine') || lower.includes('loom') || lower.includes('bobbin') || lower.includes('spinning wheel') || lower.includes('pencil sharpener')) return 3;
                 if (lower.includes('screwdriver')) return 4;
                 if (lower.includes('multimeter') || lower.includes('voltmeter')) return 5;
                 if (lower.includes('measuring') || lower.includes('rule') || lower.includes('tape')) return 6;
-                if (lower.includes('pencil') || lower.includes('pen') || lower.includes('crayon') || lower.includes('marker')) return 7;
+                
+                // Kalem kontrolünde sharpener'ı hariç tutalım, veya direkt önce sharpener (3) döndüğü için sorun çözülür.
+                if (lower === 'pencil' || lower === 'pen' || lower.includes('crayon') || lower.includes('marker')) return 7;
                 return null;
               };
 
@@ -927,6 +929,29 @@
                     ${t('TOOL_AVAILABLE_UNITS', available)}
                   </span>
                 </div>
+
+                ${dt.arFile && html`
+                  <button
+                    onClick=${() => {
+                      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                      if (isIOS) {
+                        const a = Object.assign(document.createElement('a'), { rel: 'ar', href: dt.arFile });
+                        a.appendChild(document.createElement('img'));
+                        document.body.appendChild(a);
+                        a.click();
+                        requestAnimationFrame(() => a.remove());
+                      } else {
+                        alert(currentLang === 'en'
+                          ? '🥽 AR Quick Look requires iPhone or iPad with Safari.\n\nOn your iPhone: open this page in Safari and tap "View in AR".'
+                          : '🥽 AR Quick Look özelliği Safari\'li iPhone veya iPad gerektirir.\n\niPhone\'unda Safari ile bu sayfayı aç ve "AR\'da Gör" butonuna bas.');
+                      }
+                    }}
+                    class="w-full bg-black text-brandYellow border-4 border-black p-3 font-black text-base uppercase shadow-[4px_4px_0_#555] hover:translate-y-px hover:shadow-[3px_3px_0_#555] transition-all flex items-center justify-center gap-2">
+                    🥽 ${currentLang === 'en' ? 'VIEW IN AR' : 'AR\'DA GÖR'}
+                    <span class="text-xs font-bold opacity-60">(iOS)</span>
+                  </button>
+                `}
+
                 <div class="border-t-4 border-black pt-3">
                   ${isBorrowed ? html`
                     <div class="${isOverdue ? 'bg-red-100 border-red-500 text-red-700' : 'bg-brandYellow'} border-4 border-black p-3 text-center mb-3">
@@ -990,7 +1015,8 @@
           cautionEn: ['Place only on flat and stable ground', 'Never stand on the top step', 'Keep one hand on the ladder at all times'] },
         { id: 3, name: 'DİKİŞ MAKİNESİ', nameEn: 'SEWING MACHINE',  emoji: '🧵', desc: 'Ev Tipi Dikiş Makinesi',           descEn: 'Home Type Sewing Machine',        days: 5, total: 2,
           caution:   ['Parmakları iğnenin yolundan uzak tut', 'Başlatmadan önce ipliği doğru yerleştir', 'Kullanım sonrası iğneyi aşağı konuma al'],
-          cautionEn: ['Keep fingers clear of the needle path', 'Thread correctly before starting', 'Lower needle to safe position after use'] },
+          cautionEn: ['Keep fingers clear of the needle path', 'Thread correctly before starting', 'Lower needle to safe position after use'],
+          arFile: 'MBL514E_sewing_machine.reality' },
         { id: 4, name: 'TORNAVIDA SETİ', nameEn: 'SCREWDRIVER SET', emoji: '🪛', desc: 'Profesyonel Tornavida Takımı',     descEn: 'Professional Screwdriver Set',    days: 7, total: 4,
           caution:   ['Yanlış uç cıvatayı bozar — doğru boyutu seç', 'Kayma tehlikesine karşı güçlü baskıyla çalış', 'Elektrikli devreler için yalıtımlı model kullan'],
           cautionEn: ['Wrong bit strips screws — always match the size', 'Apply firm pressure to prevent slipping', 'Use insulated handle for electrical work'] },
@@ -1074,7 +1100,10 @@
                             ${isBorrowed ? 'border-brandBlue shadow-[8px_8px_0px_#054ff0]' : isUnavailable ? 'opacity-60' : 'hover:-translate-y-1'}">
                   <div class="flex justify-between items-start">
                     <span class="text-5xl">${alet.emoji}</span>
-                    <span class="font-black text-xs uppercase border-2 border-black px-2 py-1 ${available === 0 && !isBorrowed ? 'bg-red-100 text-red-600' : 'bg-mainBg'}">${t('TOOL_AVAILABLE_UNITS', available)}</span>
+                    <div class="flex flex-col items-end gap-1">
+                      <span class="font-black text-xs uppercase border-2 border-black px-2 py-1 ${available === 0 && !isBorrowed ? 'bg-red-100 text-red-600' : 'bg-mainBg'}">${t('TOOL_AVAILABLE_UNITS', available)}</span>
+                      ${alet.arFile && html`<span class="font-black text-[10px] uppercase bg-black text-brandYellow px-2 py-0.5 tracking-widest">🥽 AR</span>`}
+                    </div>
                   </div>
                   <div>
                     <h3 class="text-xl md:text-2xl font-black uppercase leading-tight">${currentLang === 'en' ? alet.nameEn : alet.name}</h3>
