@@ -963,7 +963,8 @@
                 ${dt.arFile && html`
                   <button
                     onClick=${() => {
-                      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                      const isIOS = (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream)
+                        || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
                       if (isIOS) {
                         const a = Object.assign(document.createElement('a'), { rel: 'ar', href: dt.arFile });
                         a.appendChild(document.createElement('img'));
@@ -1486,7 +1487,8 @@
       }, []);
 
       function openAR(arFile) {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isIOS = (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream)
+          || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         if (isIOS) {
           const a = Object.assign(document.createElement('a'), { rel: 'ar', href: arFile });
           a.appendChild(document.createElement('img'));
@@ -1789,10 +1791,10 @@
           co2: impact.co2,
           lat: parseFloat(customerLocation ? customerLocation.lat : 40.988),
           lon: parseFloat(customerLocation ? customerLocation.lon : 29.045),
-          deadline: null,
+          deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           assignedTo: null,
           assignedDate: null,
-          img: { 'Elektronik': 'telefon.png', 'Tekstil': 'dikis_makinesi.png' }[form.kategori] || 'ingiliz_anahtari.png'
+          img: { 'Elektronik': 'telefon.png', 'Tekstil': 'dikis_makinesi.png', 'Mobilya': 'dikis_makinesi.png' }[form.kategori] || 'ingiliz_anahtari.png'
         };
 
         try {
