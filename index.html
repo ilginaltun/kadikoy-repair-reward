@@ -1047,7 +1047,7 @@
         { id: 3, name: 'DİKİŞ MAKİNESİ', nameEn: 'SEWING MACHINE',  emoji: '🧵', desc: 'Ev Tipi Dikiş Makinesi',           descEn: 'Home Type Sewing Machine',        days: 5, total: 2,
           caution:   ['Parmakları iğnenin yolundan uzak tut', 'Başlatmadan önce ipliği doğru yerleştir', 'Kullanım sonrası iğneyi aşağı konuma al'],
           cautionEn: ['Keep fingers clear of the needle path', 'Thread correctly before starting', 'Lower needle to safe position after use'],
-          arFile: 'MBL514E_sewing_machine.reality' },
+          arFile: 'MBL514E_sewing_machine.usdz' },  /* .reality → "Object could not be opened" verir çünkü çok sahneli+behavior içeriyor. USDZ gerekli: Reality Composer → Export → USDZ */
         { id: 4, name: 'TORNAVIDA SETİ', nameEn: 'SCREWDRIVER SET', emoji: '🪛', desc: 'Profesyonel Tornavida Takımı',     descEn: 'Professional Screwdriver Set',    days: 7, total: 4,
           caution:   ['Yanlış uç cıvatayı bozar — doğru boyutu seç', 'Kayma tehlikesine karşı güçlü baskıyla çalış', 'Elektrikli devreler için yalıtımlı model kullan'],
           cautionEn: ['Wrong bit strips screws — always match the size', 'Apply firm pressure to prevent slipping', 'Use insulated handle for electrical work'] },
@@ -1466,7 +1466,7 @@
       const arItems = [
         { id: 1, name: 'DİKİŞ MAKİNESİ', nameEn: 'SEWING MACHINE', emoji: '🧵',
           desc: 'Ev Tipi Dikiş Makinesi', descEn: 'Home Type Sewing Machine',
-          arFile: 'MBL514E_sewing_machine.reality' },
+          arFile: 'MBL514E_sewing_machine.usdz' },  /* .reality → "Object could not be opened" verir çünkü çok sahneli+behavior içeriyor. USDZ gerekli: Reality Composer → Export → USDZ */
         { id: 2, name: 'SANDALYE', nameEn: 'CHAIR', emoji: '🪑',
           desc: 'Ahşap Oturma Sandalyesi', descEn: 'Wooden Dining Chair', arFile: null },
         { id: 3, name: 'KOLTUK', nameEn: 'ARMCHAIR', emoji: '🛋️',

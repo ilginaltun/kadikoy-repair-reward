@@ -1,4 +1,14 @@
 {
+  "headers": [
+    {
+      "source": "/(.*)\\.reality",
+      "headers": [{ "key": "Content-Type", "value": "model/vnd.reality" }]
+    },
+    {
+      "source": "/(.*)\\.usdz",
+      "headers": [{ "key": "Content-Type", "value": "model/vnd.usdz+zip" }]
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
