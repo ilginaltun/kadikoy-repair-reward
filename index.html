@@ -778,11 +778,24 @@
 
               if (!alive || !model) return;
 
-              const mapLabelToTool = (label) => {
-                const l = label.toLowerCase().trim();
-                if (l.includes('sew') || l.includes('dikiş')) return 3;  // "seewing machiene" ve varyantları
-                // "pencil" → eşleşme yok, null döner
-                return null;
+              // Sınıf adı → araç id eşleştirmesi (TM'den gelen class name'e göre)
+              const CLASS_MAP = {
+                'class 1': 3,  // seewing machiene → Dikiş Makinesi
+                'seewing machiene': 3,
+                'sewing machine': 3,
+                'class 2': 7,  // pencil → Kurşun Kalem
+                'pencil': 7,
+              };
+
+              const mapLabelToTool = (label) => CLASS_MAP[label.toLowerCase().trim()] ?? null;
+
+              // Sınıf adını okunabilir isime çevir
+              const CLASS_DISPLAY = {
+                'class 1': 'Dikiş Makinesi',
+                'seewing machiene': 'Dikiş Makinesi',
+                'sewing machine': 'Dikiş Makinesi',
+                'class 2': 'Kalem',
+                'pencil': 'Kalem',
               };
 
               let confirmCount = 0;
@@ -794,9 +807,9 @@
                   const predictions = await model.predict(videoRef.current);
                   if (!alive || !isClassifying) return;
 
-                  // En yüksek confidence'lı sonuç
                   const best = predictions.reduce((a, b) => a.probability > b.probability ? a : b);
-                  setCurrentScan(`${best.className} (${(best.probability * 100).toFixed(0)}%)`);
+                  const displayName = CLASS_DISPLAY[best.className.toLowerCase().trim()] || best.className;
+                  setCurrentScan(`${displayName} (${(best.probability * 100).toFixed(0)}%)`);
 
                   const matchId = best.probability >= 0.75 ? mapLabelToTool(best.className) : null;
 
