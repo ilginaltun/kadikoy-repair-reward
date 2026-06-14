@@ -1788,6 +1788,8 @@
           setUstaLocation(null);
           setSelectedRole(null); setEmail(''); setPassword(''); setAuthError('');
           setMessages([{ role: 'bot', text: currentLang === 'en' ? (selectedRole === 'tamirci' ? 'Hey master! 🔧 There are jobs waiting nearby. Type "any jobs?" or a category, I\'ll list them!' : t('CHATBOT_GREETING')) : (selectedRole === 'tamirci' ? 'Selam usta! 🔧 Yakında bekleyen işlerin var. "iş var mı" yaz veya kategori söyle, hemen listelerim!' : t('CHATBOT_GREETING')) }]);
+          if (selectedRole === 'musteri') requestLocationPermission();
+          else if (selectedRole === 'tamirci') requestUstaLocationPermission();
           setIsLoggingIn(false);
         };
 
@@ -1806,6 +1808,8 @@
           setUstaLocation(null);
           setSelectedRole(null); setEmail(''); setPassword(''); setAuthError('');
           setMessages([{ role: 'bot', text: currentLang === 'en' ? (selectedRole === 'tamirci' ? 'Hey master! 🔧 There are jobs waiting nearby. Type "any jobs?" or a category, I\'ll list them!' : t('CHATBOT_GREETING')) : (selectedRole === 'tamirci' ? 'Selam usta! 🔧 Yakında bekleyen işlerin var. "iş var mı" yaz veya kategori söyle, hemen listelerim!' : t('CHATBOT_GREETING')) }]);
+          if (selectedRole === 'musteri') requestLocationPermission();
+          else if (selectedRole === 'tamirci') requestUstaLocationPermission();
           setIsLoggingIn(false);
         } catch (_) {
           clearTimeout(timer);
@@ -2422,24 +2426,6 @@
                   </div>
                 `}
 
-                <div class="brutal-card p-5 md:p-8 bg-white border-[5px]">
-                  <div class="inline-block relative mb-6">
-                    <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
-                    <h2 class="relative bg-black text-white px-5 py-2 text-xl md:text-3xl font-black uppercase tracking-tighter border-4 border-black">${t('RECENT_REPAIRS')}</h2>
-                  </div>
-                  <div class="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
-                    ${sonTamirlerData.map(r => html`
-                      <div key=${r.id} onClick=${() => handleShowRepairImpact(r)}
-                           class="shrink-0 w-44 md:w-52 border-4 border-black p-4 cursor-pointer hover:-translate-y-1 transition-all ${r.bg} ${r.text} flex flex-col gap-2 shadow-[4px_4px_0px_#000]">
-                        <p class="font-black text-sm uppercase leading-tight">${r.isim}</p>
-                        <p class="font-bold text-xs opacity-70">${r.konum}</p>
-                        <p class="font-bold text-xs opacity-50">${r.tarih}</p>
-                        <div class="mt-auto bg-black text-brandYellow px-2 py-1 text-xs font-black uppercase border-2 border-black w-fit">${r.puan} ${currentLang === 'en' ? 'PTS' : 'PUAN'}</div>
-                      </div>
-                    `)}
-                  </div>
-                </div>
-
                 <div class="brutal-card p-6 md:p-10 bg-white border-[5px]">
                   <div class="inline-block relative mb-8">
                     <div class="absolute inset-0 bg-brandYellow transform translate-x-2 translate-y-2 border-4 border-black"></div>
@@ -2490,9 +2476,27 @@
                         </div>
                       </div>
                     </div>
-                    <div class="border-4 border-black overflow-hidden min-h-[300px] md:min-h-[400px]">
-                      <img src="kadıköy tamir ediyor.png" alt="Kadıköy Tamir Ediyor" class="w-full h-full object-cover" style="min-height:300px;" />
+                    <div class="border-4 border-black overflow-hidden aspect-square h-max bg-gray-100 flex items-center justify-center">
+                      <img src="kadıköy tamir ediyor.png" alt="Kadıköy Tamir Ediyor" class="w-full h-full object-cover" />
                     </div>
+                  </div>
+                </div>
+
+                <div class="brutal-card p-5 md:p-8 bg-white border-[5px]">
+                  <div class="inline-block relative mb-6">
+                    <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                    <h2 class="relative bg-black text-white px-5 py-2 text-xl md:text-3xl font-black uppercase tracking-tighter border-4 border-black">${t('RECENT_REPAIRS')}</h2>
+                  </div>
+                  <div class="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+                    ${sonTamirlerData.map(r => html`
+                      <div key=${r.id} onClick=${() => handleShowRepairImpact(r)}
+                           class="shrink-0 w-44 md:w-52 border-4 border-black p-4 cursor-pointer hover:-translate-y-1 transition-all ${r.bg} ${r.text} flex flex-col gap-2 shadow-[4px_4px_0px_#000]">
+                        <p class="font-black text-sm uppercase leading-tight">${r.isim}</p>
+                        <p class="font-bold text-xs opacity-70">${r.konum}</p>
+                        <p class="font-bold text-xs opacity-50">${r.tarih}</p>
+                        <div class="mt-auto bg-black text-brandYellow px-2 py-1 text-xs font-black uppercase border-2 border-black w-fit">${r.puan} ${currentLang === 'en' ? 'PTS' : 'PUAN'}</div>
+                      </div>
+                    `)}
                   </div>
                 </div>
               </div>
