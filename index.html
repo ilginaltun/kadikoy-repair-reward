@@ -2763,7 +2763,7 @@
                     const open = interiorRatio > 0.45 && darkRatio < 0.22;
                     const cx=Math.round(x0+(gx+0.5)*cellW), cy=Math.round(y0+(gy+0.5)*cellH);
                     const nx=(gx+0.5)/GW, ny=(gy+0.5)/GH;
-                    grid.push({gx,gy,cx,cy,open,lum:avgLum,nx,ny,interiorRatio,avgDist});
+                    grid.push({gx,gy,cx,cy,open,lum:avgLum,nx,ny,interiorRatio,avgDist, darkRatio});
                   }
                 }
 
@@ -2772,6 +2772,38 @@
                 if(openCount < grid.length * 0.04) {
                   grid.forEach(c => { c.open = c.lum > 215; });
                 }
+
+                // 2. pass: Yönelim ve kapı/boşluk algılama
+                grid.forEach(c => {
+                  if(!c.open) return;
+                  const getD = (dx,dy) => {
+                    const n = grid.find(g => g.gx===c.gx+dx && g.gy===c.gy+dy);
+                    return n ? n.darkRatio : 1; // sınırlar dışı duvar sayılır
+                  };
+                  const wallL = getD(-1,0) + getD(-2,0);
+                  const wallR = getD(1,0) + getD(2,0);
+                  const wallT = getD(0,-1) + getD(0,-2);
+                  const wallB = getD(0,1) + getD(0,2);
+                  
+                  const maxWall = Math.max(wallL, wallR, wallT, wallB);
+                  if (maxWall > 0.15) {
+                    if (maxWall === wallL || maxWall === wallR) c.wallDir = 'V'; // Duvar sol/sağ -> obje dikey durmalı
+                    else c.wallDir = 'H'; // Duvar üst/alt -> obje yatay durmalı
+                  } else {
+                    c.wallDir = 'H'; // Ortada kalan objeler varsayılan yatay
+                  }
+
+                  const getO = (dx,dy) => {
+                    const n = grid.find(g => g.gx===c.gx+dx && g.gy===c.gy+dy);
+                    return n ? n.open : false;
+                  };
+                  const isEdge = (!getO(-1,0) || !getO(1,0) || !getO(0,-1) || !getO(0,1));
+                  // Kenar hücresi ama etrafında karanlık piksel azsa boşluktur (kapı/pencere)
+                  if (isEdge && maxWall < 0.10 && c.lum > 180) {
+                     c.open = false; // Buraya eşya koyma
+                  }
+                });
+
                 return { grid, cellW, cellH };
               };
 
@@ -2895,9 +2927,13 @@
                   const areaM2 = roomArea || 60;
                   const pxPerMeter = Math.sqrt((bW * bH) / areaM2);
                   const pxPerCm = pxPerMeter / 100;
-                  const blockR = Math.max(1, Math.ceil(spec.wCm * pxPerCm / (bW / GW)));
-                  for (let dy = -blockR; dy <= blockR; dy++)
-                    for (let dx = -blockR; dx <= blockR; dx++)
+                  const rotated = cell.wallDir === 'V';
+                  const realW = rotated ? spec.dCm : spec.wCm;
+                  const realH = rotated ? spec.wCm : spec.dCm;
+                  const rX = Math.max(1, Math.ceil(realW * pxPerCm / (bW / GW)));
+                  const rY = Math.max(1, Math.ceil(realH * pxPerCm / (bH / GH)));
+                  for (let dy = -rY; dy <= rY; dy++)
+                    for (let dx = -rX; dx <= rX; dx++)
                       usedCells.add(`${cell.gx+dx},${cell.gy+dy}`);
 
                   suggestions.push({
@@ -2906,6 +2942,7 @@
                     zone:    spec.zone,
                     wCm:     spec.wCm,
                     dCm:     spec.dCm,
+                    rotated: rotated,
                     x: cell.cx, y: cell.cy,
                     wallPrefer: spec.wallPrefer,
                     reason:  currentLang === 'en' ? spec.reasonEn : spec.reason,
@@ -2924,8 +2961,10 @@
                   const areaM2 = roomArea || 60;
                   const pxPerMeter = Math.sqrt((bW * bH) / areaM2);
                   const pxPerCm = pxPerMeter / 100;
-                  const rW = Math.max(18, s.wCm * pxPerCm * 0.5);
-                  const rH = Math.max(14, s.dCm * pxPerCm * 0.5);
+                  const realW = s.rotated ? s.dCm : s.wCm;
+                  const realH = s.rotated ? s.wCm : s.dCm;
+                  const rW = Math.max(14, realW * pxPerCm * 0.5);
+                  const rH = Math.max(14, realH * pxPerCm * 0.5);
 
                   // Gölge
                   ctx.fillStyle = 'rgba(0,0,0,0.18)';
@@ -2959,7 +2998,7 @@
                   ctx.fillStyle = 'rgba(0,0,0,0.75)';
                   ctx.font = 'bold 9px sans-serif';
                   ctx.textAlign = 'center';
-                  ctx.fillText(`${s.wCm}×${s.dCm}cm`, s.x, s.y + rH + 8);
+                  ctx.fillText(s.rotated ? `${s.dCm}×${s.wCm}cm` : `${s.wCm}×${s.dCm}cm`, s.x, s.y + rH + 8);
                 });
 
                 setAnalyzing(false);
