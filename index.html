@@ -1520,6 +1520,63 @@
       `;
     }
 
+    function JobChatModal({ job, chatJobId, setChatJobId, auth, apiBase, currentLang, t, jobChats, setJobChats }) {
+      const [chatMessages, setChatMessages] = useState([]);
+      const [chatInputItem, setChatInputItem] = useState('');
+      
+      useEffect(() => {
+        if (!chatJobId) return;
+        fetch(`${apiBase}/api/messages?jobId=${chatJobId}`)
+          .then(res => res.json())
+          .then(data => setChatMessages(data))
+          .catch(() => setChatMessages(jobChats[chatJobId] || []));
+      }, [chatJobId, apiBase, jobChats]);
+
+      const handleSendChat = () => {
+        if (!chatInputItem.trim()) return;
+        const newMsg = { role: auth.role, name: auth.email.split('@')[0], text: chatInputItem.trim(), time: new Date().toISOString() };
+        fetch(`${apiBase}/api/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobId: chatJobId, ...newMsg })
+        }).then(() => {
+          setChatMessages(prev => [...prev, newMsg]);
+          setChatInputItem('');
+        }).catch(() => {
+          setJobChats(prev => ({...prev, [chatJobId]: [...(prev[chatJobId] || []), newMsg]}));
+          setChatMessages(prev => [...prev, newMsg]);
+          setChatInputItem('');
+        });
+      };
+
+      if (!job) return null;
+      const otherName = auth.role === 'musteri' ? (job.assignedTo ? job.assignedTo.split('@')[0] : (currentLang === 'en' ? 'Master' : 'Usta')) : job.musteri;
+      
+      return html`
+        <div class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/70">
+          <div class="brutal-card bg-white max-w-md w-full p-6 md:p-10 space-y-5 border-[6px] max-h-[80vh] flex flex-col">
+            <div class="flex items-center justify-between">
+              <h3 class="text-2xl font-black uppercase">${t('MESSAGES_WITH', job.baslik, otherName)}</h3>
+              <button onClick=${() => setChatJobId(null)} class="text-3xl hover:scale-125 transition-transform">×</button>
+            </div>
+            <div class="flex-grow overflow-y-auto space-y-4 max-h-64">
+              ${chatMessages.length === 0 ? html`<p class="text-center text-gray-500">${t('NO_MESSAGES')}</p>` : chatMessages.map((m, idx) => html`
+                <div key=${idx} class="p-3 border-4 border-black font-bold text-black ${m.role === auth.role ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
+                  <div class="text-xs font-bold uppercase text-gray-600 mb-1">${m.name}</div>
+                  ${m.text}
+                </div>
+              `)}
+            </div>
+            <div class="flex gap-2">
+              <input value=${chatInputItem} onInput=${e => setChatInputItem(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSendChat()}
+                     class="flex-grow p-2 border-4 border-black outline-none font-bold" placeholder="${t('MSG_PLACEHOLDER')}" />
+              <button onClick=${handleSendChat} class="bg-black text-white px-4 border-4 border-black font-black">${t('MSG_SEND')}</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     // ── App ────────────────────────────────────────────────────────────────
     function App() {
       const [language, setLanguage]                     = useState(currentLang);
@@ -2249,58 +2306,7 @@
 
             <${ChatBot} isChatOpen=${isChatOpen} setIsChatOpen=${setIsChatOpen} messages=${messages} input=${chatInput} setInput=${setChatInput} handleSend=${handleSend} allShops=${allShops} onShopClick=${handleShopSelect} title="USTA AI" />
             ${impactModal && html`<${ImpactModal} data=${impactModal} onClose=${() => setImpactModal(null)} />`}
-            ${chatJobId && (() => {
-              const job = jobPostings.find(j => String(j.id) === String(chatJobId));
-              if(!job) return null;
-              const [chatMessages, setChatMessages] = useState([]);
-              const [chatInputItem, setChatInputItem] = useState('');
-              useEffect(() => {
-                fetch(`${apiBase}/api/messages?jobId=${chatJobId}`)
-                  .then(res => res.json())
-                  .then(data => setChatMessages(data))
-                  .catch(() => setChatMessages(jobChats[chatJobId] || []));
-              }, [chatJobId]);
-              const handleSendChat = () => {
-                if (!chatInputItem.trim()) return;
-                const newMsg = { role: auth.role, name: auth.email.split('@')[0], text: chatInputItem.trim(), time: new Date().toISOString() };
-                fetch(`${apiBase}/api/messages`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ jobId: chatJobId, ...newMsg })
-                }).then(() => {
-                  setChatMessages(prev => [...prev, newMsg]);
-                  setChatInputItem('');
-                }).catch(() => {
-                  setJobChats(prev => ({...prev, [chatJobId]: [...(prev[chatJobId] || []), newMsg]}));
-                  setChatMessages(prev => [...prev, newMsg]);
-                  setChatInputItem('');
-                });
-              };
-              const otherName = auth.role === 'musteri' ? (job.assignedTo ? job.assignedTo.split('@')[0] : (currentLang === 'en' ? 'Master' : 'Usta')) : job.musteri;
-              return html`
-                <div class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/70">
-                  <div class="brutal-card bg-white max-w-md w-full p-6 md:p-10 space-y-5 border-[6px] max-h-[80vh] flex flex-col">
-                    <div class="flex items-center justify-between">
-                      <h3 class="text-2xl font-black uppercase">${t('MESSAGES_WITH', job.baslik, otherName)}</h3>
-                      <button onClick=${() => setChatJobId(null)} class="text-3xl hover:scale-125 transition-transform">×</button>
-                    </div>
-                    <div class="flex-grow overflow-y-auto space-y-4 max-h-64">
-                      ${chatMessages.length === 0 ? html`<p class="text-center text-gray-500">${t('NO_MESSAGES')}</p>` : chatMessages.map((m, idx) => html`
-                        <div key=${idx} class="p-3 border-4 border-black font-bold text-black ${m.role === auth.role ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
-                          <div class="text-xs font-bold uppercase text-gray-600 mb-1">${m.name}</div>
-                          ${m.text}
-                        </div>
-                      `)}
-                    </div>
-                    <div class="flex gap-2">
-                      <input value=${chatInputItem} onInput=${e => setChatInputItem(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSendChat()}
-                             class="flex-grow p-2 border-4 border-black outline-none font-bold" placeholder="${t('MSG_PLACEHOLDER')}" />
-                      <button onClick=${handleSendChat} class="bg-black text-white px-4 border-4 border-black font-black">${t('MSG_SEND')}</button>
-                    </div>
-                  </div>
-                </div>
-              `;
-            })()}
+            <${JobChatModal} job=${jobPostings.find(j => String(j.id) === String(chatJobId))} chatJobId=${chatJobId} setChatJobId=${setChatJobId} auth=${auth} apiBase=${apiBase} currentLang=${currentLang} t=${t} jobChats=${jobChats} setJobChats=${setJobChats} />
           </div>
         `;
       }
@@ -3522,6 +3528,7 @@
           />
 
           ${impactModal && html`<${ImpactModal} data=${impactModal} onClose=${() => setImpactModal(null)} />`}
+          <${JobChatModal} job=${jobPostings.find(j => String(j.id) === String(chatJobId))} chatJobId=${chatJobId} setChatJobId=${setChatJobId} auth=${auth} apiBase=${apiBase} currentLang=${currentLang} t=${t} jobChats=${jobChats} setJobChats=${setJobChats} />
         </div>
       `;
     }
