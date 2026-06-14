@@ -2684,38 +2684,72 @@
                 return { x0: x0+pad, y0: y0+pad, x1: x1-pad, y1: y1-pad };
               };
 
-              // ── ADIM 2: açık alan ızgarası (GW×GH hücre, 7×7 piksel örnekleme) ──
+              // ── ADIM 2: flood-fill tabanlı açık alan ızgarası ──────────────────
+              // Köşelerden başlayarak dışarıya flood-fill uygula.
+              // Duvarlara takılmadan ulaşılabilen beyaz piksel = BİNA DIŞI.
+              // Geriye kalan beyaz = oda içi = alet konabilir alan.
               const buildOpenGrid = (data, W, H, bounds, GW, GH) => {
                 const { x0, y0, x1, y1 } = bounds;
                 const bW = Math.max(1, x1 - x0), bH = Math.max(1, y1 - y0);
                 const cellW = bW / GW, cellH = bH / GH;
+
+                // 1) Piksel başına "açık mı?" (duvar değil mi?) — lum > 185
+                const pixOpen = new Uint8Array(W * H);
+                for (let y = 0; y < H; y++) {
+                  for (let x = 0; x < W; x++) {
+                    const i = (y * W + x) * 4;
+                    const l = data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114;
+                    pixOpen[y * W + x] = l > 185 ? 1 : 0;
+                  }
+                }
+
+                // 2) Flood-fill: tüm canvas köşelerinden dışarıya yayıl
+                const exterior = new Uint8Array(W * H);
+                const queue = [];
+                const seed = (px, py) => {
+                  if (px < 0 || px >= W || py < 0 || py >= H) return;
+                  const idx = py * W + px;
+                  if (!exterior[idx] && pixOpen[idx]) { exterior[idx] = 1; queue.push(idx); }
+                };
+                for (let x = 0; x < W; x++) { seed(x, 0); seed(x, H-1); }
+                for (let y = 0; y < H; y++) { seed(0, y); seed(W-1, y); }
+                let head = 0;
+                while (head < queue.length) {
+                  const idx = queue[head++];
+                  const px = idx % W, py = (idx / W) | 0;
+                  seed(px+1, py); seed(px-1, py); seed(px, py+1); seed(px, py-1);
+                }
+
+                // 3) Hücre ızgarası: her hücrede piksel sayımı
                 const grid = [];
                 for (let gy = 0; gy < GH; gy++) {
                   for (let gx = 0; gx < GW; gx++) {
-                    const cx = Math.round(x0 + gx * cellW + cellW / 2);
-                    const cy = Math.round(y0 + gy * cellH + cellH / 2);
-                    // 7×7 piksel bölge — kenarlar ve iç çizgileri yakala
-                    let lum = 0, darkCount = 0, count = 0;
-                    for (let dy = -3; dy <= 3; dy++) {
-                      for (let dx = -3; dx <= 3; dx++) {
-                        const px = cx+dx, py = cy+dy;
-                        if (px < 0 || py < 0 || px >= W || py >= H) continue;
-                        const i = (py * W + px) * 4;
+                    const cx0 = Math.round(x0 + gx * cellW);
+                    const cy0 = Math.round(y0 + gy * cellH);
+                    const cx1 = Math.min(W-1, Math.round(x0 + (gx+1) * cellW));
+                    const cy1 = Math.min(H-1, Math.round(y0 + (gy+1) * cellH));
+                    let interior = 0, dark = 0, total = 0, lumSum = 0;
+                    for (let py = cy0; py <= cy1; py++) {
+                      for (let px = cx0; px <= cx1; px++) {
+                        const pidx = py * W + px;
+                        const i = pidx * 4;
                         const l = data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114;
-                        lum += l;
-                        if (l < 160) darkCount++;
-                        count++;
+                        lumSum += l;
+                        if (pixOpen[pidx] && !exterior[pidx]) interior++;
+                        if (l < 160) dark++;
+                        total++;
                       }
                     }
-                    const avgLum  = count > 0 ? lum / count : 0;
-                    const darkRatio = count > 0 ? darkCount / count : 1;
-                    // Hücre açık sayılır: ortalama parlaklık yüksek VE karanlık piksel az
-                    const open = avgLum > 210 && darkRatio < 0.08
-                                 && cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1;
-                    // Normalize konum (0–1), zone karşılaştırması için
-                    const nx = (cx - x0) / bW;
-                    const ny = (cy - y0) / bH;
-                    grid.push({ gx, gy, cx, cy, open, lum: avgLum, nx, ny });
+                    const avgLum = total > 0 ? lumSum / total : 0;
+                    // Hücre açık sayılır: piksellerinin >55%'i oda içi VE karanlık piksel az
+                    const interiorRatio = total > 0 ? interior / total : 0;
+                    const darkRatio     = total > 0 ? dark / total : 1;
+                    const open = interiorRatio > 0.55 && darkRatio < 0.18;
+                    const cx  = Math.round(x0 + (gx + 0.5) * cellW);
+                    const cy  = Math.round(y0 + (gy + 0.5) * cellH);
+                    const nx  = (gx + 0.5) / GW;
+                    const ny  = (gy + 0.5) / GH;
+                    grid.push({ gx, gy, cx, cy, open, lum: avgLum, nx, ny, interiorRatio });
                   }
                 }
                 return { grid, cellW, cellH };
