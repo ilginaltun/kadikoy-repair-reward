@@ -1016,7 +1016,11 @@
                       const isIOS = (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream)
                         || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
                       if (isIOS) {
-                        const a = Object.assign(document.createElement('a'), { rel: 'ar', href: dt.arFile });
+                        const toolName = encodeURIComponent(currentLang === 'en' ? dt.nameEn : dt.name);
+                        const subtitle = encodeURIComponent('Repair Hub — Kadıköy');
+                        const action   = encodeURIComponent(currentLang === 'en' ? 'Borrow Tool' : 'Aleti Ödünç Al');
+                        const arHref   = `${dt.arFile}#allowsContentScaling=0&checkoutTitle=${toolName}&checkoutSubtitle=${subtitle}&callToAction=${action}`;
+                        const a = Object.assign(document.createElement('a'), { rel: 'ar', href: arHref });
                         a.appendChild(document.createElement('img'));
                         document.body.appendChild(a);
                         a.click();
