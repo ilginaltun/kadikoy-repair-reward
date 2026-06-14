@@ -2535,176 +2535,364 @@
             `}
 
             ${view === 'hub' && (() => {
-              const [uploadedImage, setUploadedImage] = useState(null);
+              const [uploadedImage, setUploadedImage] = useState(false);
               const [analyzing, setAnalyzing] = useState(false);
               const [toolSuggestions, setToolSuggestions] = useState(null);
+              const [drawTick, setDrawTick] = useState(0);
               const canvasRef = useRef(null);
 
-              // ML Hybrid System: Rule-based + lightweight TensorFlow.js
-              const TOOL_SPECS = {
-                'MATKAP': { width: 0.3, depth: 0.2, safety: 'electrical', needs: ['table', 'power'], priority: 2, emoji: '🔩' },
-                'DİKİŞ MAKİNESİ': { width: 0.5, depth: 0.4, safety: 'high', needs: ['table', 'light'], priority: 1, emoji: '🧵' },
-                'MERDİVEN': { width: 0.8, depth: 0.8, safety: 'stability', needs: ['wall', 'clearance'], priority: 3, emoji: '🪜' },
-                'TORNAVIDA SETİ': { width: 0.2, depth: 0.15, safety: 'low', needs: ['drawer', 'access'], priority: 2, emoji: '🪛' },
-                'AVOMETRE': { width: 0.15, depth: 0.1, safety: 'electrical', needs: ['bench', 'power'], priority: 1, emoji: '🔌' },
-                'ÖLÇÜM SETİ': { width: 0.3, depth: 0.25, safety: 'low', needs: ['wall', 'visibility'], priority: 2, emoji: '📐' },
-                'KURŞUN KALEM': { width: 0.1, depth: 0.05, safety: 'low', needs: ['drawer'], priority: 3, emoji: '✏️' }
+              // ── HYBRID ML: Repair Hub Physical Layer referanslı ────────────
+              // Kaynak: 60m² Repair Hub layout (Workspace 30-40m², Tool Library 15-20m²,
+              //         Digital Station 10m²) + gerçek ekipman ölçüleri (endüstriyel standartlar)
+              //
+              // ZONE HARİTASI (görseldeki Physical Layer'a göre):
+              //   textile    → sol-orta: tekstil istasyonu (dikiş, overlok)
+              //   electronics → sağ-orta: elektronik istasyonu (havya, osiloskop)
+              //   mechanical  → orta: mekanik alan (matkap tezgahı, zımpara)
+              //   storage     → arka duvar: alet kütüphanesi (raflar)
+              //   welcome     → giriş: karşılama & dijital istasyon
+              //   wall        → duvar kenarı gerektiren büyük ekipman
+
+              const TOOL_SPECS = [
+                // ── TEKSTİL İSTASYONU ───────────────────────────────────────
+                {
+                  name: 'DİKİŞ MAKİNESİ', nameEn: 'SEWING MACHINE', emoji: '🧵',
+                  zone: 'textile', needsWall: false, wallPrefer: false,
+                  wCm: 119, dCm: 52,  // endüstriyel tablo + makine: 119×52 cm
+                  minClearanceCm: 100, // önde 1m çalışma alanı
+                  priority: 1,
+                  reason:  'Tekstil bölgesi — iyi aydınlatma, 119×52 cm tablo alanı gerektirir',
+                  reasonEn:'Textile zone — good lighting, 119×52 cm table footprint required',
+                },
+                // ── ELEKTRONİK İSTASYONU ────────────────────────────────────
+                {
+                  name: 'ELEKTRONİK TEZGAHI', nameEn: 'ELECTRONICS BENCH', emoji: '🔬',
+                  zone: 'electronics', needsWall: false, wallPrefer: true,
+                  wCm: 152, dCm: 76, // pro-line 60×30 inch tezgah
+                  minClearanceCm: 90,
+                  priority: 1,
+                  reason:  'Elektrik bölgesi — duvar prizi yakını, 152×76 cm tezgah',
+                  reasonEn:'Electronics zone — near wall outlets, 152×76 cm bench',
+                },
+                {
+                  name: 'AVOMETRE', nameEn: 'MULTIMETER', emoji: '🔌',
+                  zone: 'electronics', needsWall: false, wallPrefer: true,
+                  wCm: 100, dCm: 60, // osiloskop + test ekipmanı tezgah alanı
+                  minClearanceCm: 70,
+                  priority: 2,
+                  reason:  'Elektrik bölgesi — osiloskop & test cihazları, 100×60 cm',
+                  reasonEn:'Electronics zone — oscilloscope & test gear, 100×60 cm',
+                },
+                // ── MEKANİK ALAN ────────────────────────────────────────────
+                {
+                  name: 'MATKAP TEZGAHI', nameEn: 'DRILL PRESS', emoji: '🔩',
+                  zone: 'mechanical', needsWall: false, wallPrefer: false,
+                  wCm: 38, dCm: 36, // WEN 4227T taban: 38×36 cm
+                  minClearanceCm: 120, // etrafında 1.2m güvenlik boşluğu
+                  priority: 1,
+                  reason:  'Mekanik alan — zemin tezgahı, 38×36 cm taban, 1.2m güvenlik çevresi',
+                  reasonEn:'Mechanical zone — floor drill press, 38×36 cm base, 1.2m safety radius',
+                },
+                {
+                  name: 'TAMIR TEZGAHI', nameEn: 'REPAIR BENCH', emoji: '🪛',
+                  zone: 'mechanical', needsWall: false, wallPrefer: false,
+                  wCm: 150, dCm: 75, // standart makerspace tezgahı
+                  minClearanceCm: 90,
+                  priority: 2,
+                  reason:  'Mekanik alan — 150×75 cm çift kullanıcı tezgahı',
+                  reasonEn:'Mechanical zone — 150×75 cm dual-user workbench',
+                },
+                {
+                  name: 'ZIMPARA MAKİNESİ', nameEn: 'BELT SANDER', emoji: '⚙️',
+                  zone: 'mechanical', needsWall: false, wallPrefer: false,
+                  wCm: 100, dCm: 46, // Sealey zemin zımparası
+                  minClearanceCm: 100,
+                  priority: 3,
+                  reason:  'Mekanik alan — zemin zımparası, 100×46 cm, toz izolasyonu',
+                  reasonEn:'Mechanical zone — floor belt sander, 100×46 cm, dust isolation',
+                },
+                // ── ALET KÜTÜPHANESİ (STORAGE) ─────────────────────────────
+                {
+                  name: 'ALET RAFI', nameEn: 'TOOL SHELF', emoji: '📦',
+                  zone: 'storage', needsWall: true, wallPrefer: true,
+                  wCm: 112, dCm: 41, // Edsal tipi raf: 112×41 cm
+                  minClearanceCm: 150, // raf önü erişim
+                  priority: 1,
+                  reason:  'Alet kütüphanesi — arka/yan duvar, 112×41 cm raf ünitesi',
+                  reasonEn:'Tool library — back/side wall, 112×41 cm shelving unit',
+                },
+                {
+                  name: 'DUVAR RAFI', nameEn: 'WALL CABINET', emoji: '🗄️',
+                  zone: 'storage', needsWall: true, wallPrefer: true,
+                  wCm: 120, dCm: 19, // duvar montajlı dolap: 120×19 cm
+                  minClearanceCm: 80,
+                  priority: 2,
+                  reason:  'Alet kütüphanesi — duvara monte, 120×19 cm derinlik',
+                  reasonEn:'Tool library — wall-mounted cabinet, 120×19 cm depth',
+                },
+                // ── KARŞILAMA / GİRİŞ ───────────────────────────────────────
+                {
+                  name: 'KARŞILAMA MASASİ', nameEn: 'WELCOME DESK', emoji: '🖥️',
+                  zone: 'welcome', needsWall: false, wallPrefer: false,
+                  wCm: 160, dCm: 75, // standart resepsiyon masası
+                  minClearanceCm: 120,
+                  priority: 1,
+                  reason:  'Giriş bölgesi — dijital rezervasyon & karşılama, 160×75 cm',
+                  reasonEn:'Entry zone — digital reservation & welcome desk, 160×75 cm',
+                },
+                // ── MERDİVEN ────────────────────────────────────────────────
+                {
+                  name: 'MERDİVEN', nameEn: 'LADDER', emoji: '🪜',
+                  zone: 'storage', needsWall: true, wallPrefer: true,
+                  wCm: 60, dCm: 30,
+                  minClearanceCm: 80,
+                  priority: 3,
+                  reason:  'Duvar kenarı — yüksek raflara erişim için merdiven',
+                  reasonEn:'Wall zone — ladder for accessing high tool shelves',
+                },
+              ];
+
+              // Zone → plan üzerinde bölge tercihi (0=sol, 1=sağ, 0=üst, 1=alt normalize)
+              // Physical Layer görseline göre:
+              //   storage (alet kütüphanesi)  → üst+sağ  [x: 0.5–1.0, y: 0–0.4]
+              //   electronics                  → sağ-orta [x: 0.55–1.0, y: 0.3–0.7]
+              //   textile                      → sol-orta [x: 0–0.45, y: 0.2–0.7]
+              //   mechanical                   → orta     [x: 0.2–0.8, y: 0.3–0.8]
+              //   welcome                      → sol-giriş[x: 0–0.3, y: 0.6–1.0]
+              const ZONE_REGIONS = {
+                storage:     { x0: 0.5, x1: 1.0, y0: 0.0, y1: 0.45 },
+                electronics: { x0: 0.5, x1: 1.0, y0: 0.25, y1: 0.75 },
+                textile:     { x0: 0.0, x1: 0.5, y0: 0.15, y1: 0.75 },
+                mechanical:  { x0: 0.15, x1: 0.85, y0: 0.25, y1: 0.85 },
+                welcome:     { x0: 0.0, x1: 0.35, y0: 0.6, y1: 1.0 },
               };
 
-              // Fast pixel-level analysis for room features
-              const analyzeRoomFeatures = (imageData, canvas) => {
-                const data = imageData.data;
-                const width = canvas.width, height = canvas.height;
-
-                let edges = 0, brightness = 0, saturation = 0;
-                const pixels = width * height;
-
-                // Scan 1/4 of pixels for speed
-                for (let i = 0; i < data.length; i += 16) {
-                  const r = data[i], g = data[i+1], b = data[i+2];
-                  brightness += (r + g + b) / 3;
-                  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-                  saturation += (max - min);
+              // ── ADIM 1: plan içeriğinin gerçek piksel sınırları ──────────────
+              const findContentBounds = (data, W, H) => {
+                let x0 = W, y0 = H, x1 = 0, y1 = 0;
+                for (let y = 0; y < H; y++) {
+                  for (let x = 0; x < W; x++) {
+                    const i = (y * W + x) * 4;
+                    const lum = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114;
+                    if (lum < 180) {
+                      if (x < x0) x0 = x; if (x > x1) x1 = x;
+                      if (y < y0) y0 = y; if (y > y1) y1 = y;
+                    }
+                  }
                 }
-
-                brightness = brightness / (pixels / 4);
-                saturation = saturation / (pixels / 4);
-
-                return {
-                  brightness: brightness,
-                  saturation: saturation,
-                  isLit: brightness > 130,
-                  isColored: saturation > 50
-                };
+                const pad = 8;
+                return { x0: x0+pad, y0: y0+pad, x1: x1-pad, y1: y1-pad };
               };
 
-              // Position calculator with accessibility & safety rules
-              const calculateToolPositions = (canvas, roomFeatures) => {
-                const width = canvas.width, height = canvas.height;
-                const tools = Object.keys(TOOL_SPECS);
-                const suggestions = [];
-                const usedAreas = new Set();
-
-                // Define zones based on room features
-                const zones = {
-                  bright: roomFeatures.isLit ? [[0, 0], [width * 0.4, height * 0.5]] : null,
-                  walls: [[width - 80, 0], [width, height]],
-                  center: [[width * 0.2, height * 0.2], [width * 0.8, height * 0.8]],
-                  corner: [[0, 0], [width * 0.2, height * 0.2]]
-                };
-
-                tools.forEach((toolName) => {
-                  if (suggestions.length >= 3) return; // Max 3 suggestions
-
-                  const spec = TOOL_SPECS[toolName];
-                  let bestPos = null;
-                  let bestScore = -Infinity;
-
-                  // Try placement in different zones
-                  const possibleZones = [];
-
-                  if (spec.needs.includes('wall')) possibleZones.push(zones.walls);
-                  if (spec.needs.includes('light') && zones.bright) possibleZones.push(zones.bright);
-                  if (spec.needs.includes('table')) possibleZones.push(zones.center);
-                  if (spec.needs.includes('clearance')) possibleZones.push(zones.center);
-
-                  if (possibleZones.length === 0) possibleZones.push(zones.center);
-
-                  // Find best position in preferred zones
-                  possibleZones.forEach(zone => {
-                    const [x1, y1] = zone[0];
-                    const [x2, y2] = zone[1];
-
-                    for (let attempt = 0; attempt < 3; attempt++) {
-                      const x = x1 + Math.random() * (x2 - x1);
-                      const y = y1 + Math.random() * (y2 - y1);
-
-                      // Avoid overlaps
-                      const key = Math.floor(x / 50) + ',' + Math.floor(y / 50);
-                      if (usedAreas.has(key)) continue;
-
-                      // Score based on: zone fit, brightness, clearance
-                      let score = spec.priority;
-                      if (spec.needs.includes('light') && roomFeatures.isLit) score += 2;
-                      if (spec.needs.includes('wall') && x > width - 150) score += 1;
-
-                      if (score > bestScore) {
-                        bestScore = score;
-                        bestPos = { x, y, key };
+              // ── ADIM 2: açık alan ızgarası (GW×GH hücre, 7×7 piksel örnekleme) ──
+              const buildOpenGrid = (data, W, H, bounds, GW, GH) => {
+                const { x0, y0, x1, y1 } = bounds;
+                const bW = Math.max(1, x1 - x0), bH = Math.max(1, y1 - y0);
+                const cellW = bW / GW, cellH = bH / GH;
+                const grid = [];
+                for (let gy = 0; gy < GH; gy++) {
+                  for (let gx = 0; gx < GW; gx++) {
+                    const cx = Math.round(x0 + gx * cellW + cellW / 2);
+                    const cy = Math.round(y0 + gy * cellH + cellH / 2);
+                    // 7×7 piksel bölge — kenarlar ve iç çizgileri yakala
+                    let lum = 0, darkCount = 0, count = 0;
+                    for (let dy = -3; dy <= 3; dy++) {
+                      for (let dx = -3; dx <= 3; dx++) {
+                        const px = cx+dx, py = cy+dy;
+                        if (px < 0 || py < 0 || px >= W || py >= H) continue;
+                        const i = (py * W + px) * 4;
+                        const l = data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114;
+                        lum += l;
+                        if (l < 160) darkCount++;
+                        count++;
                       }
                     }
-                  });
-
-                  if (bestPos) {
-                    usedAreas.add(bestPos.key);
-                    suggestions.push({
-                      tool: toolName,
-                      x: bestPos.x,
-                      y: bestPos.y,
-                      rotation: spec.needs.includes('wall') ? 90 : Math.random() * 45,
-                      reason: (currentLang === 'en'
-                        ? `Optimal for ${spec.needs.join(', ')}`
-                        : `${spec.needs.join(', ')} için uygun konumu`),
-                      emoji: spec.emoji
-                    });
+                    const avgLum  = count > 0 ? lum / count : 0;
+                    const darkRatio = count > 0 ? darkCount / count : 1;
+                    // Hücre açık sayılır: ortalama parlaklık yüksek VE karanlık piksel az
+                    const open = avgLum > 210 && darkRatio < 0.08
+                                 && cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1;
+                    // Normalize konum (0–1), zone karşılaştırması için
+                    const nx = (cx - x0) / bW;
+                    const ny = (cy - y0) / bH;
+                    grid.push({ gx, gy, cx, cy, open, lum: avgLum, nx, ny });
                   }
-                });
-
-                return suggestions;
+                }
+                return { grid, cellW, cellH };
               };
 
-              const analyzeFloorPlan = async (file) => {
-                setAnalyzing(true);
-                try {
-                  const reader = new FileReader();
-                  reader.onload = async (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                      setUploadedImage(img);
+              // ── ADIM 3: duvar yakınlığı (ızgara içi kenar hücreleri) ──────────
+              const isNearWall = (gx, gy, GW, GH) =>
+                gx <= 1 || gx >= GW-2 || gy <= 1 || gy >= GH-2;
 
-                      const canvas = canvasRef.current;
-                      if (!canvas) { setAnalyzing(false); return; }
+              // ── ADIM 4: zone + ölçü uyumu skoru ile en iyi hücreyi seç ─────────
+              // spec.wCm / spec.dCm → gerçek ekipman boyutu (cm)
+              // ZONE_REGIONS → her zone için normalize plan koordinatları
+              // minNeighbors → ekipman boyutuna göre hesaplanan min açık komşu sayısı
+              const pickBestCell = (grid, GW, GH, spec, usedCells, bounds, CW, CH) => {
+                const zoneReg = ZONE_REGIONS[spec.zone];
+                const bW = bounds.x1 - bounds.x0, bH = bounds.y1 - bounds.y0;
+                // Gerçek metre cinsinden ekipman + temizlik mesafesi kaç hücre tutar?
+                // Plan pikseli → gerçek cm oranı (60m² ≈ 1000×600 cm varsayım)
+                const pxPerCm = bW / 1000;
+                const equipCells = Math.max(1,
+                  Math.ceil((spec.wCm + spec.minClearanceCm) * pxPerCm / (bW / GW))
+                );
+                const minNeighbors = Math.min(8, equipCells * equipCells);
 
-                      const ctx = canvas.getContext('2d');
-                      canvas.width = 600;
-                      canvas.height = 400;
+                let best = null, bestScore = -1;
+                for (const cell of grid) {
+                  if (!cell.open) continue;
+                  if (usedCells.has(`${cell.gx},${cell.gy}`)) continue;
 
-                      // Draw floor plan
-                      const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
-                      const x = (canvas.width - img.width * scale) / 2;
-                      const y = (canvas.height - img.height * scale) / 2;
-                      ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                  // Yeterli boş alan var mı? (komşu açık hücre sayısı)
+                  const neighbors = grid.filter(c =>
+                    Math.abs(c.gx - cell.gx) <= 2 && Math.abs(c.gy - cell.gy) <= 2
+                  );
+                  const openNeighbors = neighbors.filter(c => c.open).length;
+                  if (openNeighbors < Math.max(4, minNeighbors)) continue;
 
-                      // Analyze room features (brightness, color, etc)
-                      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                      const roomFeatures = analyzeRoomFeatures(imageData, canvas);
+                  // ZONE skoru: hücrenin normalize konumu zone bölgesine ne kadar yakın?
+                  let zoneScore = 0;
+                  if (zoneReg) {
+                    const inZoneX = cell.nx >= zoneReg.x0 && cell.nx <= zoneReg.x1;
+                    const inZoneY = cell.ny >= zoneReg.y0 && cell.ny <= zoneReg.y1;
+                    if (inZoneX && inZoneY) zoneScore = 3;
+                    else {
+                      const distX = Math.max(0, Math.max(zoneReg.x0 - cell.nx, cell.nx - zoneReg.x1));
+                      const distY = Math.max(0, Math.max(zoneReg.y0 - cell.ny, cell.ny - zoneReg.y1));
+                      zoneScore = Math.max(0, 1.5 - (distX + distY) * 4);
+                    }
+                  }
 
-                      // Calculate optimal tool positions using hybrid algorithm
-                      const suggestions = calculateToolPositions(canvas, roomFeatures);
+                  const nearWall  = isNearWall(cell.gx, cell.gy, GW, GH);
+                  const wallScore = spec.wallPrefer ? (nearWall ? 1.5 : 0) : (nearWall ? -0.5 : 0.5);
+                  const lumScore  = cell.lum / 255;
 
-                      setToolSuggestions(suggestions);
-
-                      // Draw suggestions on canvas with color coding
-                      const colors = ['#dcfc75', '#e1d2f3', '#054ff0'];
-                      suggestions.forEach((s, idx) => {
-                        ctx.fillStyle = colors[idx % 3];
-                        ctx.fillRect(s.x - 20, s.y - 20, 40, 40);
-                        ctx.strokeStyle = '#000';
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(s.x - 20, s.y - 20, 40, 40);
-                        ctx.fillStyle = '#000';
-                        ctx.font = '10px bold';
-                        ctx.textAlign = 'center';
-                        ctx.fillText(idx + 1, s.x, s.y + 4);
-                      });
-                    };
-                    img.src = e.target.result;
-                  };
-                  reader.readAsDataURL(file);
-                } catch (err) {
-                  console.error('Analysis error:', err);
+                  const score = zoneScore + wallScore + lumScore;
+                  if (score > bestScore) { bestScore = score; best = cell; }
                 }
-                setTimeout(() => setAnalyzing(false), 300);
+                return best;
+              };
+
+              const pendingImgRef = useRef(null);
+
+              // canvas DOM'a mount olduktan sonra çalışır (drawTick her yeni yüklemede artar)
+              useEffect(() => {
+                if (!drawTick || !canvasRef.current || !pendingImgRef.current) return;
+                const img    = pendingImgRef.current;
+                const canvas = canvasRef.current;
+                const CW = 720, CH = Math.round(720 * img.height / img.width);
+                canvas.width = CW; canvas.height = CH;
+                const ctx = canvas.getContext('2d');
+
+                ctx.drawImage(img, 0, 0, CW, CH);
+                const rawData = ctx.getImageData(0, 0, CW, CH).data;
+
+                const bounds = findContentBounds(rawData, CW, CH);
+                const GW = 24, GH = 16;
+                const { grid } = buildOpenGrid(rawData, CW, CH, bounds, GW, GH);
+
+                // Zone renkleri (Physical Layer görseline uygun)
+                const ZONE_COLORS = {
+                  textile:     '#e1d2f3',  // mor
+                  electronics: '#a5f3fc',  // açık mavi
+                  mechanical:  '#dcfc75',  // sarı-yeşil
+                  storage:     '#fde68a',  // turuncu-sarı
+                  welcome:     '#bbf7d0',  // yeşil
+                };
+
+                const usedCells = new Set();
+                const suggestions = [];
+                for (const spec of TOOL_SPECS) {
+                  if (suggestions.length >= 3) break;
+                  const cell = pickBestCell(grid, GW, GH, spec, usedCells, bounds, CW, CH);
+                  if (!cell) continue;
+                  // Ekipman boyutunu hücre cinsine çevir, komşuları işaretle
+                  const bW = bounds.x1 - bounds.x0;
+                  const pxPerCm = bW / 1000;
+                  const blockR = Math.max(1, Math.ceil(spec.wCm * pxPerCm / (bW / GW)));
+                  for (let dy = -blockR; dy <= blockR; dy++)
+                    for (let dx = -blockR; dx <= blockR; dx++)
+                      usedCells.add(`${cell.gx+dx},${cell.gy+dy}`);
+
+                  suggestions.push({
+                    tool:    currentLang === 'en' ? spec.nameEn : spec.name,
+                    emoji:   spec.emoji,
+                    zone:    spec.zone,
+                    wCm:     spec.wCm,
+                    dCm:     spec.dCm,
+                    x: cell.cx, y: cell.cy,
+                    wallPrefer: spec.wallPrefer,
+                    reason:  currentLang === 'en' ? spec.reasonEn : spec.reason,
+                    color:   ZONE_COLORS[spec.zone] || '#dcfc75',
+                    roomPct: `%${Math.round(cell.nx * 100)} - %${Math.round(cell.ny * 100)}`,
+                  });
+                }
+
+                setToolSuggestions(suggestions);
+
+                // ── Canvas üzerine çiz ────────────────────────────────────────
+                suggestions.forEach((s, idx) => {
+                  // Ekipman alanı (gerçek boyuta orantılı dikdörtgen)
+                  const bW = bounds.x1 - bounds.x0;
+                  const pxPerCm = bW / 1000;
+                  const rW = Math.max(18, s.wCm * pxPerCm * 0.5);
+                  const rH = Math.max(14, s.dCm * pxPerCm * 0.5);
+
+                  // Gölge
+                  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+                  ctx.fillRect(s.x - rW + 3, s.y - rH + 3, rW * 2, rH * 2);
+
+                  // Zone rengi dolgu
+                  ctx.fillStyle = s.color;
+                  ctx.strokeStyle = '#000';
+                  ctx.lineWidth = 2.5;
+                  ctx.fillRect(s.x - rW, s.y - rH, rW * 2, rH * 2);
+                  ctx.strokeRect(s.x - rW, s.y - rH, rW * 2, rH * 2);
+
+                  // Numara balonu
+                  ctx.fillStyle = '#000';
+                  ctx.beginPath();
+                  ctx.arc(s.x - rW + 10, s.y - rH + 10, 9, 0, Math.PI * 2);
+                  ctx.fill();
+                  ctx.fillStyle = '#fff';
+                  ctx.font = 'bold 11px sans-serif';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.fillText(idx + 1, s.x - rW + 10, s.y - rH + 10);
+
+                  // Emoji
+                  ctx.font = '16px sans-serif';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.fillText(s.emoji, s.x, s.y);
+
+                  // Boyut etiketi
+                  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+                  ctx.font = 'bold 9px sans-serif';
+                  ctx.textAlign = 'center';
+                  ctx.fillText(`${s.wCm}×${s.dCm}cm`, s.x, s.y + rH + 8);
+                });
+
+                setAnalyzing(false);
+              }, [drawTick]);
+
+              const analyzeFloorPlan = (file) => {
+                setAnalyzing(true);
+                setToolSuggestions(null);
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  const img = new Image();
+                  img.onload = () => {
+                    pendingImgRef.current = img;
+                    setUploadedImage(true);
+                    // drawTick'i artır → useEffect tetiklenir, canvas zaten DOM'da
+                    setDrawTick(t => t + 1);
+                  };
+                  img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
               };
 
               return html`
@@ -2746,38 +2934,69 @@
 
                     ${toolSuggestions && html`
                       <div class="space-y-4">
-                        <h3 class="text-2xl font-black uppercase border-b-4 border-black pb-3">${t('HUB_RESULTS')}</h3>
+                        <div class="flex items-center justify-between border-b-4 border-black pb-3">
+                          <h3 class="text-2xl font-black uppercase">${t('HUB_RESULTS')}</h3>
+                          <span class="text-xs font-bold text-gray-500 uppercase">60m² Repair Hub Referansı</span>
+                        </div>
+
+                        <!-- Zone açıklaması -->
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs font-bold uppercase">
+                          ${[
+                            { zone: 'textile',     label: currentLang==='en'?'Textile':'Tekstil',       color: '#e1d2f3' },
+                            { zone: 'electronics', label: currentLang==='en'?'Electronics':'Elektronik', color: '#a5f3fc' },
+                            { zone: 'mechanical',  label: currentLang==='en'?'Mechanical':'Mekanik',     color: '#dcfc75' },
+                            { zone: 'storage',     label: currentLang==='en'?'Tool Library':'Alet Lib.', color: '#fde68a' },
+                            { zone: 'welcome',     label: currentLang==='en'?'Welcome':'Karşılama',      color: '#bbf7d0' },
+                          ].map(z => html`
+                            <div key=${z.zone} class="flex items-center gap-1.5 border-2 border-black px-2 py-1" style="background:${z.color}">
+                              <div class="w-3 h-3 border-2 border-black shrink-0" style="background:${z.color}"></div>
+                              ${z.label}
+                            </div>
+                          `)}
+                        </div>
+
                         <div class="space-y-3">
-                          ${toolSuggestions.map((s, idx) => {
-                            const colors = ['bg-brandYellow', 'bg-brandPink', 'bg-blue-100'];
-                            const textColors = ['text-black', 'text-black', 'text-black'];
-                            return html`
-                              <div key=${idx} class="border-4 border-black p-5 flex items-start gap-4 ${colors[idx % 3]} shadow-[2px_2px_0px_#000]">
-                                <div class="flex flex-col items-center gap-1 shrink-0">
-                                  <div class="bg-black text-white w-10 h-10 flex items-center justify-center font-black text-lg rounded-full">${idx + 1}</div>
-                                  <div class="text-3xl">${s.emoji}</div>
+                          ${toolSuggestions.map((s, idx) => html`
+                              <div key=${idx} class="border-4 border-black p-4 md:p-5 flex items-start gap-4 shadow-[3px_3px_0px_#000]"
+                                   style="background:${s.color}">
+                                <!-- Numara + emoji -->
+                                <div class="flex flex-col items-center gap-2 shrink-0">
+                                  <div class="bg-black text-white w-9 h-9 flex items-center justify-center font-black text-base border-2 border-black">${idx + 1}</div>
+                                  <span class="text-3xl">${s.emoji}</span>
                                 </div>
+
+                                <!-- İçerik -->
                                 <div class="flex-1 min-w-0">
-                                  <h4 class="text-xl font-black uppercase leading-tight">${s.tool}</h4>
-                                  <p class="text-sm font-bold text-gray-700 mt-2 leading-snug">${s.reason}</p>
-                                  <div class="grid grid-cols-3 gap-2 mt-4 text-xs">
-                                    <div class="bg-black text-white/90 p-2 font-bold text-center rounded">
-                                      <div class="text-xs opacity-80">${t('HUB_TOOL_X')}</div>
-                                      <div class="text-lg font-black">${Math.round(s.x)}</div>
+                                  <div class="flex flex-wrap items-start justify-between gap-2 mb-1">
+                                    <h4 class="text-xl font-black uppercase leading-tight">${s.tool}</h4>
+                                    <span class="text-xs font-black uppercase border-2 border-black px-2 py-0.5 bg-black text-white shrink-0">
+                                      ${s.zone?.toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <p class="text-sm font-bold text-gray-800 leading-snug mb-3">${s.reason}</p>
+
+                                  <!-- Ölçüler -->
+                                  <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                    <div class="bg-black/10 border-2 border-black p-2 text-center">
+                                      <div class="text-[10px] font-bold uppercase opacity-70">${currentLang==='en'?'Width':'Genişlik'}</div>
+                                      <div class="text-base font-black">${s.wCm} cm</div>
                                     </div>
-                                    <div class="bg-black text-white/90 p-2 font-bold text-center rounded">
-                                      <div class="text-xs opacity-80">${t('HUB_TOOL_Y')}</div>
-                                      <div class="text-lg font-black">${Math.round(s.y)}</div>
+                                    <div class="bg-black/10 border-2 border-black p-2 text-center">
+                                      <div class="text-[10px] font-bold uppercase opacity-70">${currentLang==='en'?'Depth':'Derinlik'}</div>
+                                      <div class="text-base font-black">${s.dCm} cm</div>
                                     </div>
-                                    <div class="bg-black text-white/90 p-2 font-bold text-center rounded">
-                                      <div class="text-xs opacity-80">${t('HUB_TOOL_ROTATION')}</div>
-                                      <div class="text-lg font-black">${Math.round(s.rotation)}°</div>
+                                    <div class="bg-black/10 border-2 border-black p-2 text-center">
+                                      <div class="text-[10px] font-bold uppercase opacity-70">${currentLang==='en'?'Plan X':'Plan X'}</div>
+                                      <div class="text-base font-black">${Math.round(s.x)} px</div>
+                                    </div>
+                                    <div class="bg-black/10 border-2 border-black p-2 text-center">
+                                      <div class="text-[10px] font-bold uppercase opacity-70">${currentLang==='en'?'Plan Y':'Plan Y'}</div>
+                                      <div class="text-base font-black">${Math.round(s.y)} px</div>
                                     </div>
                                   </div>
                                 </div>
                               </div>
-                            `;
-                          })}
+                          `)}
                         </div>
                       </div>
                     `}
