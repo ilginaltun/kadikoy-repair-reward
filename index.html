@@ -2911,13 +2911,7 @@
                     ? Math.max(0, 1 - (cell.avgDist || 0) / 40)
                     : Math.min(1, (cell.avgDist || 0) / 40);
 
-                  // Welcome Desk özel kuralı: KAPILARA EN YAKIN OLMAK ZORUNDA
-                  let welcomeScore = 0;
-                  if (spec.zone === 'welcome') {
-                    // Eğer kapı yasaklı alanına teğet geçmişse bu mükemmel bir karşılama yeridir
-                    if (nearDoorClearance) welcomeScore = 20; 
-                    else welcomeScore = -5; // Kapıya yakın değilse puan kır
-                  }
+
 
                   const score = zoneScore + wallScore + distScore + welcomeScore;
                   if (score > bestScore) { 
