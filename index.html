@@ -2562,21 +2562,21 @@
                 // Physical Layer: "Textile Station — Sewing machines, overlock machines, fabric shears"
                 {
                   name: 'DİKİŞ MAKİNESİ', nameEn: 'SEWING MACHINE', emoji: '🧵',
-                  zone: 'textile', needsWall: false, wallPrefer: false,
+                  zone: 'textile', needsWall: true, wallPrefer: true, // Elektrikli alet, duvara yaslanmalı
                   wCm: 119, dCm: 52,
                   minClearanceCm: 90, priority: 1,
-                  reason:  'Tekstil istasyonu — dikiş makinesi tezgahı, 119×52 cm, iyi aydınlatma gerekir',
-                  reasonEn:'Textile station — sewing machine table, 119×52 cm, requires good lighting',
+                  reason:  'Tekstil istasyonu — dikiş makinesi tezgahı, 119×52 cm, prize takılması için duvarda olmalı',
+                  reasonEn:'Textile station — sewing machine table, 119×52 cm, requires wall power',
                 },
                 // ── ELEKTRONİK İSTASYONU ────────────────────────────────────
                 // Physical Layer: "Electronics Station — Soldering iron sets, oscilloscopes, magnifying lamps"
                 {
                   name: 'ELEKTRONİK ÇALIŞMA TEZGAHI', nameEn: 'ELECTRONICS WORKBENCH', emoji: '🔬',
-                  zone: 'electronics', needsWall: false, wallPrefer: true,
+                  zone: 'electronics', needsWall: true, wallPrefer: true, // Elektrikli alet, duvara yaslanmalı
                   wCm: 200, dCm: 76,
                   minClearanceCm: 90, priority: 1,
-                  reason:  'Elektronik istasyonu — lehimleme, osiloskop, büyüteçli lamba, 200×76 cm tezgah (Physical Layer)',
-                  reasonEn:'Electronics station — soldering, oscilloscope, magnifying lamp, 200×76 cm bench (Physical Layer)',
+                  reason:  'Elektronik istasyonu — lehimleme, osiloskop, 200×76 cm tezgah, prize takılması için duvarda olmalı',
+                  reasonEn:'Electronics station — soldering, oscilloscope, 200×76 cm bench, requires wall power',
                 },
                 // ── MEKANİK ALAN ────────────────────────────────────────────
                 // Physical Layer: "Mechanical Area — Drill press, hand drills, jigsaws, sanders"
@@ -2893,6 +2893,19 @@
                   }
 
                   const nearWall  = isNearWall(cell.gx, cell.gy, GW, GH);
+                  
+                  // KESİN KURAL: needsWall true ise mutlaka duvara bitişik olmak ZORUNDA
+                  if (spec.needsWall && !nearWall) continue;
+                  
+                  // Welcome Desk özel kuralı: KAPILARA EN YAKIN OLMAK ZORUNDA ve duvar dibinde OLAMAZ (Boşlukta olmalı)
+                  let welcomeScore = 0;
+                  if (spec.zone === 'welcome') {
+                    if (nearWall) continue; // Karşılama masası duvara yapışık olamaz!
+                    // Eğer kapı yasaklı alanına teğet geçmişse bu mükemmel bir karşılama yeridir
+                    if (nearDoorClearance) welcomeScore = 20; 
+                    else welcomeScore = -5; // Kapıya yakın değilse puan kır
+                  }
+
                   const wallScore = spec.wallPrefer ? (nearWall ? 3 : -2) : (nearWall ? -1 : 1);
                   const distScore = spec.wallPrefer
                     ? Math.max(0, 1 - (cell.avgDist || 0) / 40)
@@ -3065,6 +3078,23 @@
                   ctx.textAlign = 'center';
                   ctx.fillText(s.rotated ? `${s.dCm}×${s.wCm}cm` : `${s.wCm}×${s.dCm}cm`, s.x, s.y + rH + 8);
                 });
+
+                // Hesaplanan oda ebatlarını çiz (Oranların çalıştığını göstermek için)
+                const bW_full = bounds.x1 - bounds.x0;
+                const bH_full = bounds.y1 - bounds.y0;
+                const pxPerMeterGlobal = Math.sqrt((bW_full * bH_full) / (roomArea || 60));
+                const roomWidthM = (bW_full / pxPerMeterGlobal).toFixed(1);
+                const roomHeightM = (bH_full / pxPerMeterGlobal).toFixed(1);
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fillRect(CW - 240, 10, 230, 40);
+                ctx.fillStyle = '#bbf7d0'; // marka yeşili
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(`ESTIMATED DIMENSIONS`, CW - 20, 24);
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText(`${roomWidthM}m × ${roomHeightM}m`, CW - 20, 42);
 
                 setAnalyzing(false);
               }, [drawTick]);
