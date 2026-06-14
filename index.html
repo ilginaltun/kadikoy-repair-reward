@@ -818,11 +818,13 @@
                 'avometre': 5,
                 'tornavida': 4,
                 'screwdriver': 4,
+                'screwdiver set': 4,
                 'pencil': 7,
                 'kalem': 7,
                 'merdiven': 2,
                 'ladder': 2,
-                'ölçüm seti': 6
+                'ölçüm seti': 6,
+                'measuring set': 6
               };
 
               const mapLabelToTool = (label) => CLASS_MAP[label.toLowerCase().trim()] ?? null;
@@ -837,7 +839,10 @@
                 'avometre': 'Avometre',
                 'tornavida': 'Tornavida Seti',
                 'screwdriver': 'Tornavida Seti',
-                'pencil': 'Kalem'
+                'screwdiver set': 'Tornavida Seti',
+                'pencil': 'Kalem',
+                'ladder': 'Merdiven',
+                'measuring set': 'Ölçüm Seti'
               };
 
               let confirmCount = 0;
