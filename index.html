@@ -2553,102 +2553,77 @@
               //   welcome     → giriş: karşılama & dijital istasyon
               //   wall        → duvar kenarı gerektiren büyük ekipman
 
+              // Physical Layer (60m² Repair Hub) alt başlıklarına göre büyük ekipmanlar:
+              // Küçük el aletleri (multimetre, tornavida vb.) raf sisteminde saklanır,
+              // plan üzerinde ayrı alan gerekmez — sadece büyük sabit ekipmanlar listelendi.
               const TOOL_SPECS = [
                 // ── TEKSTİL İSTASYONU ───────────────────────────────────────
+                // Physical Layer: "Textile Station — Sewing machines, overlock machines, fabric shears"
                 {
                   name: 'DİKİŞ MAKİNESİ', nameEn: 'SEWING MACHINE', emoji: '🧵',
                   zone: 'textile', needsWall: false, wallPrefer: false,
-                  wCm: 119, dCm: 52,  // endüstriyel tablo + makine: 119×52 cm
-                  minClearanceCm: 100, // önde 1m çalışma alanı
-                  priority: 1,
-                  reason:  'Tekstil bölgesi — iyi aydınlatma, 119×52 cm tablo alanı gerektirir',
-                  reasonEn:'Textile zone — good lighting, 119×52 cm table footprint required',
+                  wCm: 119, dCm: 52,
+                  minClearanceCm: 90, priority: 1,
+                  reason:  'Tekstil istasyonu — dikiş makinesi tezgahı, 119×52 cm, iyi aydınlatma gerekir',
+                  reasonEn:'Textile station — sewing machine table, 119×52 cm, requires good lighting',
                 },
                 // ── ELEKTRONİK İSTASYONU ────────────────────────────────────
+                // Physical Layer: "Electronics Station — Soldering iron sets, oscilloscopes, magnifying lamps"
                 {
-                  name: 'ELEKTRONİK TEZGAHI', nameEn: 'ELECTRONICS BENCH', emoji: '🔬',
+                  name: 'ELEKTRONİK ÇALIŞMA TEZGAHI', nameEn: 'ELECTRONICS WORKBENCH', emoji: '🔬',
                   zone: 'electronics', needsWall: false, wallPrefer: true,
-                  wCm: 152, dCm: 76, // pro-line 60×30 inch tezgah
-                  minClearanceCm: 90,
-                  priority: 1,
-                  reason:  'Elektrik bölgesi — duvar prizi yakını, 152×76 cm tezgah',
-                  reasonEn:'Electronics zone — near wall outlets, 152×76 cm bench',
-                },
-                {
-                  name: 'AVOMETRE', nameEn: 'MULTIMETER', emoji: '🔌',
-                  zone: 'electronics', needsWall: false, wallPrefer: true,
-                  wCm: 100, dCm: 60, // osiloskop + test ekipmanı tezgah alanı
-                  minClearanceCm: 70,
-                  priority: 2,
-                  reason:  'Elektrik bölgesi — osiloskop & test cihazları, 100×60 cm',
-                  reasonEn:'Electronics zone — oscilloscope & test gear, 100×60 cm',
+                  wCm: 200, dCm: 76,
+                  minClearanceCm: 90, priority: 1,
+                  reason:  'Elektronik istasyonu — lehimleme, osiloskop, büyüteçli lamba, 200×76 cm tezgah (Physical Layer)',
+                  reasonEn:'Electronics station — soldering, oscilloscope, magnifying lamp, 200×76 cm bench (Physical Layer)',
                 },
                 // ── MEKANİK ALAN ────────────────────────────────────────────
+                // Physical Layer: "Mechanical Area — Drill press, hand drills, jigsaws, sanders"
                 {
-                  name: 'MATKAP TEZGAHI', nameEn: 'DRILL PRESS', emoji: '🔩',
-                  zone: 'mechanical', needsWall: false, wallPrefer: false,
-                  wCm: 38, dCm: 36, // WEN 4227T taban: 38×36 cm
-                  minClearanceCm: 120, // etrafında 1.2m güvenlik boşluğu
-                  priority: 1,
-                  reason:  'Mekanik alan — zemin tezgahı, 38×36 cm taban, 1.2m güvenlik çevresi',
-                  reasonEn:'Mechanical zone — floor drill press, 38×36 cm base, 1.2m safety radius',
+                  name: 'MEKANİK TAMİR TEZGAHI', nameEn: 'MECHANICAL WORKBENCH', emoji: '🪛',
+                  zone: 'mechanical', needsWall: false, wallPrefer: true,
+                  wCm: 180, dCm: 75,
+                  minClearanceCm: 90, priority: 1,
+                  reason:  'Mekanik alan — mengene, el aleti seti, 180×75 cm çelik tezgah (Physical Layer)',
+                  reasonEn:'Mechanical area — vise, hand tool set, 180×75 cm steel workbench (Physical Layer)',
                 },
                 {
-                  name: 'TAMIR TEZGAHI', nameEn: 'REPAIR BENCH', emoji: '🪛',
+                  name: 'MATKAP & ZİMPARA İSTASYONU', nameEn: 'DRILL PRESS & SANDER', emoji: '🔩',
                   zone: 'mechanical', needsWall: false, wallPrefer: false,
-                  wCm: 150, dCm: 75, // standart makerspace tezgahı
-                  minClearanceCm: 90,
-                  priority: 2,
-                  reason:  'Mekanik alan — 150×75 cm çift kullanıcı tezgahı',
-                  reasonEn:'Mechanical zone — 150×75 cm dual-user workbench',
+                  wCm: 75, dCm: 65,
+                  minClearanceCm: 120, priority: 2,
+                  reason:  'Mekanik alan — ayaklı matkap + zımpara makinesi, 75×65 cm taban, 1.2m güvenlik alanı',
+                  reasonEn:'Mechanical area — drill press + belt sander, 75×65 cm base, 1.2m safety clearance',
                 },
+                // ── ALET KÜTÜPHANESİ (TOOL LIBRARY, 15-20m²) ───────────────
+                // Physical Layer: "Tool Library — Tool Inventory, Hand Tools (hammers, pliers,
+                //   screwdrivers, wrenches, saws, calipers), Consumables (bolts, nuts,
+                //   needle/thread sets, electronic components)"
                 {
-                  name: 'ZIMPARA MAKİNESİ', nameEn: 'BELT SANDER', emoji: '⚙️',
-                  zone: 'mechanical', needsWall: false, wallPrefer: false,
-                  wCm: 100, dCm: 46, // Sealey zemin zımparası
-                  minClearanceCm: 100,
-                  priority: 3,
-                  reason:  'Mekanik alan — zemin zımparası, 100×46 cm, toz izolasyonu',
-                  reasonEn:'Mechanical zone — floor belt sander, 100×46 cm, dust isolation',
-                },
-                // ── ALET KÜTÜPHANESİ (STORAGE) ─────────────────────────────
-                {
-                  name: 'ALET RAFI', nameEn: 'TOOL SHELF', emoji: '📦',
+                  name: 'ALET KÜTÜPHANESİ ANA RAFLARI', nameEn: 'TOOL LIBRARY MAIN SHELVING', emoji: '📦',
                   zone: 'storage', needsWall: true, wallPrefer: true,
-                  wCm: 112, dCm: 41, // Edsal tipi raf: 112×41 cm
-                  minClearanceCm: 150, // raf önü erişim
-                  priority: 1,
-                  reason:  'Alet kütüphanesi — arka/yan duvar, 112×41 cm raf ünitesi',
-                  reasonEn:'Tool library — back/side wall, 112×41 cm shelving unit',
+                  wCm: 280, dCm: 45,
+                  minClearanceCm: 120, priority: 1,
+                  reason:  'Alet kütüphanesi — el aletleri (çekiç/pense/tornavida/anahtar), sarf malzeme rafları, 280×45 cm (Physical Layer)',
+                  reasonEn:'Tool library — hand tools (hammer/pliers/screwdrivers/wrenches), consumables shelving, 280×45 cm (Physical Layer)',
                 },
                 {
-                  name: 'DUVAR RAFI', nameEn: 'WALL CABINET', emoji: '🗄️',
+                  name: 'ELEKTRONİK & DİKİŞ STOK RAFI', nameEn: 'ELECTRONICS & TEXTILE STOCK RACK', emoji: '🗄️',
                   zone: 'storage', needsWall: true, wallPrefer: true,
-                  wCm: 120, dCm: 19, // duvar montajlı dolap: 120×19 cm
-                  minClearanceCm: 80,
-                  priority: 2,
-                  reason:  'Alet kütüphanesi — duvara monte, 120×19 cm derinlik',
-                  reasonEn:'Tool library — wall-mounted cabinet, 120×19 cm depth',
+                  wCm: 120, dCm: 40,
+                  minClearanceCm: 90, priority: 2,
+                  reason:  'Alet kütüphanesi — lehimleme kitleri, elektronik bileşenler, iğne/iplik seti stoğu, 120×40 cm',
+                  reasonEn:'Tool library stock — soldering kits, electronic components, needle/thread sets, 120×40 cm',
                 },
-                // ── KARŞILAMA / GİRİŞ ───────────────────────────────────────
+                // ── DİJİTAL İSTASYON & KARŞILAMA (10m²) ────────────────────
+                // Physical Layer: "Digital Station & Welcome Desk — 10m²"
                 {
-                  name: 'KARŞILAMA MASASİ', nameEn: 'WELCOME DESK', emoji: '🖥️',
+                  name: 'KARŞILAMA & DİJİTAL İSTASYON', nameEn: 'WELCOME & DIGITAL STATION', emoji: '🖥️',
                   zone: 'welcome', needsWall: false, wallPrefer: false,
-                  wCm: 160, dCm: 75, // standart resepsiyon masası
-                  minClearanceCm: 120,
-                  priority: 1,
-                  reason:  'Giriş bölgesi — dijital rezervasyon & karşılama, 160×75 cm',
-                  reasonEn:'Entry zone — digital reservation & welcome desk, 160×75 cm',
-                },
-                // ── MERDİVEN ────────────────────────────────────────────────
-                {
-                  name: 'MERDİVEN', nameEn: 'LADDER', emoji: '🪜',
-                  zone: 'storage', needsWall: true, wallPrefer: true,
-                  wCm: 60, dCm: 30,
-                  minClearanceCm: 80,
-                  priority: 3,
-                  reason:  'Duvar kenarı — yüksek raflara erişim için merdiven',
-                  reasonEn:'Wall zone — ladder for accessing high tool shelves',
+                  wCm: 180, dCm: 75,
+                  minClearanceCm: 120, priority: 1,
+                  reason:  'Giriş noktası — dijital rezervasyon terminali + oryantasyon masası, 10m² alan (Physical Layer)',
+                  reasonEn:'Entry point — digital reservation terminal + orientation desk, 10m² area (Physical Layer)',
                 },
               ];
 
@@ -2659,12 +2634,21 @@
               //   textile                      → sol-orta [x: 0–0.45, y: 0.2–0.7]
               //   mechanical                   → orta     [x: 0.2–0.8, y: 0.3–0.8]
               //   welcome                      → sol-giriş[x: 0–0.3, y: 0.6–1.0]
+              // Physical Layer'a göre zone koordinatları (normalize, 0-1 arası):
+              // Repair hub genellikle L şeklinde veya dikdörtgen → geniş bölgeler kullan
+              // welcome: ön/giriş tarafı; storage: duvar boyunca her yer (raf sistemi)
+              // Bölgeler birbirini kapsayabilir — skor sistemi en iyi eşleşmeyi seçer
               const ZONE_REGIONS = {
-                storage:     { x0: 0.5, x1: 1.0, y0: 0.0, y1: 0.45 },
-                electronics: { x0: 0.5, x1: 1.0, y0: 0.25, y1: 0.75 },
-                textile:     { x0: 0.0, x1: 0.5, y0: 0.15, y1: 0.75 },
-                mechanical:  { x0: 0.15, x1: 0.85, y0: 0.25, y1: 0.85 },
-                welcome:     { x0: 0.0, x1: 0.35, y0: 0.6, y1: 1.0 },
+                // Alet kütüphanesi rafları → duvar boyunca (üst veya alt ya da yanda)
+                storage:     { x0: 0.0, x1: 1.0, y0: 0.0, y1: 0.40 },
+                // Elektronik tezgah → sağ çalışma alanı
+                electronics: { x0: 0.40, x1: 1.0, y0: 0.15, y1: 0.80 },
+                // Tekstil tezgah → sol çalışma alanı
+                textile:     { x0: 0.0, x1: 0.60, y0: 0.15, y1: 0.80 },
+                // Mekanik alan → merkez geniş alan
+                mechanical:  { x0: 0.10, x1: 0.90, y0: 0.20, y1: 0.85 },
+                // Karşılama & dijital istasyon → ön giriş, geniş yelpaze
+                welcome:     { x0: 0.0, x1: 1.0, y0: 0.55, y1: 1.0 },
               };
 
               // ── ADIM 1: plan içeriğinin gerçek piksel sınırları ──────────────
@@ -2845,6 +2829,27 @@
                   const score = zoneScore + wallScore + distScore;
                   if (score > bestScore) { bestScore = score; best = cell; }
                 }
+
+                // Yedek: zone bölgesinde hiç uygun hücre bulunamazsa
+                // zone kısıtı olmadan en iyi açık hücreyi seç
+                if (!best) {
+                  for (const cell of grid) {
+                    if (!cell.open) continue;
+                    if (usedCells.has(`${cell.gx},${cell.gy}`)) continue;
+                    const neighbors = grid.filter(c =>
+                      Math.abs(c.gx - cell.gx) <= 2 && Math.abs(c.gy - cell.gy) <= 2
+                    );
+                    if (neighbors.filter(c => c.open).length < 4) continue;
+                    const nearWall  = isNearWall(cell.gx, cell.gy, GW, GH);
+                    const wallScore = spec.wallPrefer ? (nearWall ? 1.5 : 0) : (nearWall ? -0.5 : 0.5);
+                    const distScore = spec.wallPrefer
+                      ? Math.max(0, 1 - (cell.avgDist || 0) / 40)
+                      : Math.min(1, (cell.avgDist || 0) / 40);
+                    const score = wallScore + distScore;
+                    if (score > bestScore) { bestScore = score; best = cell; }
+                  }
+                }
+
                 return best;
               };
 
@@ -2878,7 +2883,7 @@
                 const usedCells = new Set();
                 const suggestions = [];
                 for (const spec of TOOL_SPECS) {
-                  if (suggestions.length >= 3) break;
+                  if (suggestions.length >= TOOL_SPECS.length) break;
                   const cell = pickBestCell(grid, GW, GH, spec, usedCells, bounds, CW, CH);
                   if (!cell) continue;
                   // Ekipman boyutunu hücre cinsine çevir, komşuları işaretle
