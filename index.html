@@ -2794,25 +2794,28 @@
                     c.wallDir = 'H'; 
                   }
 
-                  const getO = (dx,dy) => {
-                    const n = grid.find(g => g.gx===c.gx+dx && g.gy===c.gy+dy);
-                    return n ? n.open : false;
-                  };
-                  const isEdge = (!getO(-1,0) || !getO(1,0) || !getO(0,-1) || !getO(0,1));
-                  
-                  const totalWallAround = wL + wR + wT + wB + getD(0,0);
-                  // Eğer hücre açık alanın kenarındaysa ve etrafında hiç kalın duvar yoksa, bu bir kapı/penceredir.
-                  if (isEdge && totalWallAround < 0.25 && c.lum > 150) {
-                     doorCells.push(c);
+                  // Yeni Kapı/Pencere tespiti:
+                  // Hücrenin kendisi boşluk olmalı (karanlık duvar olmamalı)
+                  if (c.darkRatio < 0.15 && c.lum > 150) {
+                     const checkGap = (dx, dy) => {
+                        const n = grid.find(g => g.gx===c.gx+dx && g.gy===c.gy+dy);
+                        const nOpen = n ? n.open : false;
+                        const nDark = n ? n.darkRatio : 0;
+                        // Komşu oda içi değilse VE karanlık duvar değilse (veya sınır dışıysa) dışarı açılan kapıdır!
+                        return (!nOpen && nDark < 0.15);
+                     };
+                     if (checkGap(-1,0) || checkGap(1,0) || checkGap(0,-1) || checkGap(0,1)) {
+                         doorCells.push(c);
+                     }
                   }
                 });
 
-                // Kapıların ve pencerelerin önündeki 3-4 hücrelik yarıçapı tamamen yasakla!
+                // Kapıların ve pencerelerin önündeki alanı (çapraz ve düz) yasakla!
                 doorCells.forEach(dc => {
                   grid.forEach(c => {
                     if (!c.open) return;
                     const dist = Math.sqrt(Math.pow(c.gx - dc.gx, 2) + Math.pow(c.gy - dc.gy, 2));
-                    if (dist <= 4.0) { // Kapı önünde yaklaşık 1.5 - 2 metrelik devasa bir boşluk bırak
+                    if (dist <= 3.5) { // Yaklaşık 3-4 hücrelik (1.5m) çok geniş bir geçiş yolu bırak
                       c.open = false; 
                     }
                   });
