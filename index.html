@@ -2094,6 +2094,9 @@
               </div>
               <nav class="flex gap-2 flex-wrap">
                 <button onClick=${() => setUstaView('panel')} class="flex items-center gap-2 px-6 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap ${ustaView === 'panel' ? 'bg-black text-white' : 'bg-white text-black'}">
+                  🏠 ${currentLang === 'en' ? 'PANEL' : 'PANEL'}
+                </button>
+                <button onClick=${() => setUstaView('yakindaki_isler')} class="flex items-center gap-2 px-6 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap ${ustaView === 'yakindaki_isler' ? 'bg-black text-white' : 'bg-white text-black'}">
                   <${IconSearch} /> ${t('NAV_NEAR_JOBS')}
                 </button>
                 <button onClick=${() => setUstaView('harita')} class="flex items-center gap-2 px-6 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap ${ustaView === 'harita' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
@@ -2162,7 +2165,11 @@
                       </div>
                     </div>
                   </div>
+                </div>
+              `}
 
+              ${ustaView === 'yakindaki_isler' && html`
+                <div class="space-y-8">
                   <div class="flex flex-wrap items-center gap-4">
                     <div class="inline-block relative">
                       <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
