@@ -2852,32 +2852,77 @@
                     w = spec.dCm; d = spec.wCm;
                   }
                   
-                  // Eşyanın ve etrafındaki minClearance boşluğunun kapladığı hücre sayısı yarıçapı
-                  const rX = Math.max(1, Math.ceil(((w + spec.minClearanceCm) * pxPerCm) / (bW / GW) / 2));
-                  const rY = Math.max(1, Math.ceil(((d + spec.minClearanceCm) * pxPerCm) / (bH / GH) / 2));
+                  // Eşyanın fiziksel sınırları (rX_phys, rY_phys) ve güvenlik/temizlik alanı sınırları (rX_clear, rY_clear)
+                  const rX_phys = Math.max(1, Math.ceil((w * pxPerCm) / (bW / GW) / 2));
+                  const rY_phys = Math.max(1, Math.ceil((d * pxPerCm) / (bH / GH) / 2));
+                  const rX_clear = Math.max(1, Math.ceil(((w + spec.minClearanceCm) * pxPerCm) / (bW / GW) / 2));
+                  const rY_clear = Math.max(1, Math.ceil(((d + spec.minClearanceCm) * pxPerCm) / (bH / GH) / 2));
 
                   // 1. FİZİKSEL ÇARPIŞMA TESTİ (Strict Bounding Box Collision)
-                  // Objelerin boyutları tam olarak hesaba katılır, hiçbir şeyin üstüne gelemez!
                   let collision = false;
-                  let nearDoorClearance = false;
-                  for (let dy = -rY; dy <= rY; dy++) {
-                    for (let dx = -rX; dx <= rX; dx++) {
+                  let touchesWall = false;
+                  
+                  for (let dy = -rY_clear; dy <= rY_clear; dy++) {
+                    for (let dx = -rX_clear; dx <= rX_clear; dx++) {
                       const checkX = cell.gx + dx;
                       const checkY = cell.gy + dy;
-                      // Kendi oluşturduğumuz diğer eşyalarla çarpışma kontrolü
+                      
+                      const isPhys = (Math.abs(dx) <= rX_phys && Math.abs(dy) <= rY_phys);
+                      
+                      // Kendi oluşturduğumuz diğer eşyalarla çarpışma kontrolü (Clearance dahil kimseye değemez)
                       if (usedCells.has(`${checkX},${checkY}`)) { collision = true; break; }
-                      // Haritadaki duvar veya kapı geçiş alanları ile çarpışma kontrolü
+                      
                       const checkCell = grid.find(g => g.gx===checkX && g.gy===checkY);
-                      if (!checkCell || !checkCell.open) { 
-                        collision = true; break; 
+                      
+                      // Eğer fiziksel sınırın içindeysek, duvar veya kapı yasaklı bölgesi OLAMAZ
+                      if (isPhys) {
+                         if (!checkCell || !checkCell.open) { collision = true; break; }
+                         
+                         // Duvara temas kontrolü (sadece fiziksel sınırın en dışındayken komşuya bak)
+                         if (!touchesWall) {
+                             if (dx === -rX_phys) {
+                                const nCell = grid.find(g => g.gx===checkX-1 && g.gy===checkY);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                             if (dx === rX_phys) {
+                                const nCell = grid.find(g => g.gx===checkX+1 && g.gy===checkY);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                             if (dy === -rY_phys) {
+                                const nCell = grid.find(g => g.gx===checkX && g.gy===checkY-1);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                             if (dy === rY_phys) {
+                                const nCell = grid.find(g => g.gx===checkX && g.gy===checkY+1);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                         }
                       }
-                      if (checkCell.isDoorClearance) {
-                        nearDoorClearance = true;
+                      
+                      // Eğer fiziksel sınırın dışında (sadece clearance) isek
+                      if (!isPhys) {
+                         // Duvar olabilir (sorun yok). Ama kapı boşluğuna (isDoorClearance) denk gelemez!
+                         if (checkCell && checkCell.isDoorClearance) {
+                             collision = true; break;
+                         }
                       }
                     }
                     if (collision) break;
                   }
                   if (collision) continue;
+
+                  let nearDoorClearance = false;
+                  // Teğet kontrolü için ekstra 1 hücre dışarıya bak
+                  for (let dy = -(rY_clear+1); dy <= (rY_clear+1); dy++) {
+                    for (let dx = -(rX_clear+1); dx <= (rX_clear+1); dx++) {
+                        const checkX = cell.gx + dx;
+                        const checkY = cell.gy + dy;
+                        const checkCell = grid.find(g => g.gx===checkX && g.gy===checkY);
+                        if (checkCell && checkCell.isDoorClearance) {
+                            nearDoorClearance = true;
+                        }
+                    }
+                  }
 
                   // ZONE skoru: hücrenin normalize konumu zone bölgesine ne kadar yakın?
                   let zoneScore = 0;
@@ -2892,26 +2937,22 @@
                     }
                   }
 
-                  const nearWall  = isNearWall(cell.gx, cell.gy, GW, GH);
-                  
-                  // KESİN KURAL: needsWall true ise mutlaka duvara bitişik olmak ZORUNDA
-                  if (spec.needsWall && !nearWall) continue;
+                  // KESİN KURAL: needsWall true ise mutlaka duvara bitişik olmak ZORUNDA (artık fiziksel sınırlarıyla tam temas etmeli)
+                  if (spec.needsWall && !touchesWall) continue;
                   
                   // Welcome Desk özel kuralı: KAPILARA EN YAKIN OLMAK ZORUNDA ve duvar dibinde OLAMAZ (Boşlukta olmalı)
                   let welcomeScore = 0;
                   if (spec.zone === 'welcome') {
-                    if (nearWall) continue; // Karşılama masası duvara yapışık olamaz!
+                    if (touchesWall) continue; // Karşılama masası duvara yapışık olamaz!
                     // Eğer kapı yasaklı alanına teğet geçmişse bu mükemmel bir karşılama yeridir
                     if (nearDoorClearance) welcomeScore = 20; 
                     else welcomeScore = -5; // Kapıya yakın değilse puan kır
                   }
 
-                  const wallScore = spec.wallPrefer ? (nearWall ? 3 : -2) : (nearWall ? -1 : 1);
+                  const wallScore = spec.wallPrefer ? (touchesWall ? 3 : -2) : (touchesWall ? -1 : 1);
                   const distScore = spec.wallPrefer
                     ? Math.max(0, 1 - (cell.avgDist || 0) / 40)
                     : Math.min(1, (cell.avgDist || 0) / 40);
-
-
 
                   const score = zoneScore + wallScore + distScore + welcomeScore;
                   if (score > bestScore) { 
@@ -2921,7 +2962,7 @@
                   }
                 }
 
-                // Yedek: Sıkışık bir planda yer kalmadıysa fiziksel alanı esnet (ancak walls ve objelere ÇARPMAMALI)
+                // Yedek: Sıkışık bir planda yer kalmadıysa sadece fiziksel alanı kontrol et
                 if (!best) {
                   for (const cell of grid) {
                     if (!cell.open) continue;
@@ -2929,25 +2970,46 @@
                     
                     let w = spec.wCm, d = spec.dCm;
                     if (spec.wallPrefer && cell.wallDir === 'V') { w = spec.dCm; d = spec.wCm; }
-                    // Sadece objenin kendi boyutunu kontrol et (clearance olmadan)
-                    const rX = Math.max(1, Math.ceil((w * pxPerCm) / (bW / GW) / 2));
-                    const rY = Math.max(1, Math.ceil((d * pxPerCm) / (bH / GH) / 2));
+                    
+                    const rX_phys = Math.max(1, Math.ceil((w * pxPerCm) / (bW / GW) / 2));
+                    const rY_phys = Math.max(1, Math.ceil((d * pxPerCm) / (bH / GH) / 2));
                     
                     let collision = false;
-                    for (let dy = -rY; dy <= rY; dy++) {
-                      for (let dx = -rX; dx <= rX; dx++) {
+                    let touchesWall = false;
+                    for (let dy = -rY_phys; dy <= rY_phys; dy++) {
+                      for (let dx = -rX_phys; dx <= rX_phys; dx++) {
                         const checkX = cell.gx + dx;
                         const checkY = cell.gy + dy;
                         if (usedCells.has(`${checkX},${checkY}`)) { collision = true; break; }
                         const checkCell = grid.find(g => g.gx===checkX && g.gy===checkY);
                         if (!checkCell || !checkCell.open) { collision = true; break; }
+
+                        if (!touchesWall) {
+                             if (dx === -rX_phys) {
+                                const nCell = grid.find(g => g.gx===checkX-1 && g.gy===checkY);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                             if (dx === rX_phys) {
+                                const nCell = grid.find(g => g.gx===checkX+1 && g.gy===checkY);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                             if (dy === -rY_phys) {
+                                const nCell = grid.find(g => g.gx===checkX && g.gy===checkY-1);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                             if (dy === rY_phys) {
+                                const nCell = grid.find(g => g.gx===checkX && g.gy===checkY+1);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                         }
                       }
                       if (collision) break;
                     }
                     if (collision) continue;
+                    
+                    if (spec.needsWall && !touchesWall) continue;
 
-                    const nearWall  = isNearWall(cell.gx, cell.gy, GW, GH);
-                    const wallScore = spec.wallPrefer ? (nearWall ? 1.5 : 0) : (nearWall ? -0.5 : 0.5);
+                    const wallScore = spec.wallPrefer ? (touchesWall ? 1.5 : 0) : (touchesWall ? -0.5 : 0.5);
                     const score = wallScore;
                     if (score > bestScore) { 
                       bestScore = score; 
