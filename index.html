@@ -2747,23 +2747,25 @@
                     const px0=Math.round(x0+gx*cellW), py0=Math.round(y0+gy*cellH);
                     const px1=Math.min(W-1,Math.round(x0+(gx+1)*cellW));
                     const py1=Math.min(H-1,Math.round(y0+(gy+1)*cellH));
-                    let interior=0, dark=0, total=0, lumSum=0, distSum=0;
+                    let interior=0, dark=0, total=0, lumSum=0, distSum=0, extCount=0;
                     for(let py=py0;py<=py1;py++) for(let px=px0;px<=px1;px++){
                       const pidx=py*W+px;
                       const i=pidx*4, l=data[i]*0.299+data[i+1]*0.587+data[i+2]*0.114;
                       lumSum+=l; if(l<160) dark++;
                       if(pixOpen[pidx]&&!exterior[pidx]){ interior++; distSum+=dist[pidx]; }
+                      if(exterior[pidx]) extCount++;
                       total++;
                     }
                     const avgLum        = total>0 ? lumSum/total : 0;
                     const interiorRatio = total>0 ? interior/total : 0;
                     const darkRatio     = total>0 ? dark/total : 1;
+                    const extRatio      = total>0 ? extCount/total : 0;
                     // avgDist: duvara ortalama mesafe — yüksek = oda merkezi
                     const avgDist       = interior>0 ? distSum/interior : 0;
                     const open = interiorRatio > 0.45 && darkRatio < 0.22;
                     const cx=Math.round(x0+(gx+0.5)*cellW), cy=Math.round(y0+(gy+0.5)*cellH);
                     const nx=(gx+0.5)/GW, ny=(gy+0.5)/GH;
-                    grid.push({gx,gy,cx,cy,open,lum:avgLum,nx,ny,interiorRatio,avgDist, darkRatio});
+                    grid.push({gx,gy,cx,cy,open,lum:avgLum,nx,ny,interiorRatio,avgDist, darkRatio, extRatio});
                   }
                 }
 
@@ -2779,7 +2781,7 @@
                   if(!c.open) return;
                   const getD = (dx,dy) => {
                     const n = grid.find(g => g.gx===c.gx+dx && g.gy===c.gy+dy);
-                    return n ? n.darkRatio : 0; // Sınır dışı boşluktur!
+                    return n ? n.darkRatio : 0; 
                   };
                   const wL = getD(-1,0) + getD(-2,0);
                   const wR = getD(1,0) + getD(2,0);
@@ -2794,28 +2796,29 @@
                     c.wallDir = 'H'; 
                   }
 
-                  // Yeni Kapı/Pencere tespiti:
-                  // Hücrenin kendisi boşluk olmalı (karanlık duvar olmamalı)
-                  if (c.darkRatio < 0.15 && c.lum > 150) {
-                     const checkGap = (dx, dy) => {
-                        const n = grid.find(g => g.gx===c.gx+dx && g.gy===c.gy+dy);
-                        const nOpen = n ? n.open : false;
-                        const nDark = n ? n.darkRatio : 0;
-                        // Komşu oda içi değilse VE karanlık duvar değilse (veya sınır dışıysa) dışarı açılan kapıdır!
-                        return (!nOpen && nDark < 0.15);
-                     };
-                     if (checkGap(-1,0) || checkGap(1,0) || checkGap(0,-1) || checkGap(0,1)) {
-                         doorCells.push(c);
-                     }
+                  // KESİN KAPI TESPİTİ:
+                  // Flood-fill (exterior) ile dışarıdan gelen sızıntı kalın duvarlarda durur ama kapı boşluklarında içeri kadar dayanır.
+                  // Eğer odanın içindeki bir 'open' hücrenin komşusu 'exterior' (dış alan) hücresiyse veya sınır dışıysa, 
+                  // bu hücre odanın dışarıyla tek bağlantı noktasıdır, yani KESİNLİKLE bir kapı/pencere açıklığıdır.
+                  const checkExterior = (dx, dy) => {
+                    const n = grid.find(g => g.gx===c.gx+dx && g.gy===c.gy+dy);
+                    // Komşu hücrenin yüzde 5'ten fazlası exterior ise veya komşu hiç yoksa (sınır dışıysa)
+                    return n ? (n.extRatio > 0.05) : true; 
+                  };
+                  
+                  // Hücre kendisi açık alan ama hemen dibi dışarıysa -> bu bir kapıdır!
+                  if (checkExterior(-1,0) || checkExterior(1,0) || checkExterior(0,-1) || checkExterior(0,1)) {
+                      doorCells.push(c);
                   }
                 });
 
-                // Kapıların ve pencerelerin önündeki alanı (çapraz ve düz) yasakla!
+                // Kapıların önünde hiçbir objenin giremeyeceği devasa yasaklı bölge oluştur
                 doorCells.forEach(dc => {
                   grid.forEach(c => {
                     if (!c.open) return;
                     const dist = Math.sqrt(Math.pow(c.gx - dc.gx, 2) + Math.pow(c.gy - dc.gy, 2));
-                    if (dist <= 3.5) { // Yaklaşık 3-4 hücrelik (1.5m) çok geniş bir geçiş yolu bırak
+                    // Yarıçapı büyüttük, kapı önünde en az 4.5 hücrelik (yaklaşık 1.5 - 2m) çok geniş bir alan boş bırakılır
+                    if (dist <= 4.5) { 
                       c.open = false; 
                     }
                   });
