@@ -275,6 +275,12 @@
         STEP5_DESC: 'Yaptığın her işlemden puan kazan, "Kampanyalar" sekmesindeki ayrıcalıklarda harca.',
         STEP6_TITLE: 'Hesabını Yönet',
         STEP6_DESC: '"Hesap" bölümünden kazandırdığın çevresel etkiyi ve işlemlerini takip et.',
+        USTA_STEP1_TITLE: 'İşleri Bul', USTA_STEP1_DESC: 'Haritadan veya panelden müşterilerin açtığı iş ilanlarını görüntüle.',
+        USTA_STEP2_TITLE: 'İşleri Üstlen', USTA_STEP2_DESC: 'Sana uygun ilanları kabul et ve tamir sürecini başlat.',
+        USTA_STEP3_TITLE: 'Mesajlaş', USTA_STEP3_DESC: 'İşi aldıktan sonra hesap sekmesinden müşteriyle iletişime geç.',
+        USTA_STEP4_TITLE: 'Puan Kazan', USTA_STEP4_DESC: 'Başarıyla tamamladığın her tamirden çevre ve tecrübe puanı kazan.',
+        USTA_STEP5_TITLE: 'Kampanyaları Kullan', USTA_STEP5_DESC: 'Kazandığın puanları kampanyalar sekmesinde belediye ayrıcalıklarına dönüştür.',
+        USTA_STEP6_TITLE: 'Etkini Gör', USTA_STEP6_DESC: 'Hesabından doğaya kazandırdığın CO2 ve Su tasarrufunu takip et.',
         UNITY_SETUP: 'Unity Kurulumu',
         FIND_STEP1: '1. Neyi Tamir Edeceğiz?', FIND_STEP2: '2. Sorun Ne?',
         FIND_STEP3: (cat) => `3. En Yakın ${cat} Ustaları`,
@@ -448,6 +454,12 @@
         STEP5_DESC: 'Earn points from every activity and spend them on privileges in the "Campaigns" tab.',
         STEP6_TITLE: 'Manage Account',
         STEP6_DESC: 'Track your environmental impact and past activities from the "Account" section.',
+        USTA_STEP1_TITLE: 'Find Jobs', USTA_STEP1_DESC: 'View job listings posted by customers from the map or panel.',
+        USTA_STEP2_TITLE: 'Take Jobs', USTA_STEP2_DESC: 'Accept suitable jobs and start the repair process.',
+        USTA_STEP3_TITLE: 'Chat', USTA_STEP3_DESC: 'Contact the customer from the account tab after taking the job.',
+        USTA_STEP4_TITLE: 'Earn Points', USTA_STEP4_DESC: 'Earn environmental and experience points from every successful repair.',
+        USTA_STEP5_TITLE: 'Use Campaigns', USTA_STEP5_DESC: 'Convert your points into municipality privileges in the campaigns tab.',
+        USTA_STEP6_TITLE: 'Track Impact', USTA_STEP6_DESC: 'Track the CO2 and water you saved for nature from your account.',
         UNITY_SETUP: 'Unity Setup',
         FIND_STEP1: '1. What Are We Fixing?', FIND_STEP2: '2. What Is the Issue?',
         FIND_STEP3: (cat) => `3. Nearest ${cat} Masters`,
@@ -2113,6 +2125,44 @@
                       <button onClick=${() => setUstaView('harita')} class="ml-auto bg-black text-white px-4 py-2 font-black text-sm border-2 border-black hover:bg-gray-800 transition-colors whitespace-nowrap">${t('VIEW_MAP_BTN')}</button>
                     </div>
                   `}
+                  <div class="brutal-card p-6 md:p-10 bg-white border-[5px]">
+                    <div class="inline-block relative mb-8">
+                      <div class="absolute inset-0 bg-brandYellow transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                      <h2 class="relative bg-black text-white px-5 py-2 text-2xl md:text-4xl font-black uppercase tracking-tighter border-4 border-black">${t('HOW_TO_USE')}</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                      <div class="space-y-5">
+                        <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandPink">
+                          <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">1</div>
+                          <div><p class="font-black uppercase text-base">${t('USTA_STEP1_TITLE')}</p><p class="font-bold text-sm text-gray-700 mt-1">${t('USTA_STEP1_DESC')}</p></div>
+                        </div>
+                        <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandYellow">
+                          <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">2</div>
+                          <div><p class="font-black uppercase text-base">${t('USTA_STEP2_TITLE')}</p><p class="font-bold text-sm text-gray-700 mt-1">${t('USTA_STEP2_DESC')}</p></div>
+                        </div>
+                        <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandPink">
+                          <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">3</div>
+                          <div><p class="font-black uppercase text-base">${t('USTA_STEP3_TITLE')}</p><p class="font-bold text-sm text-gray-700 mt-1">${t('USTA_STEP3_DESC')}</p></div>
+                        </div>
+                        <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandYellow">
+                          <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">4</div>
+                          <div><p class="font-black uppercase text-base">${t('USTA_STEP4_TITLE')}</p><p class="font-bold text-sm text-gray-700 mt-1">${t('USTA_STEP4_DESC')}</p></div>
+                        </div>
+                        <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandPink">
+                          <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">5</div>
+                          <div><p class="font-black uppercase text-base">${t('USTA_STEP5_TITLE')}</p><p class="font-bold text-sm text-gray-700 mt-1">${t('USTA_STEP5_DESC')}</p></div>
+                        </div>
+                        <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandYellow">
+                          <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">6</div>
+                          <div><p class="font-black uppercase text-base">${t('USTA_STEP6_TITLE')}</p><p class="font-bold text-sm text-gray-700 mt-1">${t('USTA_STEP6_DESC')}</p></div>
+                        </div>
+                      </div>
+                      <div class="border-4 border-black overflow-hidden aspect-square h-max bg-gray-100 flex items-center justify-center">
+                        <img src="kadıköy tamir ediyor.png" alt="Kadıköy Tamir Ediyor" class="w-full h-full object-cover" />
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="flex flex-wrap items-center gap-4">
                     <div class="inline-block relative">
                       <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
@@ -3479,35 +3529,6 @@
                       <p class="font-black text-xl uppercase">${t('CURRENT_PTS_LABEL')}</p>
                       <p class="text-4xl font-black text-brandYellow">${puan}</p>
                     </div>
-                  </div>
-
-                  <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
-                    <div class="inline-block bg-brandPink border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">${t('ONGOING_JOBS')}</div>
-                    ${(() => {
-                      const myJobs = Object.entries(assignedJobs).filter(([id, info]) => info.type === 'musteri');
-                      return myJobs.length === 0 ? html`
-                        <p class="font-bold text-gray-400 text-center py-8">${t('NO_JOBS_TAKEN')}</p>
-                      ` : myJobs.map(([id, info]) => {
-                        const job = jobPostings.find(j => String(j.id) === String(id));
-                        const rem = Math.max(0, Math.ceil((new Date(info.deadline) - new Date()) / (24 * 60 * 60 * 1000)));
-                        if(!job) return null;
-                        return html`
-                          <div key=${id} class="border-4 border-black p-3 flex justify-between items-center ${rem === 0 ? 'bg-red-100' : 'bg-brandYellow/40'}">
-                            <div class="flex-1 min-w-0 pr-2">
-                              <h4 class="text-lg font-black uppercase truncate">${job.baslik}</h4>
-                              <span class="text-gray-600 font-bold text-xs truncate block mt-0.5">${catName(job.kategori)} • ${job.ucret} ${currentLang === 'en' ? 'Pts' : 'Puan'}</span>
-                            </div>
-                            <div class="flex gap-2">
-                              <button onClick=${() => setChatJobId(id)} class="bg-black text-white px-3 py-1 font-black text-sm uppercase">${t('MESSAGE_BTN')}</button>
-                              <div class="text-right shrink-0 ml-4">
-                                <p class="font-black text-2xl ${rem === 0 ? 'text-red-600' : 'text-brandBlue'}">${rem}</p>
-                                <p class="font-bold text-xs uppercase">${t('DAYS_LEFT_LABEL')}</p>
-                              </div>
-                            </div>
-                          </div>
-                        `;
-                      });
-                    })()}
                   </div>
 
                 </div>
