@@ -809,22 +809,35 @@
 
               // Sınıf adı → araç id eşleştirmesi (TM'den gelen class name'e göre)
               const CLASS_MAP = {
-                'class 1': 3,  // seewing machiene → Dikiş Makinesi
-                'seewing machiene': 3,
+                'sewingmachine': 3,
                 'sewing machine': 3,
-                'class 2': 7,  // pencil → Kurşun Kalem
+                'driller': 1,
+                'matkap': 1,
+                'drill': 1,
+                'multimeter': 5,
+                'avometre': 5,
+                'tornavida': 4,
+                'screwdriver': 4,
                 'pencil': 7,
+                'kalem': 7,
+                'merdiven': 2,
+                'ladder': 2,
+                'ölçüm seti': 6
               };
 
               const mapLabelToTool = (label) => CLASS_MAP[label.toLowerCase().trim()] ?? null;
 
               // Sınıf adını okunabilir isime çevir
               const CLASS_DISPLAY = {
-                'class 1': 'Dikiş Makinesi',
-                'seewing machiene': 'Dikiş Makinesi',
+                'sewingmachine': 'Dikiş Makinesi',
                 'sewing machine': 'Dikiş Makinesi',
-                'class 2': 'Kalem',
-                'pencil': 'Kalem',
+                'driller': 'Matkap',
+                'matkap': 'Matkap',
+                'multimeter': 'Avometre',
+                'avometre': 'Avometre',
+                'tornavida': 'Tornavida Seti',
+                'screwdriver': 'Tornavida Seti',
+                'pencil': 'Kalem'
               };
 
               let confirmCount = 0;
@@ -958,16 +971,16 @@
             <div class="absolute bottom-0 left-0 right-0 z-10 ar-card-pop" style="max-height:70vh;overflow-y:auto">
               <div class="p-4 space-y-0">
 
-                ${dt.instructions ? html`
+                ${dt.videoUrl ? html`
                   <!-- Instruction steps from ToolEducationAR -->
-                  <div class="bg-black border-4 border-black shadow-[6px_6px_0_#fff]">
+                  <div class="bg-black border-4 border-black shadow-[6px_6px_0_#fff] mb-6">
                     <div class="flex items-center justify-between px-4 py-2 border-b-4 border-white/20">
                       <span class="font-black text-brandYellow text-xs uppercase tracking-widest">
                         REPAIR HUB TOOL EDUCATION AR
                       </span>
                     </div>
                     <div class="flex flex-col items-center p-4">
-                      <video src="videoplayback.mp4" controls playsinline class="w-full h-auto object-cover border-4 border-white bg-black"></video>
+                      <video src=${dt.videoUrl} controls playsinline class="w-full h-auto object-cover border-4 border-white bg-black"></video>
                       <p class="font-black text-white text-lg uppercase mt-4 text-center">
                         ${currentLang === 'en' ? 'SCAN SUCCESSFUL' : 'TARAMA BAŞARILI'}
                       </p>
@@ -976,9 +989,11 @@
                       </p>
                     </div>
                   </div>
-                ` : showCaution && html`
+                ` : ''}
+                
+                ${showCaution && html`
                   <!-- Caution balloon (non-instruction tools) -->
-                  <div class="relative mb-0">
+                  <div class="relative mb-0 mt-2">
                     <div class="flex justify-center">
                       <div style="width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:16px solid #000"></div>
                     </div>
@@ -1081,24 +1096,19 @@
       const aletler = [
         { id: 1, name: 'MATKAP',          nameEn: 'DRILL',           emoji: '🔩', desc: 'Kordonsuz 18V Matkap',             descEn: 'Cordless 18V Drill',              days: 7, total: 3,
           caution:   ['Koruyucu gözlük tak', 'Duvarda boru / elektrik hattı olup olmadığını kontrol et', 'Tetik serbest değilken matkabı fişe takma'],
-          cautionEn: ['Wear protective goggles', 'Check wall for hidden pipes & live cables', 'Never plug in while trigger is engaged'] },
+          cautionEn: ['Wear protective goggles', 'Check wall for hidden pipes & live cables', 'Never plug in while trigger is engaged'], videoUrl: 'driller.mp4' },
         { id: 2, name: 'MERDİVEN',        nameEn: 'LADDER',          emoji: '🪜', desc: '3 Basamaklı Çelik Merdiven',       descEn: '3-Step Steel Ladder',             days: 3, total: 2,
           caution:   ['Yalnızca düz ve sağlam zemine koy', 'En üst basamağa asla çıkma', 'Bir elin her zaman merdivenle temas halinde olsun'],
           cautionEn: ['Place only on flat and stable ground', 'Never stand on the top step', 'Keep one hand on the ladder at all times'] },
         { id: 3, name: 'DİKİŞ MAKİNESİ', nameEn: 'SEWING MACHINE',  emoji: '🧵', desc: 'Ev Tipi Dikiş Makinesi',           descEn: 'Home Type Sewing Machine',        days: 5, total: 2,
           caution:   ['Parmakları iğnenin yolundan uzak tut', 'Başlatmadan önce ipliği doğru yerleştir', 'Kullanım sonrası iğneyi aşağı konuma al'],
-          cautionEn: ['Keep fingers clear of the needle path', 'Thread correctly before starting', 'Lower needle to safe position after use'],
-          arFile: 'MBL514E_sewing_machine.usdz',
-          instructions: [
-            { img: 'instruction_thread_guide.png', title: 'THREAD GUIDE', titleTr: 'İPLİK KILAVUZU', desc: 'Pass the thread through the guide down to the needle.', descTr: 'İpliği üstten iğneye doğru kılavuz boyunca geçir.' },
-            { img: 'instruction_pretensioner.png', title: 'PRETENSIONER', titleTr: 'ÖN GERGİ', desc: 'Thread between the tension discs and apply correct pressure.', descTr: 'İpliği gerilim disklerinin arasından sıkıştırarak geçir.' },
-          ] },
+          cautionEn: ['Keep fingers clear of the needle path', 'Thread correctly before starting', 'Lower needle to safe position after use'], videoUrl: 'sewingmachine.mp4' },
         { id: 4, name: 'TORNAVIDA SETİ', nameEn: 'SCREWDRIVER SET', emoji: '🪛', desc: 'Profesyonel Tornavida Takımı',     descEn: 'Professional Screwdriver Set',    days: 7, total: 4,
           caution:   ['Yanlış uç cıvatayı bozar — doğru boyutu seç', 'Kayma tehlikesine karşı güçlü baskıyla çalış', 'Elektrikli devreler için yalıtımlı model kullan'],
           cautionEn: ['Wrong bit strips screws — always match the size', 'Apply firm pressure to prevent slipping', 'Use insulated handle for electrical work'] },
         { id: 5, name: 'AVOMETRE',        nameEn: 'MULTIMETER',      emoji: '🔌', desc: 'Dijital Multimetre / Test Cihazı', descEn: 'Digital Multimeter / Test Device', days: 3, total: 2,
           caution:   ['Ölçüm öncesi doğru modu seç (AC / DC)', 'Probları bağlamadan önce devreyi kapat', 'Probları doğru terminale bağla (+ ve −)'],
-          cautionEn: ['Select correct mode (AC / DC) before measuring', 'Turn off circuit before connecting probes', 'Connect probes to correct terminals (+ and −)'] },
+          cautionEn: ['Select correct mode (AC / DC) before measuring', 'Turn off circuit before connecting probes', 'Connect probes to correct terminals (+ and −)'], videoUrl: 'multimeter.mp4' },
         { id: 6, name: 'ÖLÇÜM SETİ',     nameEn: 'MEASURING SET',   emoji: '📐', desc: 'Lazer Terazi & Dijital Metre',     descEn: 'Laser Level & Digital Meter',     days: 7, total: 3,
           caution:   ['Lazer ışınını kesinlikle gözlere yöneltme', 'Lazer teraziyi metal yüzey üzerinde kalibre et', 'Uzun kullanım öncesinde pil seviyesini kontrol et'],
           cautionEn: ['Never point laser beam at eyes', 'Calibrate laser level on a flat metal surface', 'Check battery level before extended use'] },
@@ -1828,7 +1838,7 @@
         setLocationPermissionAsked(true);
         if (!navigator.geolocation) { setMessages(prev => [...prev, { role: 'bot', text: t('NO_GEO') }]); return; }
         navigator.geolocation.getCurrentPosition(
-          pos => { setCustomerLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude }); setView('merkezler'); setMessages(prev => [...prev, { role: 'bot', text: t('LOC_FOUND_CUSTOMER') }]); },
+          pos => { setCustomerLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude }); setMessages(prev => [...prev, { role: 'bot', text: t('LOC_FOUND_CUSTOMER') }]); },
           ()  => { setMessages(prev => [...prev, { role: 'bot', text: t('LOC_ERROR') }]); }
         );
       };
