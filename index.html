@@ -148,7 +148,8 @@
       }
     }
   </script>
-  <script src="https://unpkg.com/ml5@1/dist/ml5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
 </head>
 
 <body class="p-4 md:p-10 relative min-h-screen">
@@ -769,55 +770,55 @@
             if (videoRef.current) {
               videoRef.current.srcObject = stream;
               
-              const classifier = await new Promise((resolve) => {
-                if (window.ml5) {
-                  const clf = window.ml5.imageClassifier('MobileNet', () => resolve(clf));
-                } else {
-                  console.error('ml5.js not loaded!');
-                  resolve(null);
-                }
-              });
+                const TM_MODEL_URL = 'https://teachablemachine.withgoogle.com/models/qXRJ91WKQ/';
+              const model = await window.tmImage.load(
+                TM_MODEL_URL + 'model.json',
+                TM_MODEL_URL + 'metadata.json'
+              );
 
-              if (!alive || !classifier) return;
+              if (!alive || !model) return;
 
               const mapLabelToTool = (label) => {
-                const lower = label.toLowerCase();
-                if (lower.includes('drill') || lower.includes('power drill')) return 1;
-                if (lower.includes('ladder') || lower.includes('step stool')) return 2;
-                if (lower.includes('sewing machine') || lower.includes('loom') || lower.includes('bobbin') || lower.includes('spinning wheel') || lower.includes('pencil sharpener')) return 3;
-                if (lower.includes('screwdriver')) return 4;
-                if (lower.includes('multimeter') || lower.includes('voltmeter')) return 5;
-                if (lower.includes('measuring') || lower.includes('rule') || lower.includes('tape')) return 6;
-                
-                // Kalem kontrolünde sharpener'ı hariç tutalım, veya direkt önce sharpener (3) döndüğü için sorun çözülür.
-                if (lower === 'pencil' || lower === 'pen' || lower.includes('crayon') || lower.includes('marker')) return 7;
+                const l = label.toLowerCase().trim();
+                if (l.includes('sew') || l.includes('dikiş')) return 3;  // "seewing machiene" ve varyantları
+                // "pencil" → eşleşme yok, null döner
                 return null;
               };
+
+              let confirmCount = 0;
+              let lastMatchId  = null;
 
               const loopClassify = async () => {
                 if (!alive || !isClassifying || !videoRef.current) return;
                 try {
-                  const results = await classifier.classify(videoRef.current);
+                  const predictions = await model.predict(videoRef.current);
                   if (!alive || !isClassifying) return;
-                  if (results && results.length > 0) {
-                    setCurrentScan(results[0].label);
-                    for (let i = 0; i < results.length; i++) {
-                      const matchId = mapLabelToTool(results[i].label);
-                      if (matchId) {
-                        const matchedTool = tools.find(t => t.id === matchId);
-                        if (matchedTool) {
-                          setDetectedTool(matchedTool);
-                          setPhase('detected');
-                          isClassifying = false;
-                          return;
-                        }
+
+                  // En yüksek confidence'lı sonuç
+                  const best = predictions.reduce((a, b) => a.probability > b.probability ? a : b);
+                  setCurrentScan(`${best.className} (${(best.probability * 100).toFixed(0)}%)`);
+
+                  const matchId = best.probability >= 0.75 ? mapLabelToTool(best.className) : null;
+
+                  if (matchId && matchId === lastMatchId) {
+                    confirmCount++;
+                    if (confirmCount >= 2) {           // 2 ardışık frame onayı
+                      const matchedTool = tools.find(t => t.id === matchId);
+                      if (matchedTool) {
+                        setDetectedTool(matchedTool);
+                        setPhase('detected');
+                        isClassifying = false;
+                        return;
                       }
                     }
+                  } else {
+                    confirmCount = matchId ? 1 : 0;
+                    lastMatchId  = matchId;
                   }
                 } catch (err) {
-                  console.error("ml5 err:", err);
+                  console.error('TM err:', err);
                 }
-                setTimeout(loopClassify, 250);
+                setTimeout(loopClassify, 200);
               };
 
               const startClassification = () => {
