@@ -2539,6 +2539,7 @@
               const [analyzing, setAnalyzing] = useState(false);
               const [toolSuggestions, setToolSuggestions] = useState(null);
               const [drawTick, setDrawTick] = useState(0);
+              const [roomArea, setRoomArea] = useState(60);
               const canvasRef = useRef(null);
 
               // ── HYBRID ML: Repair Hub Physical Layer referanslı ────────────
@@ -2786,8 +2787,10 @@
                 const zoneReg = ZONE_REGIONS[spec.zone];
                 const bW = bounds.x1 - bounds.x0, bH = bounds.y1 - bounds.y0;
                 // Gerçek metre cinsinden ekipman + temizlik mesafesi kaç hücre tutar?
-                // Plan pikseli → gerçek cm oranı (60m² ≈ 1000×600 cm varsayım)
-                const pxPerCm = bW / 1000;
+                // Plan pikseli → gerçek cm oranı (Kullanıcı m² bilgisine göre)
+                const areaM2 = roomArea || 60;
+                const pxPerMeter = Math.sqrt((bW * bH) / areaM2);
+                const pxPerCm = pxPerMeter / 100;
                 const equipCells = Math.max(1,
                   Math.ceil((spec.wCm + spec.minClearanceCm) * pxPerCm / (bW / GW))
                 );
@@ -2888,7 +2891,10 @@
                   if (!cell) continue;
                   // Ekipman boyutunu hücre cinsine çevir, komşuları işaretle
                   const bW = bounds.x1 - bounds.x0;
-                  const pxPerCm = bW / 1000;
+                  const bH = bounds.y1 - bounds.y0;
+                  const areaM2 = roomArea || 60;
+                  const pxPerMeter = Math.sqrt((bW * bH) / areaM2);
+                  const pxPerCm = pxPerMeter / 100;
                   const blockR = Math.max(1, Math.ceil(spec.wCm * pxPerCm / (bW / GW)));
                   for (let dy = -blockR; dy <= blockR; dy++)
                     for (let dx = -blockR; dx <= blockR; dx++)
@@ -2914,7 +2920,10 @@
                 suggestions.forEach((s, idx) => {
                   // Ekipman alanı (gerçek boyuta orantılı dikdörtgen)
                   const bW = bounds.x1 - bounds.x0;
-                  const pxPerCm = bW / 1000;
+                  const bH = bounds.y1 - bounds.y0;
+                  const areaM2 = roomArea || 60;
+                  const pxPerMeter = Math.sqrt((bW * bH) / areaM2);
+                  const pxPerCm = pxPerMeter / 100;
                   const rW = Math.max(18, s.wCm * pxPerCm * 0.5);
                   const rH = Math.max(14, s.dCm * pxPerCm * 0.5);
 
@@ -2984,20 +2993,35 @@
                     <p class="text-lg font-bold text-gray-600">${t('HUB_DESC')}</p>
 
                     <div class="flex flex-col md:flex-row gap-4">
-                      <label class="flex-1">
+                      <div class="flex-1">
+                        <label class="block text-sm font-black uppercase mb-2">${currentLang === 'en' ? 'ROOM AREA (m²)' : 'ODA ALANI (m²)'}</label>
                         <input
-                          type="file"
-                          accept="image/*"
-                          onChange=${(e) => { if (e.target.files?.[0]) analyzeFloorPlan(e.target.files[0]); }}
-                          class="hidden"
+                          type="number"
+                          value=${roomArea}
+                          onInput=${e => {
+                            setRoomArea(Number(e.target.value));
+                            if (uploadedImage) setDrawTick(t => t + 1); // recalculate on change
+                          }}
+                          class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg"
+                          min="5" max="5000"
                         />
-                        <div class="brutal-btn bg-brandYellow text-black border-4 border-black p-4 font-black text-lg uppercase text-center cursor-pointer shadow-[4px_4px_0_#000] hover:translate-y-1 transition-all">
-                          ${analyzing ? t('HUB_ANALYZING') : t('HUB_UPLOAD')}
-                        </div>
-                      </label>
+                      </div>
+                      <div class="flex-1 flex flex-col justify-end">
+                        <label class="block">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange=${(e) => { if (e.target.files?.[0]) analyzeFloorPlan(e.target.files[0]); }}
+                            class="hidden"
+                          />
+                          <div class="brutal-btn bg-brandYellow text-black border-4 border-black p-4 font-black text-lg uppercase text-center cursor-pointer shadow-[4px_4px_0_#000] hover:translate-y-1 transition-all">
+                            ${analyzing ? t('HUB_ANALYZING') : t('HUB_UPLOAD')}
+                          </div>
+                        </label>
+                      </div>
                     </div>
 
-                    <p class="text-sm font-bold text-gray-500">${t('HUB_UPLOAD_HINT')}</p>
+                    <p class="text-sm font-bold text-gray-500 mt-2">${t('HUB_UPLOAD_HINT')}</p>
 
                     ${uploadedImage ? html`
                       <div class="border-4 border-black p-4 bg-mainBg">
@@ -3014,7 +3038,7 @@
                       <div class="space-y-4">
                         <div class="flex items-center justify-between border-b-4 border-black pb-3">
                           <h3 class="text-2xl font-black uppercase">${t('HUB_RESULTS')}</h3>
-                          <span class="text-xs font-bold text-gray-500 uppercase">60m² Repair Hub Referansı</span>
+                          <span class="text-xs font-bold text-gray-500 uppercase">${roomArea}m² ${currentLang === 'en' ? 'Reference' : 'Referansı'}</span>
                         </div>
 
                         <!-- Zone açıklaması -->
