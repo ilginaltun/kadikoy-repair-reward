@@ -738,6 +738,7 @@
       const [phase, setPhase]             = useState('scanning');
       const [camError, setCamError]       = useState(null);
       const [showCaution, setShowCaution] = useState(true);
+      const [instrStep, setInstrStep] = useState(0);
       const [cycleIndex, setCycleIndex]   = useState(0);
       const [detectedTool, setDetectedTool] = useState(null);
       const [currentScan, setCurrentScan] = useState('');
@@ -914,8 +915,43 @@
             <div class="absolute bottom-0 left-0 right-0 z-10 ar-card-pop" style="max-height:70vh;overflow-y:auto">
               <div class="p-4 space-y-0">
 
-                <!-- Caution balloon -->
-                ${showCaution && html`
+                ${dt.instructions ? html`
+                  <!-- Instruction steps from ToolEducationAR -->
+                  <div class="bg-black border-4 border-black shadow-[6px_6px_0_#fff]">
+                    <div class="flex items-center justify-between px-4 py-2 border-b-4 border-white/20">
+                      <span class="font-black text-brandYellow text-xs uppercase tracking-widest">
+                        REPAIR HUB TOOL EDUCATION AR — ${instrStep + 1}/${dt.instructions.length}
+                      </span>
+                      <div class="flex gap-2">
+                        <button onClick=${() => setInstrStep(s => Math.max(0, s - 1))}
+                          disabled=${instrStep === 0}
+                          class="border-2 border-white text-white font-black text-xs px-2 py-1 disabled:opacity-30 active:bg-white active:text-black">◀</button>
+                        <button onClick=${() => setInstrStep(s => Math.min(dt.instructions.length - 1, s + 1))}
+                          disabled=${instrStep === dt.instructions.length - 1}
+                          class="border-2 border-white text-white font-black text-xs px-2 py-1 disabled:opacity-30 active:bg-white active:text-black">▶</button>
+                      </div>
+                    </div>
+                    ${(() => {
+                      const step = dt.instructions[instrStep];
+                      return html`
+                        <div class="flex items-center gap-4 p-4">
+                          <img src=${step.img} alt=${step.title}
+                            class="w-24 h-24 object-contain bg-white border-4 border-white shrink-0"
+                            style="image-rendering:auto" />
+                          <div>
+                            <p class="font-black text-white text-lg uppercase leading-tight">
+                              ${currentLang === 'en' ? step.title : step.titleTr}
+                            </p>
+                            <p class="font-bold text-white/70 text-sm mt-1 leading-snug">
+                              ${currentLang === 'en' ? step.desc : step.descTr}
+                            </p>
+                          </div>
+                        </div>
+                      `;
+                    })()}
+                  </div>
+                ` : showCaution && html`
+                  <!-- Caution balloon (non-instruction tools) -->
                   <div class="relative mb-0">
                     <div class="flex justify-center">
                       <div style="width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:16px solid #000"></div>
@@ -1047,7 +1083,11 @@
         { id: 3, name: 'DİKİŞ MAKİNESİ', nameEn: 'SEWING MACHINE',  emoji: '🧵', desc: 'Ev Tipi Dikiş Makinesi',           descEn: 'Home Type Sewing Machine',        days: 5, total: 2,
           caution:   ['Parmakları iğnenin yolundan uzak tut', 'Başlatmadan önce ipliği doğru yerleştir', 'Kullanım sonrası iğneyi aşağı konuma al'],
           cautionEn: ['Keep fingers clear of the needle path', 'Thread correctly before starting', 'Lower needle to safe position after use'],
-          arFile: 'MBL514E_sewing_machine.usdz' },  /* .reality → "Object could not be opened" verir çünkü çok sahneli+behavior içeriyor. USDZ gerekli: Reality Composer → Export → USDZ */
+          arFile: 'MBL514E_sewing_machine.usdz',
+          instructions: [
+            { img: 'instruction_thread_guide.png', title: 'THREAD GUIDE', titleTr: 'İPLİK KILAVUZU', desc: 'Pass the thread through the guide down to the needle.', descTr: 'İpliği üstten iğneye doğru kılavuz boyunca geçir.' },
+            { img: 'instruction_pretensioner.png', title: 'PRETENSIONER', titleTr: 'ÖN GERGİ', desc: 'Thread between the tension discs and apply correct pressure.', descTr: 'İpliği gerilim disklerinin arasından sıkıştırarak geçir.' },
+          ] },
         { id: 4, name: 'TORNAVIDA SETİ', nameEn: 'SCREWDRIVER SET', emoji: '🪛', desc: 'Profesyonel Tornavida Takımı',     descEn: 'Professional Screwdriver Set',    days: 7, total: 4,
           caution:   ['Yanlış uç cıvatayı bozar — doğru boyutu seç', 'Kayma tehlikesine karşı güçlü baskıyla çalış', 'Elektrikli devreler için yalıtımlı model kullan'],
           cautionEn: ['Wrong bit strips screws — always match the size', 'Apply firm pressure to prevent slipping', 'Use insulated handle for electrical work'] },
@@ -1455,119 +1495,6 @@
               ${t('IMPACT_CLOSE')}
             </button>
           </div>
-        </div>
-      `;
-    }
-
-    // ── ARFurniturePage ────────────────────────────────────────────────────
-    function ARFurniturePage() {
-      const qrRef = useRef(null);
-
-      const arItems = [
-        { id: 1, name: 'DİKİŞ MAKİNESİ', nameEn: 'SEWING MACHINE', emoji: '🧵',
-          desc: 'Ev Tipi Dikiş Makinesi', descEn: 'Home Type Sewing Machine',
-          arFile: 'MBL514E_sewing_machine.usdz' },  /* .reality → "Object could not be opened" verir çünkü çok sahneli+behavior içeriyor. USDZ gerekli: Reality Composer → Export → USDZ */
-        { id: 2, name: 'SANDALYE', nameEn: 'CHAIR', emoji: '🪑',
-          desc: 'Ahşap Oturma Sandalyesi', descEn: 'Wooden Dining Chair', arFile: null },
-        { id: 3, name: 'KOLTUK', nameEn: 'ARMCHAIR', emoji: '🛋️',
-          desc: 'Tekli Koltuk', descEn: 'Single Armchair', arFile: null },
-        { id: 4, name: 'MASA', nameEn: 'TABLE', emoji: '🪵',
-          desc: 'Yemek Masası', descEn: 'Dining Table', arFile: null },
-      ];
-
-      useEffect(() => {
-        if (qrRef.current && window.QRCode) {
-          qrRef.current.innerHTML = '';
-          new window.QRCode(qrRef.current, {
-            text: window.location.href,
-            width: 140, height: 140,
-            colorDark: '#000000', colorLight: '#ffffff',
-          });
-        }
-      }, []);
-
-      function openAR(arFile) {
-        const isIOS = (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream)
-          || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        if (isIOS) {
-          const a = Object.assign(document.createElement('a'), { rel: 'ar', href: arFile });
-          a.appendChild(document.createElement('img'));
-          document.body.appendChild(a);
-          a.click();
-          requestAnimationFrame(() => a.remove());
-        } else {
-          alert(currentLang === 'en'
-            ? '🥽 AR Quick Look requires iPhone or iPad with Safari.\n\nOn your iPhone: open this page in Safari and tap "View in AR".'
-            : '🥽 AR Quick Look özelliği Safari\'li iPhone veya iPad gerektirir.\n\niPhone\'unda Safari ile bu sayfayı aç ve "AR\'da Gör" butonuna bas.');
-        }
-      }
-
-      return html`
-        <div class="space-y-8 md:space-y-12 mt-6 md:mt-8 relative z-10">
-
-          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div class="inline-block relative">
-              <div class="absolute inset-0 bg-brandBlue transform translate-x-2 translate-y-2 border-4 border-black"></div>
-              <h2 class="relative bg-black text-white px-5 py-2 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('AR_PAGE_TITLE')}</h2>
-            </div>
-            <p class="font-bold text-base md:text-lg max-w-md border-l-4 border-black pl-4">${t('AR_PAGE_DESC')}</p>
-          </div>
-
-          <div class="bg-brandYellow border-4 border-black shadow-[6px_6px_0px_#000] p-5 md:p-8">
-            <h3 class="font-black text-xl md:text-2xl uppercase mb-5">${t('AR_HOW_TITLE')}</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              ${[t('AR_HOW_1'), t('AR_HOW_2'), t('AR_HOW_3'), t('AR_HOW_4')].map((step, i) => html`
-                <div key=${i} class="bg-white border-4 border-black p-4 flex gap-3 items-start shadow-[4px_4px_0px_#000]">
-                  <span class="font-black text-4xl text-brandBlue shrink-0 leading-none">${i + 1}</span>
-                  <p class="font-bold text-sm leading-snug mt-1">${step}</p>
-                </div>
-              `)}
-            </div>
-          </div>
-
-          <div>
-            <div class="inline-block relative mb-6">
-              <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
-              <h3 class="relative bg-black text-white px-4 py-2 text-2xl md:text-3xl font-black uppercase tracking-tighter border-4 border-black">${t('AR_PAGE_SUBTITLE')}</h3>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              ${arItems.map(item => html`
-                <div key=${item.id} class="brutal-card p-5 flex flex-col gap-4 bg-white ${!item.arFile ? 'opacity-60' : ''}">
-                  <div class="text-center text-6xl py-4 bg-mainBg border-4 border-black">${item.emoji}</div>
-                  <div>
-                    <h4 class="font-black text-xl uppercase leading-tight">${currentLang === 'en' ? item.nameEn : item.name}</h4>
-                    <p class="font-bold text-sm text-gray-500 mt-1">${currentLang === 'en' ? item.descEn : item.desc}</p>
-                  </div>
-                  ${item.arFile ? html`
-                    <div class="mt-auto space-y-2">
-                      <span class="inline-block bg-brandBlue text-white text-xs font-black px-2 py-1 uppercase border-2 border-black">${t('AR_AVAILABLE')}</span>
-                      <button onClick=${() => openAR(item.arFile)}
-                        class="w-full bg-black text-brandYellow border-4 border-black p-3 font-black text-base uppercase shadow-[4px_4px_0px_#555] hover:translate-y-px hover:shadow-[3px_3px_0_#555] transition-all flex items-center justify-center gap-2">
-                        🥽 ${t('AR_QUICKLOOK_BTN')}
-                      </button>
-                      <p class="text-xs text-gray-400 font-bold text-center">${t('AR_IOS_BADGE')}</p>
-                    </div>
-                  ` : html`
-                    <div class="mt-auto">
-                      <div class="w-full bg-gray-100 border-4 border-gray-300 p-3 font-black text-base uppercase text-gray-400 text-center">${t('AR_COMING_SOON')}</div>
-                    </div>
-                  `}
-                </div>
-              `)}
-            </div>
-          </div>
-
-          <div class="brutal-card p-6 md:p-10 bg-white flex flex-col md:flex-row items-center gap-8">
-            <div class="shrink-0 border-4 border-black p-2 bg-white" ref=${qrRef}></div>
-            <div>
-              <h3 class="font-black text-2xl md:text-3xl uppercase mb-3">${t('AR_QR_TITLE')}</h3>
-              <p class="font-bold text-base text-gray-600 max-w-md">${t('AR_QR_DESC')}</p>
-              <div class="mt-4 bg-brandYellow border-4 border-black px-4 py-2 inline-block">
-                <p class="font-black text-sm uppercase">iOS Safari → AR Quick Look</p>
-              </div>
-            </div>
-          </div>
-
         </div>
       `;
     }
@@ -2406,9 +2333,6 @@
               <button onClick=${() => setView('hesap')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'hesap' ? 'bg-black text-white' : 'bg-brandPink text-black'}">
                 <${IconGlobe} /> ${t('NAV_ACCOUNT')}
               </button>
-              <button onClick=${() => setView('ar')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'ar' ? 'bg-black text-white' : 'bg-brandBlue text-white'}">
-                ${t('NAV_AR')}
-              </button>
             </nav>
           </header>
 
@@ -2779,7 +2703,6 @@
               </div>`;
             })()}
 
-            ${view === 'ar' && html`<${ARFurniturePage} />`}
           </main>
 
           <${ChatBot}
