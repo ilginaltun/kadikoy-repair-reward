@@ -2684,73 +2684,108 @@
                 return { x0: x0+pad, y0: y0+pad, x1: x1-pad, y1: y1-pad };
               };
 
-              // ── ADIM 2: flood-fill tabanlı açık alan ızgarası ──────────────────
-              // Köşelerden başlayarak dışarıya flood-fill uygula.
-              // Duvarlara takılmadan ulaşılabilen beyaz piksel = BİNA DIŞI.
-              // Geriye kalan beyaz = oda içi = alet konabilir alan.
+              // ── ADIM 2: Watershed algoritması ──────────────────────────────────
+              // Distance transform + dilation + flood-fill → oda merkezlerini bulur
+              // Kapı boşluklarına rağmen iç/dış doğru ayrılır
               const buildOpenGrid = (data, W, H, bounds, GW, GH) => {
                 const { x0, y0, x1, y1 } = bounds;
                 const bW = Math.max(1, x1 - x0), bH = Math.max(1, y1 - y0);
                 const cellW = bW / GW, cellH = bH / GH;
 
-                // 1) Piksel başına "açık mı?" (duvar değil mi?) — lum > 185
+                // 1) Ham piksel haritası
                 const pixOpen = new Uint8Array(W * H);
+                for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+                  const i = (y*W+x)*4, l = data[i]*0.299+data[i+1]*0.587+data[i+2]*0.114;
+                  pixOpen[y*W+x] = l > 180 ? 1 : 0;
+                }
+
+                // 2) Distance transform — BFS çok-kaynaklı, O(W*H)
+                //    Her pikselin en yakın duvara olan mesafesi → oda merkezi = yüksek değer
+                const INF = 99999;
+                const dist = new Int32Array(W * H).fill(INF);
+                const dq = []; let dHead = 0;
+                for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+                  const idx = y*W+x;
+                  if (!pixOpen[idx]) { dist[idx] = 0; dq.push(idx); }
+                }
+                while (dHead < dq.length) {
+                  const idx = dq[dHead++];
+                  const px = idx%W, py = (idx/W)|0, d = dist[idx];
+                  if (px<W-1 && dist[idx+1]===INF) { dist[idx+1]=d+1; dq.push(idx+1); }
+                  if (px>0   && dist[idx-1]===INF) { dist[idx-1]=d+1; dq.push(idx-1); }
+                  if (py<H-1 && dist[idx+W]===INF) { dist[idx+W]=d+1; dq.push(idx+W); }
+                  if (py>0   && dist[idx-W]===INF) { dist[idx-W]=d+1; dq.push(idx-W); }
+                }
+
+                // 3) Dilation: duvarları R piksel genişlet → kapı aralıklarını kapat
+                const R = 22;
+                const hP = new Uint8Array(W * H);
                 for (let y = 0; y < H; y++) {
+                  let wc = 0;
+                  for (let x = 0; x <= Math.min(R,W-1); x++) if (!pixOpen[y*W+x]) wc++;
                   for (let x = 0; x < W; x++) {
-                    const i = (y * W + x) * 4;
-                    const l = data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114;
-                    pixOpen[y * W + x] = l > 185 ? 1 : 0;
+                    hP[y*W+x] = wc===0 ? 1 : 0;
+                    const ax=x+R+1; if(ax<W && !pixOpen[y*W+ax]) wc++;
+                    const rx=x-R;   if(rx>=0 && !pixOpen[y*W+rx]) wc--;
+                  }
+                }
+                const sealed = new Uint8Array(W * H);
+                for (let x = 0; x < W; x++) {
+                  let wc = 0;
+                  for (let y = 0; y <= Math.min(R,H-1); y++) if (!hP[y*W+x]) wc++;
+                  for (let y = 0; y < H; y++) {
+                    sealed[y*W+x] = wc===0 ? 1 : 0;
+                    const ay=y+R+1; if(ay<H && !hP[ay*W+x]) wc++;
+                    const ry=y-R;   if(ry>=0 && !hP[ry*W+x]) wc--;
                   }
                 }
 
-                // 2) Flood-fill: tüm canvas köşelerinden dışarıya yayıl
+                // 4) Flood-fill dışarıdan — kapatılmış harita üzerinde
                 const exterior = new Uint8Array(W * H);
-                const queue = [];
-                const seed = (px, py) => {
-                  if (px < 0 || px >= W || py < 0 || py >= H) return;
-                  const idx = py * W + px;
-                  if (!exterior[idx] && pixOpen[idx]) { exterior[idx] = 1; queue.push(idx); }
+                const eq = []; let eHead = 0;
+                const eseed = (px,py) => {
+                  if(px<0||px>=W||py<0||py>=H) return;
+                  const i=py*W+px;
+                  if(!exterior[i]&&sealed[i]){exterior[i]=1;eq.push(i);}
                 };
-                for (let x = 0; x < W; x++) { seed(x, 0); seed(x, H-1); }
-                for (let y = 0; y < H; y++) { seed(0, y); seed(W-1, y); }
-                let head = 0;
-                while (head < queue.length) {
-                  const idx = queue[head++];
-                  const px = idx % W, py = (idx / W) | 0;
-                  seed(px+1, py); seed(px-1, py); seed(px, py+1); seed(px, py-1);
+                for(let x=0;x<W;x++){eseed(x,0);eseed(x,H-1);}
+                for(let y=0;y<H;y++){eseed(0,y);eseed(W-1,y);}
+                while(eHead<eq.length){
+                  const i=eq[eHead++]; const px=i%W,py=(i/W)|0;
+                  eseed(px+1,py);eseed(px-1,py);eseed(px,py+1);eseed(px,py-1);
                 }
 
-                // 3) Hücre ızgarası: her hücrede piksel sayımı
+                // 5) Hücre ızgarası: interiorRatio + avgDist (watershed kalite skoru)
                 const grid = [];
                 for (let gy = 0; gy < GH; gy++) {
                   for (let gx = 0; gx < GW; gx++) {
-                    const cx0 = Math.round(x0 + gx * cellW);
-                    const cy0 = Math.round(y0 + gy * cellH);
-                    const cx1 = Math.min(W-1, Math.round(x0 + (gx+1) * cellW));
-                    const cy1 = Math.min(H-1, Math.round(y0 + (gy+1) * cellH));
-                    let interior = 0, dark = 0, total = 0, lumSum = 0;
-                    for (let py = cy0; py <= cy1; py++) {
-                      for (let px = cx0; px <= cx1; px++) {
-                        const pidx = py * W + px;
-                        const i = pidx * 4;
-                        const l = data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114;
-                        lumSum += l;
-                        if (pixOpen[pidx] && !exterior[pidx]) interior++;
-                        if (l < 160) dark++;
-                        total++;
-                      }
+                    const px0=Math.round(x0+gx*cellW), py0=Math.round(y0+gy*cellH);
+                    const px1=Math.min(W-1,Math.round(x0+(gx+1)*cellW));
+                    const py1=Math.min(H-1,Math.round(y0+(gy+1)*cellH));
+                    let interior=0, dark=0, total=0, lumSum=0, distSum=0;
+                    for(let py=py0;py<=py1;py++) for(let px=px0;px<=px1;px++){
+                      const pidx=py*W+px;
+                      const i=pidx*4, l=data[i]*0.299+data[i+1]*0.587+data[i+2]*0.114;
+                      lumSum+=l; if(l<160) dark++;
+                      if(pixOpen[pidx]&&!exterior[pidx]){ interior++; distSum+=dist[pidx]; }
+                      total++;
                     }
-                    const avgLum = total > 0 ? lumSum / total : 0;
-                    // Hücre açık sayılır: piksellerinin >55%'i oda içi VE karanlık piksel az
-                    const interiorRatio = total > 0 ? interior / total : 0;
-                    const darkRatio     = total > 0 ? dark / total : 1;
-                    const open = interiorRatio > 0.55 && darkRatio < 0.18;
-                    const cx  = Math.round(x0 + (gx + 0.5) * cellW);
-                    const cy  = Math.round(y0 + (gy + 0.5) * cellH);
-                    const nx  = (gx + 0.5) / GW;
-                    const ny  = (gy + 0.5) / GH;
-                    grid.push({ gx, gy, cx, cy, open, lum: avgLum, nx, ny, interiorRatio });
+                    const avgLum        = total>0 ? lumSum/total : 0;
+                    const interiorRatio = total>0 ? interior/total : 0;
+                    const darkRatio     = total>0 ? dark/total : 1;
+                    // avgDist: duvara ortalama mesafe — yüksek = oda merkezi
+                    const avgDist       = interior>0 ? distSum/interior : 0;
+                    const open = interiorRatio > 0.45 && darkRatio < 0.22;
+                    const cx=Math.round(x0+(gx+0.5)*cellW), cy=Math.round(y0+(gy+0.5)*cellH);
+                    const nx=(gx+0.5)/GW, ny=(gy+0.5)/GH;
+                    grid.push({gx,gy,cx,cy,open,lum:avgLum,nx,ny,interiorRatio,avgDist});
                   }
+                }
+
+                // Yedek: flood-fill sızdıysa saf parlaklık
+                const openCount = grid.filter(c=>c.open).length;
+                if(openCount < grid.length * 0.04) {
+                  grid.forEach(c => { c.open = c.lum > 215; });
                 }
                 return { grid, cellW, cellH };
               };
@@ -2801,9 +2836,13 @@
 
                   const nearWall  = isNearWall(cell.gx, cell.gy, GW, GH);
                   const wallScore = spec.wallPrefer ? (nearWall ? 1.5 : 0) : (nearWall ? -0.5 : 0.5);
-                  const lumScore  = cell.lum / 255;
+                  // distScore: oda merkezine yakınlık (watershed kalite skoru)
+                  // Duvar tercihi olan aletler → düşük dist daha iyi; diğerleri → yüksek dist daha iyi
+                  const distScore = spec.wallPrefer
+                    ? Math.max(0, 1 - (cell.avgDist || 0) / 40)
+                    : Math.min(1, (cell.avgDist || 0) / 40);
 
-                  const score = zoneScore + wallScore + lumScore;
+                  const score = zoneScore + wallScore + distScore;
                   if (score > bestScore) { bestScore = score; best = cell; }
                 }
                 return best;
@@ -2824,7 +2863,7 @@
                 const rawData = ctx.getImageData(0, 0, CW, CH).data;
 
                 const bounds = findContentBounds(rawData, CW, CH);
-                const GW = 24, GH = 16;
+                const GW = 32, GH = 22;
                 const { grid } = buildOpenGrid(rawData, CW, CH, bounds, GW, GH);
 
                 // Zone renkleri (Physical Layer görseline uygun)
