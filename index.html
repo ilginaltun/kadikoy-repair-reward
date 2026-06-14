@@ -2774,23 +2774,24 @@
                 }
 
                 // 2. pass: Yönelim ve kapı/boşluk algılama
+                const doorCells = [];
                 grid.forEach(c => {
                   if(!c.open) return;
                   const getD = (dx,dy) => {
                     const n = grid.find(g => g.gx===c.gx+dx && g.gy===c.gy+dy);
-                    return n ? n.darkRatio : 1; // sınırlar dışı duvar sayılır
+                    return n ? n.darkRatio : 0; // Sınır dışı boşluktur!
                   };
-                  const wallL = getD(-1,0) + getD(-2,0);
-                  const wallR = getD(1,0) + getD(2,0);
-                  const wallT = getD(0,-1) + getD(0,-2);
-                  const wallB = getD(0,1) + getD(0,2);
+                  const wL = getD(-1,0) + getD(-2,0);
+                  const wR = getD(1,0) + getD(2,0);
+                  const wT = getD(0,-1) + getD(0,-2);
+                  const wB = getD(0,1) + getD(0,2);
                   
-                  const maxWall = Math.max(wallL, wallR, wallT, wallB);
+                  const maxWall = Math.max(wL, wR, wT, wB);
                   if (maxWall > 0.15) {
-                    if (maxWall === wallL || maxWall === wallR) c.wallDir = 'V'; // Duvar sol/sağ -> obje dikey durmalı
-                    else c.wallDir = 'H'; // Duvar üst/alt -> obje yatay durmalı
+                    if (maxWall === wL || maxWall === wR) c.wallDir = 'V'; 
+                    else c.wallDir = 'H'; 
                   } else {
-                    c.wallDir = 'H'; // Ortada kalan objeler varsayılan yatay
+                    c.wallDir = 'H'; 
                   }
 
                   const getO = (dx,dy) => {
@@ -2798,10 +2799,23 @@
                     return n ? n.open : false;
                   };
                   const isEdge = (!getO(-1,0) || !getO(1,0) || !getO(0,-1) || !getO(0,1));
-                  // Kenar hücresi ama etrafında karanlık piksel azsa boşluktur (kapı/pencere)
-                  if (isEdge && maxWall < 0.10 && c.lum > 180) {
-                     c.open = false; // Buraya eşya koyma
+                  
+                  const totalWallAround = wL + wR + wT + wB + getD(0,0);
+                  // Eğer hücre açık alanın kenarındaysa ve etrafında hiç kalın duvar yoksa, bu bir kapı/penceredir.
+                  if (isEdge && totalWallAround < 0.25 && c.lum > 150) {
+                     doorCells.push(c);
                   }
+                });
+
+                // Kapıların ve pencerelerin önündeki 3-4 hücrelik yarıçapı tamamen yasakla!
+                doorCells.forEach(dc => {
+                  grid.forEach(c => {
+                    if (!c.open) return;
+                    const dist = Math.sqrt(Math.pow(c.gx - dc.gx, 2) + Math.pow(c.gy - dc.gy, 2));
+                    if (dist <= 4.0) { // Kapı önünde yaklaşık 1.5 - 2 metrelik devasa bir boşluk bırak
+                      c.open = false; 
+                    }
+                  });
                 });
 
                 return { grid, cellW, cellH };
