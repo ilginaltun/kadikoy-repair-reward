@@ -14,5 +14,11 @@
       "source": "/(.*)",
       "destination": "/api/chat"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/keepalive",
+      "schedule": "0 0 * * *"
+    }
   ]
 }

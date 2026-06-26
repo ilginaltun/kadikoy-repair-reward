@@ -178,6 +178,15 @@ Veriler: {map_data}"""
         return jsonify({"reply": f"Hata: {str(e)[:100]}"}), 500
 
 
+@app.route('/api/keepalive', methods=['GET'])
+def keepalive():
+    try:
+        # Perform a simple query to keep Supabase awake
+        result = supabase.table('users').select('email').limit(1).execute()
+        return jsonify({"status": "ok", "message": "Supabase pinged successfully!"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/export/users', methods=['GET'])
 def export_users():
     result = supabase.table('users').select('email, role, created_at').order('created_at', desc=True).execute()
