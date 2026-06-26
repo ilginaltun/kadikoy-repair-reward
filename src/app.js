@@ -1,0 +1,2979 @@
+import { h, render } from 'https://esm.sh/preact@10.19.6';
+import { useState, useEffect, useRef } from 'https://esm.sh/preact@10.19.6/hooks';
+import htm from 'https://esm.sh/htm@3.1.1';
+const html = htm.bind(h);
+
+import { IconHome, IconGift, IconMap, IconWrench, IconSearch, IconBox, IconLeaf, IconGlobe } from './components/Icons.js';
+import { t, translations, DEFAULT_KG, calcImpact, renderMessageWithShops } from './data/translations.js';
+import { getDistance, getCategoryEmoji, catName, urgencyLabel } from './utils/helpers.js';
+
+// ── Language Toggle ──
+function LanguageToggle({ language, onLanguageChange }) {
+      return html`
+        <div style="position:fixed;top:16px;right:16px;z-index:10000;display:flex;gap:8px;">
+          <button onClick=${() => {
+            window.currentLang = 'tr';
+            document.documentElement.lang = window.currentLang;
+            localStorage.setItem('language', 'tr');
+            onLanguageChange('tr');
+          }} style="padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;${language === 'tr' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white'};cursor:pointer;">
+            TR
+          </button>
+          <button onClick=${() => {
+            window.currentLang = 'en';
+            document.documentElement.lang = window.currentLang;
+            localStorage.setItem('language', 'en');
+            onLanguageChange('en');
+          }} style="padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;${language === 'en' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white'};cursor:pointer;">
+            EN
+          </button>
+        </div>
+      `;
+    }
+
+// ── ChatBot ──
+function ChatBot({ isChatOpen, setIsChatOpen, messages, input, setInput, handleSend, allShops, onShopClick, title = null }) {
+      title = title || t('REPAIR_AI');
+      return html`
+        <div class="fixed bottom-10 right-5 md:right-10 z-[9999]">
+          ${isChatOpen && html`
+            <div class="w-[90vw] md:w-[400px] h-[500px] brutal-card flex flex-col mb-6 overflow-hidden bg-white max-w-sm">
+              <div class="bg-black text-brandYellow p-5 font-black uppercase flex justify-between items-center border-b-4 border-black">
+                <span>${title}</span>
+                <button onClick=${() => setIsChatOpen(false)} class="text-2xl hover:scale-125 transition-transform text-white">×</button>
+              </div>
+              <div class="flex-grow p-4 overflow-y-auto space-y-4 bg-white/60">
+                ${messages.map((m, idx) => html`
+                  <div key=${idx} class="p-3 border-4 border-black font-bold text-black ${m.role === 'bot' ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
+                    ${m.role === 'bot' ? renderMessageWithShops(m.text, allShops, onShopClick) : m.text}
+                  </div>
+                `)}
+              </div>
+              <div class="p-4 border-t-4 border-black flex gap-2 bg-white">
+                <input value=${input} onInput=${e => setInput(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSend()}
+                       class="flex-grow p-2 border-4 border-black outline-none font-bold" placeholder="${t('CHAT_INPUT_PLACEHOLDER')}" />
+                <button onClick=${() => handleSend()} class="bg-black text-white px-4 border-4 border-black font-black">${t('ASK')}</button>
+              </div>
+            </div>
+          `}
+          <button onClick=${() => setIsChatOpen(!isChatOpen)}
+                  class="bg-brandBlue text-white w-16 h-16 md:w-20 md:h-20 brutal-card flex items-center justify-center hover:scale-110 transition-transform text-3xl md:text-4xl font-black shadow-[6px_6px_0px_#000] md:shadow-[10px_10px_0px_#000] ml-auto">
+            ?
+          </button>
+        </div>
+      `;
+    }
+
+// ── Map ──
+function Map({ selectedShop, setSelectedShop, customerLocation, jobPostings }) {
+      const mapRef = useRef(null);
+      const highlightRef = useRef(null);
+      const [layers, setLayers] = useState({
+        tamirciler: { active: true, title: 'TAMİRCİLER', sub: 'Terzi / Elektronik', color: 'bg-brandYellow', shape: 'square' },
+        kamu: { active: true, title: 'KAMU BİNALARI', sub: 'İSMEK / Kütüphane', color: 'bg-brandPink', shape: 'square' },
+        customerLocation: { active: true, title: 'MÜŞTERİ LOKASYONUٌ', sub: '400m Hizmet Alanı', color: 'bg-black', shape: 'square' },
+        jobPostings: { active: true, title: 'AÇIK İŞ İLANLARI', sub: 'Tamir İlanları', color: 'bg-brandBlue', shape: 'square' }
+      });
+      const groupsRef = useRef(null);
+      const mapInstance = useRef(null);
+
+      useEffect(() => {
+        if (!mapRef.current || mapInstance.current) return;
+        const map = window.L.map(mapRef.current).setView([40.988, 29.045], 14);
+        window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        mapInstance.current = map;
+        groupsRef.current = { tamirciler: window.L.layerGroup(), kamu: window.L.layerGroup(), customerLocation: window.L.layerGroup(), jobPostings: window.L.layerGroup() };
+        fetch('./kadikoy_map_data.json').then(res => res.json()).then(data => {
+          const icon = (bg) => window.L.divIcon({ className: '', html: `<div class="w-7 h-7 border-4 border-black shadow-[4px_4px_0px_#000] ${bg}"></div>`, iconSize: [28, 28] });
+          if (data.tamirciler) Object.values(data.tamirciler).forEach(k => k.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-brandYellow') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.tamirciler)));
+          data.kamu?.forEach(m => window.L.marker([m.lat, m.lon], { icon: icon('bg-brandPink') }).bindPopup(`<b>${m.name}</b>`).addTo(groupsRef.current.kamu));
+          Object.keys(layers).forEach(k => { if (layers[k].active) groupsRef.current[k].addTo(map); });
+        });
+      }, []);
+
+      useEffect(() => {
+        if (!mapInstance.current || !groupsRef.current) return;
+        Object.keys(layers).forEach(k => { if (layers[k].active) mapInstance.current.addLayer(groupsRef.current[k]); else mapInstance.current.removeLayer(groupsRef.current[k]); });
+      }, [layers]);
+
+      useEffect(() => {
+        if (!mapInstance.current) return;
+        if (highlightRef.current) { mapInstance.current.removeLayer(highlightRef.current); highlightRef.current = null; }
+        if (!selectedShop) return;
+        mapInstance.current.flyTo([selectedShop.lat, selectedShop.lon], 17, { duration: 1.5 });
+        const pulseIcon = window.L.divIcon({ className: '', html: '<div class="pulse-marker" style="width:32px;height:32px;background:#054ff0;border:4px solid #000;"></div>', iconSize: [32, 32] });
+        highlightRef.current = window.L.marker([selectedShop.lat, selectedShop.lon], { icon: pulseIcon, zIndexOffset: 1000 })
+          .bindPopup('<b>' + selectedShop.name + '</b><br/>Kategori: ' + selectedShop.kategori).addTo(mapInstance.current);
+        setTimeout(() => { if (highlightRef.current) highlightRef.current.openPopup(); }, 1600);
+      }, [selectedShop]);
+
+      useEffect(() => {
+        if (!mapInstance.current || !groupsRef.current) return;
+        groupsRef.current.jobPostings.clearLayers();
+        jobPostings?.filter(j => !j.assignedTo).forEach(job => {
+          const icon = window.L.divIcon({ className: '', html: `<div class="w-7 h-7 border-4 border-black shadow-[4px_4px_0px_#000] bg-brandBlue"></div>`, iconSize: [28, 28] });
+          window.L.marker([job.lat, job.lon], { icon }).bindPopup(`<b>${job.baslik}</b><br/>${job.kategori} • ${job.ucret} Puan`).addTo(groupsRef.current.jobPostings);
+        });
+        if (layers.jobPostings.active) groupsRef.current.jobPostings.addTo(mapInstance.current);
+      }, [jobPostings, layers]);
+
+      useEffect(() => {
+        if (!mapInstance.current || !groupsRef.current) return;
+        groupsRef.current.customerLocation.clearLayers();
+        if (customerLocation) {
+          const icon = window.L.divIcon({ className: '', html: `<div style="width:32px;height:32px;background:#000;border:4px solid #000;box-shadow:4px 4px 0px #000;display:flex;align-items:center;justify-content:center;"><div style="width:10px;height:10px;background:#fff;border-radius:50%;"></div></div>`, iconSize: [32, 32], iconAnchor: [16, 16] });
+          window.L.marker([customerLocation.lat, customerLocation.lon], { icon }).bindPopup('<b>Konumunuz</b>').addTo(groupsRef.current.customerLocation);
+          window.L.circle([customerLocation.lat, customerLocation.lon], { radius: 400, color: '#000', weight: 3, fillColor: '#000', fillOpacity: 0.07, dashArray: '6,6' }).addTo(groupsRef.current.customerLocation);
+          mapInstance.current.flyTo([customerLocation.lat, customerLocation.lon], 15, { duration: 1.2 });
+        }
+        if (layers.customerLocation.active) groupsRef.current.customerLocation.addTo(mapInstance.current);
+      }, [customerLocation]);
+
+      return html`
+        <div class="flex flex-col lg:flex-row gap-12 relative z-10">
+          <div class="w-full lg:w-[450px] brutal-card p-6 md:p-10 space-y-10 bg-white/90 backdrop-blur-sm">
+            <h3 class="text-4xl md:text-6xl font-black uppercase tracking-tighter border-b-8 border-black pb-4 italic">${t('LAYERS')}</h3>
+            ${selectedShop && html`
+              <div class="mb-6 border-b-4 border-black pb-6">
+                <h4 class="text-2xl md:text-3xl font-black uppercase tracking-tight mb-4">${t('SELECTED_MASTER')}</h4>
+                <div onClick=${() => { if (mapInstance.current && selectedShop) { mapInstance.current.flyTo([selectedShop.lat, selectedShop.lon], 17, { duration: 1 }); if (highlightRef.current) setTimeout(() => highlightRef.current.openPopup(), 1100); } }}
+                  class="cursor-pointer border-4 border-black p-4 bg-brandBlue text-white shadow-[6px_6px_0px_#000] hover:translate-y-[-2px] hover:shadow-[6px_8px_0px_#000] transition-all">
+                  <div class="text-xl md:text-2xl font-black uppercase leading-tight">${selectedShop.name}</div>
+                  <div class="text-sm md:text-base font-bold mt-2 opacity-80 uppercase">${selectedShop.kategori}</div>
+                  <div class="text-xs md:text-sm font-bold mt-2 opacity-60">${t('VIEW_ON_MAP')}</div>
+                </div>
+                <button onClick=${() => setSelectedShop(null)} class="mt-3 w-full bg-black text-white border-4 border-black p-2 font-black uppercase text-base hover:bg-gray-800 transition-colors">${t('CLOSE')}</button>
+              </div>
+            `}
+            <div class="space-y-8">
+              ${Object.entries(layers).map(([key, l]) => html`
+                <div key=${key} class="flex items-start gap-6 cursor-pointer" onClick=${() => setLayers(p => ({ ...p, [key]: { ...l, active: !l.active } }))}>
+                  <div class="map-checkbox">${l.active && html`<div class="w-4 h-4 bg-black" style="clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%)"></div>`}</div>
+                  <div class="w-10 h-10 border-4 border-black shrink-0 shadow-[3px_3px_0px_#000] ${l.color}"></div>
+                  <div class="flex flex-col"><span class="text-2xl md:text-3xl font-black uppercase leading-none text-black">${key === 'tamirciler' ? t('REPAIRERS') : key === 'kamu' ? t('PUBLIC_BUILDINGS') : key === 'customerLocation' ? t('CUSTOMER_LOCATION') : t('OPEN_JOBS')}</span><span class="text-lg md:text-xl font-bold text-gray-500 uppercase mt-1">${key === 'tamirciler' ? t('REPAIRERS_SUB') : key === 'kamu' ? t('PUBLIC_BUILDINGS_SUB') : key === 'customerLocation' ? t('CUSTOMER_LOCATION_SUB') : t('OPEN_JOBS_SUB')}</span></div>
+                </div>
+              `)}
+            </div>
+          </div>
+          <div ref=${mapRef} class="w-full h-[500px] md:h-[700px] brutal-card bg-white"></div>
+        </div>
+      `;
+    }
+
+// ── ARView ──
+function ARView({ tools, onClose, onBorrow, onReturn, borrowedTools, getRemainingDays, toolCounts }) {
+      const videoRef  = useRef(null);
+      const streamRef = useRef(null);
+      const [phase, setPhase]             = useState('scanning');
+      const [camError, setCamError]       = useState(null);
+      const [showCaution, setShowCaution] = useState(true);
+      const [instrStep, setInstrStep] = useState(0);
+      const [cycleIndex, setCycleIndex]   = useState(0);
+      const [detectedTool, setDetectedTool] = useState(null);
+      const [currentScan, setCurrentScan] = useState('');
+
+      useEffect(() => {
+        document.body.classList.add('ar-open');
+        return () => document.body.classList.remove('ar-open');
+      }, []);
+
+      useEffect(() => {
+        if (phase !== 'scanning') return;
+        let i = 0;
+        const iv = setInterval(() => { i = (i + 1) % tools.length; setCycleIndex(i); }, 220);
+        return () => clearInterval(iv);
+      }, [phase]);
+
+      useEffect(() => {
+        let alive = true;
+        let isClassifying = true;
+        (async () => {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }
+            });
+            if (!alive) { stream.getTracks().forEach(t => t.stop()); return; }
+            streamRef.current = stream;
+            
+            if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+              
+                const TM_MODEL_URL = 'https://teachablemachine.withgoogle.com/models/jsOSqvhkB/';
+              const model = await window.tmImage.load(
+                TM_MODEL_URL + 'model.json',
+                TM_MODEL_URL + 'metadata.json'
+              );
+
+              if (!alive || !model) return;
+
+              // Sınıf adı → araç id eşleştirmesi (TM'den gelen class name'e göre)
+              const CLASS_MAP = {
+                'sewingmachine': 3,
+                'sewing machine': 3,
+                'driller': 1,
+                'matkap': 1,
+                'drill': 1,
+                'multimeter': 5,
+                'avometre': 5,
+                'tornavida': 4,
+                'screwdriver': 4,
+                'screwdiver set': 4,
+                'pencil': 7,
+                'kalem': 7,
+                'merdiven': 2,
+                'ladder': 2,
+                'ölçüm seti': 6,
+                'measuring set': 6
+              };
+
+              const mapLabelToTool = (label) => CLASS_MAP[label.toLowerCase().trim()] ?? null;
+
+              // Sınıf adını okunabilir isime çevir
+              const CLASS_DISPLAY = {
+                'sewingmachine': 'Dikiş Makinesi',
+                'sewing machine': 'Dikiş Makinesi',
+                'driller': 'Matkap',
+                'matkap': 'Matkap',
+                'multimeter': 'Avometre',
+                'avometre': 'Avometre',
+                'tornavida': 'Tornavida Seti',
+                'screwdriver': 'Tornavida Seti',
+                'screwdiver set': 'Tornavida Seti',
+                'pencil': 'Kalem',
+                'ladder': 'Merdiven',
+                'measuring set': 'Ölçüm Seti'
+              };
+
+              let confirmCount = 0;
+              let lastMatchId  = null;
+
+              const loopClassify = async () => {
+                if (!alive || !isClassifying || !videoRef.current) return;
+                try {
+                  const predictions = await model.predict(videoRef.current);
+                  if (!alive || !isClassifying) return;
+
+                  const best = predictions.reduce((a, b) => a.probability > b.probability ? a : b);
+                  const displayName = CLASS_DISPLAY[best.className.toLowerCase().trim()] || best.className;
+                  setCurrentScan(`${displayName} (${(best.probability * 100).toFixed(0)}%)`);
+
+                  const matchId = best.probability >= 0.75 ? mapLabelToTool(best.className) : null;
+
+                  if (matchId && matchId === lastMatchId) {
+                    confirmCount++;
+                    if (confirmCount >= 2) {           // 2 ardışık frame onayı
+                      const matchedTool = tools.find(t => t.id === matchId);
+                      if (matchedTool) {
+                        setDetectedTool(matchedTool);
+                        setPhase('detected');
+                        isClassifying = false;
+                        return;
+                      }
+                    }
+                  } else {
+                    confirmCount = matchId ? 1 : 0;
+                    lastMatchId  = matchId;
+                  }
+                } catch (err) {
+                  console.error('TM err:', err);
+                }
+                setTimeout(loopClassify, 200);
+              };
+
+              const startClassification = () => {
+                if (videoRef.current && videoRef.current.readyState >= 2) {
+                  loopClassify();
+                } else if (videoRef.current) {
+                  videoRef.current.onloadeddata = () => {
+                    if (alive && isClassifying) loopClassify();
+                  };
+                }
+              };
+              startClassification();
+            }
+          } catch (e) {
+            console.error(e);
+            if (alive) { setCamError(true); setPhase('error'); }
+          }
+        })();
+        return () => {
+          alive = false;
+          isClassifying = false;
+          if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+        };
+      }, []);
+
+      const dt          = detectedTool;
+      const isBorrowed  = dt ? !!borrowedTools[dt.id] : false;
+      const remaining   = dt && borrowedTools[dt.id] ? getRemainingDays(borrowedTools[dt.id].returnDate) : null;
+      const isOverdue   = isBorrowed && remaining === 0;
+      const available   = dt ? (toolCounts[dt.id] ?? dt.total) : 0;
+      const isUnavailable = !isBorrowed && available <= 0;
+
+      return html`
+        <div class="fixed inset-0 z-50 bg-black flex flex-col overflow-hidden" style="touch-action:none">
+
+          <!-- Camera feed -->
+          <video ref=${videoRef} autoplay playsinline muted
+            class="absolute inset-0 w-full h-full object-cover"
+            style="opacity:${phase === 'error' ? 0 : 1}">
+          </video>
+
+          <!-- Blue grid overlay -->
+          <div class="absolute inset-0 pointer-events-none"
+            style="background: repeating-linear-gradient(0deg,transparent,transparent 48px,rgba(5,79,240,0.12) 48px,rgba(5,79,240,0.12) 49px), repeating-linear-gradient(90deg,transparent,transparent 48px,rgba(5,79,240,0.12) 48px,rgba(5,79,240,0.12) 49px)">
+          </div>
+
+          <!-- Scanning line -->
+          ${phase === 'scanning' && html`
+            <div class="ar-scan-line absolute left-0 right-0 h-1 pointer-events-none"
+              style="background: linear-gradient(90deg, transparent, #054ff0, #dcfc75, #054ff0, transparent); box-shadow: 0 0 12px 3px #054ff0;">
+            </div>
+          `}
+
+          <!-- Corner brackets (center target box) -->
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div class="relative" style="width:220px;height:220px">
+              <!-- corners -->
+              ${[
+                'top-0 left-0 border-t-4 border-l-4',
+                'top-0 right-0 border-t-4 border-r-4',
+                'bottom-0 left-0 border-b-4 border-l-4',
+                'bottom-0 right-0 border-b-4 border-r-4',
+              ].map(cls => html`
+                <div class="absolute w-10 h-10 ${cls} ${phase === 'detected' ? 'border-brandYellow' : 'border-brandBlue ar-corner'}"></div>
+              `)}
+              <!-- center emoji -->
+              <div class="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <span class="text-7xl" style="filter:drop-shadow(0 0 16px rgba(5,79,240,0.8))">${phase === 'detected' && dt ? dt.emoji : tools[cycleIndex].emoji}</span>
+                <div class="border-4 ${phase === 'detected' ? 'border-brandYellow bg-brandYellow ar-badge-flash' : 'border-brandBlue bg-brandBlue'} px-3 py-1 flex flex-col items-center">
+                  <span class="font-black text-xs uppercase text-black tracking-widest">
+                    ${phase === 'detected' ? t('AR_DETECTED') : t('AR_SCANNING')}
+                  </span>
+                  ${phase === 'scanning' && currentScan && html`<span class="text-[10px] text-white opacity-80 mt-1 uppercase text-center max-w-[150px] truncate">${currentScan.split(',')[0]}</span>`}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top bar -->
+          <div class="absolute top-0 left-0 right-0 p-4 z-10"
+            style="background:linear-gradient(to bottom, rgba(0,0,0,0.65), transparent)">
+            <div class="border-4 border-white bg-black/60 px-3 py-1 inline-block">
+              <span class="font-black text-white text-sm uppercase tracking-widest">
+                ${phase === 'detected' && dt ? (window.currentLang === 'en' ? dt.nameEn : dt.name) + ' — AR' : 'AR'}
+              </span>
+            </div>
+          </div>
+          <button onClick=${onClose}
+            class="absolute top-[64px] right-4 z-20 bg-black text-white border-4 border-white px-4 py-2 font-black text-base shadow-[4px_4px_0px_#fff] active:shadow-[1px_1px_0px_#fff] active:translate-x-1 active:translate-y-1 transition-all">
+            ✕ ${t('AR_CLOSE')}
+          </button>
+
+          <!-- Tool info card (slides up after detection) -->
+          ${phase === 'detected' && dt && html`
+            <div class="absolute bottom-0 left-0 right-0 z-10 ar-card-pop" style="max-height:70vh;overflow-y:auto">
+              <div class="p-4 space-y-0">
+
+                ${dt.videoUrl ? html`
+                  <!-- Instruction steps from ToolEducationAR -->
+                  <div class="bg-black border-4 border-black shadow-[6px_6px_0_#fff] mb-6">
+                    <div class="flex items-center justify-between px-4 py-2 border-b-4 border-white/20">
+                      <span class="font-black text-brandYellow text-xs uppercase tracking-widest">
+                        REPAIR HUB TOOL EDUCATION AR
+                      </span>
+                    </div>
+                    <div class="flex flex-col items-center p-4">
+                      <video src=${dt.videoUrl} controls playsinline class="w-full h-auto object-cover border-4 border-white bg-black"></video>
+                      <p class="font-black text-white text-lg uppercase mt-4 text-center">
+                        ${window.currentLang === 'en' ? 'SCAN SUCCESSFUL' : 'TARAMA BAŞARILI'}
+                      </p>
+                      <p class="font-bold text-white/70 text-sm mt-1 text-center">
+                        ${window.currentLang === 'en' ? 'Watch the AR instruction video above.' : 'Yukarıdaki AR eğitim videosunu izleyin.'}
+                      </p>
+                    </div>
+                  </div>
+                ` : ''}
+                
+                ${showCaution && html`
+                  <!-- Caution balloon (non-instruction tools) -->
+                  <div class="relative mb-0 mt-2">
+                    <div class="flex justify-center">
+                      <div style="width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:16px solid #000"></div>
+                    </div>
+                    <div class="flex justify-center" style="margin-top:-14px">
+                      <div style="width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:14px solid #dcfc75"></div>
+                    </div>
+                    <div class="bg-brandYellow border-4 border-black shadow-[6px_6px_0_#000] p-4">
+                      <div class="flex items-center justify-between mb-3">
+                        <span class="font-black text-lg uppercase tracking-widest">${t('CAUTION_TITLE')}</span>
+                        <button onClick=${() => setShowCaution(false)}
+                          class="border-2 border-black bg-black text-brandYellow font-black text-xs px-3 py-1 uppercase shadow-[2px_2px_0_#555] hover:shadow-[1px_1px_0_#555] hover:translate-x-px hover:translate-y-px transition-all">
+                          ${t('CAUTION_DISMISS')}
+                        </button>
+                      </div>
+                      <ul class="space-y-2">
+                        ${(window.currentLang === 'en' ? dt.cautionEn : dt.caution).map((item, i) => html`
+                          <li key=${i} class="flex items-start gap-2 text-sm font-bold leading-snug">
+                            <span class="font-black shrink-0 mt-px">▸</span>
+                            <span>${item}</span>
+                          </li>
+                        `)}
+                      </ul>
+                    </div>
+                  </div>
+                `}
+
+              </div>
+              <div class="bg-white border-4 border-black shadow-[0_-6px_0px_#000] p-5 space-y-4">
+                <div class="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 class="text-2xl font-black uppercase leading-tight">
+                      ${window.currentLang === 'en' ? dt.nameEn : dt.name}
+                    </h3>
+                    <p class="text-sm font-bold text-gray-500 mt-0.5">
+                      ${window.currentLang === 'en' ? dt.descEn : dt.desc}
+                    </p>
+                  </div>
+                  <span class="font-black text-xs uppercase border-2 border-black px-2 py-1 shrink-0
+                    ${available === 0 && !isBorrowed ? 'bg-red-100 text-red-600' : 'bg-brandYellow'}">
+                    ${t('TOOL_AVAILABLE_UNITS', available)}
+                  </span>
+                </div>
+
+
+
+                <div class="border-t-4 border-black pt-3">
+                  ${isBorrowed ? html`
+                    <div class="${isOverdue ? 'bg-red-100 border-red-500 text-red-700' : 'bg-brandYellow'} border-4 border-black p-3 text-center mb-3">
+                      <p class="font-black text-sm uppercase">
+                        ${isOverdue ? t('TIME_UP') : html`⏳ <span class="text-brandBlue text-xl">${remaining}</span> ${t('DAYS_LEFT_SUFFIX')}`}
+                      </p>
+                    </div>
+                    <button onClick=${() => { onReturn(dt.id); onClose(); }}
+                      class="w-full bg-white border-4 border-black p-3 font-black text-lg uppercase brutal-btn hover:bg-gray-100 transition-colors">
+                      ${t('RETURN')}
+                    </button>
+                  ` : isUnavailable ? html`
+                    <button disabled class="w-full bg-gray-200 border-4 border-gray-400 p-3 font-black text-lg uppercase text-gray-400 cursor-not-allowed">
+                      ${t('UNAVAILABLE')}
+                    </button>
+                  ` : html`
+                    <div class="flex justify-between items-center mb-3">
+                      <span class="font-bold text-sm text-gray-500">${t('MAX_DAYS', dt.days)}</span>
+                      <span class="bg-brandYellow border-2 border-black px-2 py-1 text-xs font-black uppercase">${t('FREE')}</span>
+                    </div>
+                    <button onClick=${() => { onBorrow(dt); onClose(); }}
+                      class="w-full bg-brandPink border-4 border-black p-3 font-black text-xl uppercase shadow-[4px_4px_0px_#000] hover:translate-y-1 hover:shadow-[2px_2px_0px_#000] transition-all">
+                      ${t('BORROW')}
+                    </button>
+                  `}
+                </div>
+              </div>
+            </div>
+          `}
+
+          <!-- Camera error overlay -->
+          ${phase === 'error' && html`
+            <div class="absolute inset-0 flex items-center justify-center z-20 p-6"
+              style="background:rgba(0,0,0,0.85)">
+              <div class="bg-white border-4 border-black shadow-[8px_8px_0px_#000] p-8 text-center w-full max-w-sm">
+                <span class="text-5xl">📷</span>
+                <h3 class="font-black text-xl uppercase mt-4">${t('AR_NO_CAMERA')}</h3>
+                <p class="font-bold text-sm text-gray-500 mt-2">${t('AR_NO_CAMERA_HINT')}</p>
+                <button onClick=${onClose}
+                  class="mt-6 w-full bg-black text-white border-4 border-black p-3 font-black text-lg uppercase brutal-btn">
+                  ${t('AR_CLOSE')}
+                </button>
+              </div>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+// ── AletEdevat ──
+function AletEdevat({ borrowedTools, onBorrow, onReturn, getRemainingDays, toolCounts }) {
+      const [search, setSearch] = useState('');
+      const [arOpen, setArOpen]  = useState(false);
+
+      const aletler = [
+        { id: 1, name: 'MATKAP',          nameEn: 'DRILL',           emoji: '🔩', desc: 'Kordonsuz 18V Matkap',             descEn: 'Cordless 18V Drill',              days: 7, total: 3,
+          caution:   ['Koruyucu gözlük tak', 'Duvarda boru / elektrik hattı olup olmadığını kontrol et', 'Tetik serbest değilken matkabı fişe takma'],
+          cautionEn: ['Wear protective goggles', 'Check wall for hidden pipes & live cables', 'Never plug in while trigger is engaged'], videoUrl: 'driller.mp4' },
+        { id: 2, name: 'MERDİVEN',        nameEn: 'LADDER',          emoji: '🪜', desc: '3 Basamaklı Çelik Merdiven',       descEn: '3-Step Steel Ladder',             days: 3, total: 2,
+          caution:   ['Yalnızca düz ve sağlam zemine koy', 'En üst basamağa asla çıkma', 'Bir elin her zaman merdivenle temas halinde olsun'],
+          cautionEn: ['Place only on flat and stable ground', 'Never stand on the top step', 'Keep one hand on the ladder at all times'] },
+        { id: 3, name: 'DİKİŞ MAKİNESİ', nameEn: 'SEWING MACHINE',  emoji: '🧵', desc: 'Ev Tipi Dikiş Makinesi',           descEn: 'Home Type Sewing Machine',        days: 5, total: 2,
+          caution:   ['Parmakları iğnenin yolundan uzak tut', 'Başlatmadan önce ipliği doğru yerleştir', 'Kullanım sonrası iğneyi aşağı konuma al'],
+          cautionEn: ['Keep fingers clear of the needle path', 'Thread correctly before starting', 'Lower needle to safe position after use'], videoUrl: 'sewingmachine.mp4' },
+        { id: 4, name: 'TORNAVIDA SETİ', nameEn: 'SCREWDRIVER SET', emoji: '🪛', desc: 'Profesyonel Tornavida Takımı',     descEn: 'Professional Screwdriver Set',    days: 7, total: 4,
+          caution:   ['Yanlış uç cıvatayı bozar — doğru boyutu seç', 'Kayma tehlikesine karşı güçlü baskıyla çalış', 'Elektrikli devreler için yalıtımlı model kullan'],
+          cautionEn: ['Wrong bit strips screws — always match the size', 'Apply firm pressure to prevent slipping', 'Use insulated handle for electrical work'] },
+        { id: 5, name: 'AVOMETRE',        nameEn: 'MULTIMETER',      emoji: '🔌', desc: 'Dijital Multimetre / Test Cihazı', descEn: 'Digital Multimeter / Test Device', days: 3, total: 2,
+          caution:   ['Ölçüm öncesi doğru modu seç (AC / DC)', 'Probları bağlamadan önce devreyi kapat', 'Probları doğru terminale bağla (+ ve −)'],
+          cautionEn: ['Select correct mode (AC / DC) before measuring', 'Turn off circuit before connecting probes', 'Connect probes to correct terminals (+ and −)'], videoUrl: 'multimeter.mp4' },
+        { id: 6, name: 'ÖLÇÜM SETİ',     nameEn: 'MEASURING SET',   emoji: '📐', desc: 'Lazer Terazi & Dijital Metre',     descEn: 'Laser Level & Digital Meter',     days: 7, total: 3,
+          caution:   ['Lazer ışınını kesinlikle gözlere yöneltme', 'Lazer teraziyi metal yüzey üzerinde kalibre et', 'Uzun kullanım öncesinde pil seviyesini kontrol et'],
+          cautionEn: ['Never point laser beam at eyes', 'Calibrate laser level on a flat metal surface', 'Check battery level before extended use'] },
+        { id: 7, name: 'KURŞUN KALEM',   nameEn: 'PENCIL',          emoji: '✏️', desc: 'Sıradan Kurşun Kalem (Test)',      descEn: 'Regular Pencil (Test)',           days: 1, total: 10,
+          caution:   ['Ucuna dikkat et', 'Çok bastırma'],
+          cautionEn: ['Watch the tip', 'Do not press too hard'] },
+      ];
+
+      const q = search.trim().toLowerCase();
+      const filteredAletler = q
+        ? aletler.filter(a =>
+            (a.name + ' ' + a.nameEn + ' ' + a.desc + ' ' + a.descEn).toLowerCase().includes(q)
+          )
+        : aletler;
+
+      return html`
+        <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
+          <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 md:gap-6">
+            <div class="flex flex-col md:flex-row md:items-end gap-3 md:gap-6">
+              <div class="inline-block relative">
+                <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">
+                  ${t('TOOL_LIBRARIAN')}
+                </h2>
+              </div>
+              <p class="font-bold text-base text-gray-500 pb-1">${t('TOOL_DESC')}</p>
+            </div>
+            <button onClick=${() => setArOpen(true)}
+              class="brutal-btn bg-brandBlue text-white border-4 border-black px-5 py-3 font-black text-base uppercase shadow-[4px_4px_0_#000] flex items-center gap-2 shrink-0 w-max">
+              📷 ${t('AR_VIEW')}
+            </button>
+
+          </div>
+
+          <div class="brutal-card p-4 md:p-5 bg-brandYellow/60 border-4 border-black flex items-start gap-4">
+            <span class="text-3xl shrink-0">📦</span>
+            <div>
+              <p class="font-black uppercase">${t('BORROW_FREE')}</p>
+              <p class="font-bold text-sm opacity-70 mt-1">${t('BORROW_HINT')}</p>
+            </div>
+          </div>
+
+          <div class="relative flex items-center">
+            <span class="absolute left-4 text-black pointer-events-none"><${IconSearch} /></span>
+            <input
+              type="text"
+              value=${search}
+              onInput=${e => setSearch(e.target.value)}
+              placeholder=${t('TOOL_SEARCH_PLACEHOLDER')}
+              class="w-full border-4 border-black bg-white pl-14 pr-4 py-3 text-lg font-bold uppercase placeholder:font-bold placeholder:text-gray-400 shadow-[4px_4px_0px_#000] focus:outline-none focus:shadow-[6px_6px_0px_#000] transition-all"
+            />
+            ${search && html`
+              <button
+                onClick=${() => setSearch('')}
+                class="absolute right-4 font-black text-xl text-gray-500 hover:text-black leading-none"
+                aria-label="Temizle"
+              >✕</button>
+            `}
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            ${filteredAletler.length === 0 ? html`
+              <div class="col-span-full brutal-card bg-white p-10 text-center border-4 border-black">
+                <p class="text-4xl mb-3">🔍</p>
+                <p class="font-black text-xl uppercase">${t('TOOL_NO_RESULTS')}</p>
+              </div>
+            ` : filteredAletler.map(alet => {
+              const isBorrowed = !!borrowedTools[alet.id];
+              const remaining  = isBorrowed ? getRemainingDays(borrowedTools[alet.id].returnDate) : null;
+              const isOverdue  = isBorrowed && remaining === 0;
+
+              const available = toolCounts[alet.id] ?? alet.total;
+              const isUnavailable = !isBorrowed && available <= 0;
+              return html`
+                <div key=${alet.id} class="brutal-card bg-white p-5 md:p-6 flex flex-col gap-4 border-[5px] transition-all
+                            ${isBorrowed ? 'border-brandBlue shadow-[8px_8px_0px_#054ff0]' : isUnavailable ? 'opacity-60' : 'hover:-translate-y-1'}">
+                  <div class="flex justify-between items-start">
+                    <span class="text-5xl">${alet.emoji}</span>
+                    <div class="flex flex-col items-end gap-1">
+                      <span class="font-black text-xs uppercase border-2 border-black px-2 py-1 ${available === 0 && !isBorrowed ? 'bg-red-100 text-red-600' : 'bg-mainBg'}">${t('TOOL_AVAILABLE_UNITS', available)}</span>
+                      ${alet.arFile && html`<span class="font-black text-[10px] uppercase bg-black text-brandYellow px-2 py-0.5 tracking-widest">🥽 AR</span>`}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 class="text-xl md:text-2xl font-black uppercase leading-tight">${window.currentLang === 'en' ? alet.nameEn : alet.name}</h3>
+                    <p class="text-sm font-bold text-gray-500 mt-1">${window.currentLang === 'en' ? alet.descEn : alet.desc}</p>
+                  </div>
+                  <div class="mt-auto pt-3 border-t-4 border-black space-y-3">
+                    ${isBorrowed ? html`
+                      <div class="${isOverdue ? 'bg-red-100 border-red-500 text-red-700' : 'bg-brandYellow'} border-4 border-black p-3 text-center">
+                        <p class="font-black text-sm uppercase leading-snug">
+                          ${isOverdue
+                            ? t('TIME_UP')
+                            : html`⏳ <span class="text-brandBlue text-xl">${remaining}</span> ${t('DAYS_LEFT_SUFFIX')}`}
+                        </p>
+                      </div>
+                      <button onClick=${() => onReturn(alet.id)} class="w-full bg-white border-4 border-black p-3 font-black text-lg uppercase brutal-btn hover:bg-gray-100 transition-colors">
+                        ${t('RETURN')}
+                      </button>
+                    ` : isUnavailable ? html`
+                      <div class="bg-gray-100 border-4 border-black p-3 text-center">
+                        <p class="font-black text-sm uppercase text-gray-500">${t('OUT_OF_STOCK')}</p>
+                      </div>
+                      <button disabled class="w-full bg-gray-200 border-4 border-gray-400 p-3 font-black text-xl uppercase text-gray-400 cursor-not-allowed">
+                        ${t('UNAVAILABLE')}
+                      </button>
+                    ` : html`
+                      <div class="flex justify-between items-center">
+                        <span class="font-bold text-sm text-gray-500">${t('MAX_DAYS', alet.days)}</span>
+                        <span class="bg-brandYellow border-2 border-black px-2 py-1 text-xs font-black uppercase">${t('FREE')}</span>
+                      </div>
+                      <button onClick=${() => onBorrow(alet)} class="w-full bg-brandPink border-4 border-black p-3 font-black text-xl uppercase shadow-[4px_4px_0px_#000] hover:translate-y-1 hover:shadow-[2px_2px_0px_#000] transition-all">
+                        ${t('BORROW')}
+                      </button>
+                    `}
+                  </div>
+                </div>
+              `;
+            })}
+          </div>
+        </div>
+
+        ${arOpen && html`
+          <${ARView}
+            tools=${aletler}
+            onClose=${() => setArOpen(false)}
+            onBorrow=${onBorrow}
+            onReturn=${onReturn}
+            borrowedTools=${borrowedTools}
+            getRemainingDays=${getRemainingDays}
+            toolCounts=${toolCounts}
+          />
+        `}
+      `;
+    }
+
+// ── Atığın ──
+function Atig({ wasteItems, onAdd, onReserve, customerLocation, auth }) {
+      const [tab, setTab] = useState('harita');
+      const [form, setForm] = useState({ desc: '', amount: '1', category: 'Elektronik' });
+      const [selectedWaste, setSelectedWaste] = useState(null);
+      const wasteMapRef     = useRef(null);
+      const wasteMapInst    = useRef(null);
+      const markersRef      = useRef([]);
+
+      const addWasteMarkers = (map, items) => {
+        markersRef.current.forEach(m => { try { map.removeLayer(m); } catch(_) {} });
+        markersRef.current = [];
+        items.forEach(item => {
+          if (!item.lat || !item.lon) return;
+          const bg = { 'Elektronik': '#dcfc75', 'Tekstil': '#e1d2f3' }[item.category] ?? '#fff';
+          const icon = window.L.divIcon({
+            className: '',
+            html: `<div style="background:${bg};border:4px solid #000;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:3px 3px 0 #000;${item.reserved ? 'opacity:0.45;' : ''}">${getCategoryEmoji(item.category)}</div>`,
+            iconSize: [38, 38]
+          });
+          const marker = window.L.marker([item.lat, item.lon], { icon }).addTo(map);
+          marker.on('click', () => setSelectedWaste(item));
+          markersRef.current.push(marker);
+        });
+      };
+
+      useEffect(() => {
+        if (tab !== 'harita') {
+          if (wasteMapInst.current) { wasteMapInst.current.remove(); wasteMapInst.current = null; }
+          return;
+        }
+        const t = setTimeout(() => {
+          if (!wasteMapRef.current) return;
+          if (!wasteMapInst.current) {
+            const map = window.L.map(wasteMapRef.current).setView([40.988, 29.045], 14);
+            window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+            wasteMapInst.current = map;
+          }
+          addWasteMarkers(wasteMapInst.current, wasteItems);
+        }, 80);
+        return () => clearTimeout(t);
+      }, [tab, wasteItems]);
+
+      useEffect(() => () => {
+        if (wasteMapInst.current) { wasteMapInst.current.remove(); wasteMapInst.current = null; }
+      }, []);
+
+      const handleAdd = () => {
+        if (!form.desc.trim()) { alert('Lütfen bir açıklama girin!'); return; }
+        const loc = customerLocation ?? {
+          lat: 40.988 + (Math.random() - 0.5) * 0.014,
+          lon: 29.045 + (Math.random() - 0.5) * 0.014,
+        };
+        onAdd({
+          id: Date.now(),
+          desc: form.desc.trim(),
+          amount: Math.max(1, parseInt(form.amount) || 1),
+          category: form.category,
+          lat: loc.lat, lon: loc.lon,
+          ownerEmail: auth.email,
+          ownerName: auth.email.split('@')[0],
+          reserved: false, reservedBy: null,
+        });
+        setForm({ desc: '', amount: '1', category: 'Elektronik' });
+        setTab('harita');
+      };
+
+      const tabs = [
+        { id: 'harita', label: t('TAB_MAP')  },
+        { id: 'liste',  label: t('TAB_LIST') },
+        { id: 'ekle',   label: t('TAB_ADD')  },
+      ];
+
+      return html`
+        <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
+          <div class="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+            <div class="inline-block relative">
+              <div class="absolute inset-0 bg-brandYellow transform translate-x-2 translate-y-2 border-4 border-black"></div>
+              <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">
+                ATIĞIN
+              </h2>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              ${tabs.map(t => html`
+                <button key=${t.id} onClick=${() => { setSelectedWaste(null); setTab(t.id); }}
+                        class="px-4 py-2 border-4 border-black font-black uppercase text-base brutal-btn
+                               ${tab === t.id ? 'bg-black text-white' : 'bg-white text-black'}">
+                  ${t.label}
+                </button>
+              `)}
+            </div>
+          </div>
+
+          ${tab === 'harita' && html`
+            <div class="flex flex-col lg:flex-row gap-8">
+              <div class="w-full lg:w-[320px] brutal-card p-5 bg-white space-y-4 shrink-0">
+                <h3 class="text-2xl font-black uppercase border-b-4 border-black pb-3">${t('LEGEND')}</h3>
+                ${['Elektronik','Tekstil','Mobilya','Diğer'].map(cat => html`
+                  <div key=${cat} class="flex items-center gap-3">
+                    <div class="w-9 h-9 border-4 border-black flex items-center justify-center text-base shrink-0">${getCategoryEmoji(cat)}</div>
+                    <span class="font-bold uppercase text-sm">${catName(cat)}</span>
+                  </div>
+                `)}
+                <div class="border-t-4 border-black pt-4">
+                  <p class="font-black text-sm uppercase mb-1">${t('TOTAL_WASTE')}</p>
+                  <p class="text-3xl font-black">${wasteItems.length} <span class="text-base font-bold text-gray-500">${t('RECORDS')}</span></p>
+                  <p class="text-sm font-bold text-gray-500">${wasteItems.filter(w => w.reserved).length} ${t('RESERVED')}</p>
+                </div>
+                ${selectedWaste && html`
+                  <div class="border-4 border-black p-4 bg-brandPink space-y-2">
+                    <p class="font-black text-lg uppercase leading-tight">${selectedWaste.desc}</p>
+                    <p class="font-bold text-sm">${selectedWaste.amount} ${t('UNITS')} • ${catName(selectedWaste.category)}</p>
+                    <p class="font-bold text-xs text-gray-600">${t('OWNER')}: ${selectedWaste.ownerName}</p>
+                    ${selectedWaste.reserved
+                      ? html`<div class="bg-gray-200 border-4 border-black p-2 text-center font-black uppercase text-sm">${t('RESERVED_BADGE')}</div>`
+                      : selectedWaste.ownerEmail === auth.email
+                        ? html`<div class="bg-brandYellow border-4 border-black p-2 text-center font-black uppercase text-sm">${t('YOUR_WASTE_BADGE')}</div>`
+                        : html`<button onClick=${() => onReserve(selectedWaste)} class="w-full bg-black text-white border-4 border-black p-3 font-black uppercase hover:bg-gray-800 transition-colors">${t('RESERVE')}</button>`
+                    }
+                    <button onClick=${() => setSelectedWaste(null)} class="w-full bg-white border-4 border-black p-2 font-black uppercase text-sm">${t('CLOSE')}</button>
+                  </div>
+                `}
+              </div>
+              <div ref=${wasteMapRef} class="w-full h-[420px] md:h-[600px] brutal-card bg-white flex-1"></div>
+            </div>
+          `}
+
+          ${tab === 'liste' && html`
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              ${wasteItems.length === 0 && html`
+                <p class="col-span-3 text-center font-bold text-xl py-16 text-gray-400">${t('NO_WASTE_YET')}</p>
+              `}
+              ${wasteItems.map(item => html`
+                <div key=${item.id} class="brutal-card bg-white p-5 border-[5px] flex flex-col gap-3 ${item.reserved ? 'opacity-55' : 'hover:-translate-y-1'} transition-transform">
+                  <div class="flex justify-between items-start">
+                    <span class="text-4xl">${getCategoryEmoji(item.category)}</span>
+                    <span class="${item.reserved ? 'bg-gray-300 text-gray-500' : 'bg-brandYellow'} border-2 border-black px-2 py-1 text-xs font-black uppercase">
+                      ${item.reserved ? t('RESERVED_BADGE') : t('AVAILABLE_BADGE')}
+                    </span>
+                  </div>
+                  <h3 class="text-xl font-black uppercase">${item.desc}</h3>
+                  <p class="font-bold text-sm text-gray-600">${item.amount} ${t('UNITS')} • ${catName(item.category)}</p>
+                  <p class="font-bold text-xs text-gray-400 border-t-2 border-dashed border-gray-200 pt-2">${t('OWNER')}: ${item.ownerName}</p>
+                  ${!item.reserved && item.ownerEmail !== auth.email
+                    ? html`<button onClick=${() => onReserve(item)} class="mt-auto w-full bg-brandPink border-4 border-black p-3 font-black uppercase brutal-btn">${t('RESERVE')}</button>`
+                    : item.ownerEmail === auth.email
+                      ? html`<div class="mt-auto bg-brandYellow border-4 border-black p-2 text-center font-black text-sm uppercase">${t('YOUR_WASTE_BADGE')}</div>`
+                      : html`<div class="mt-auto bg-gray-200 border-4 border-black p-2 text-center font-black text-sm uppercase">${t('RESERVED_BADGE')}</div>`
+                  }
+                </div>
+              `)}
+            </div>
+          `}
+
+          ${tab === 'ekle' && html`
+            <div class="max-w-2xl mx-auto brutal-card p-6 md:p-10 bg-white space-y-6">
+              <h3 class="text-2xl font-black uppercase border-b-4 border-black pb-4">${t('ADD_WASTE_TITLE')}</h3>
+
+              <div>
+                <label class="font-black uppercase text-sm block mb-3">${t('CATEGORY')}</label>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  ${['Elektronik','Tekstil','Mobilya','Diğer'].map(cat => html`
+                    <button key=${cat} onClick=${() => setForm(f => ({...f, category: cat}))}
+                            class="border-4 border-black p-2 font-black text-sm uppercase text-center transition-all
+                                   ${form.category === cat ? 'bg-brandPink shadow-[3px_3px_0_#000] -translate-y-0.5' : 'bg-mainBg hover:bg-brandPink/40'}">
+                      <div class="text-2xl mb-1">${getCategoryEmoji(cat)}</div>
+                      <div class="text-xs">${catName(cat)}</div>
+                    </button>
+                  `)}
+                </div>
+              </div>
+
+              <div>
+                <label class="font-black uppercase text-sm block mb-2">${t('DESCRIPTION_LABEL')}</label>
+                <input value=${form.desc} onInput=${e => setForm(f => ({...f, desc: e.target.value}))}
+                       placeholder="${t('PLACEHOLDER_DESC')}"
+                       class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
+              </div>
+
+              <div>
+                <label class="font-black uppercase text-sm block mb-2">${t('AMOUNT_LABEL')}</label>
+                <input type="number" min="1" value=${form.amount} onInput=${e => setForm(f => ({...f, amount: e.target.value}))}
+                       class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
+              </div>
+
+              <div class="border-4 border-dashed border-gray-300 p-4 bg-mainBg">
+                <p class="font-black text-sm uppercase mb-1">${t('LOCATION_LABEL')}</p>
+                <p class="font-bold text-sm text-gray-500">
+                  ${customerLocation
+                    ? `${customerLocation.lat.toFixed(4)}, ${customerLocation.lon.toFixed(4)} — ${t('CURRENT_LOC_USED')}`
+                    : t('NO_LOC_MSG')}
+                </p>
+              </div>
+
+              <button onClick=${handleAdd}
+                      class="w-full bg-brandYellow border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0_#000] hover:translate-y-1 hover:shadow-[4px_4px_0_#000] transition-all flex justify-center items-center gap-3">
+                <${IconLeaf} /> ${t('SHARE_WASTE')}
+              </button>
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+// ── ImpactModal ──
+function ImpactModal({ data, onClose }) {
+      return html`
+        <div class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/70">
+          <div class="brutal-card bg-white max-w-md w-full p-6 md:p-10 space-y-5 border-[6px] impact-pop">
+            <div class="flex items-center gap-3">
+              <div class="bg-brandYellow border-4 border-black px-4 py-2 -rotate-1 inline-block">
+                <span class="text-2xl md:text-3xl font-black uppercase">${t('IMPACT_TITLE')}</span>
+              </div>
+            </div>
+
+            <div class="border-4 border-black p-3 bg-mainBg">
+              <p class="font-bold text-sm">
+                ${data.type === 'atik' ? t('IMPACT_ATIK') : t('IMPACT_TAMIR')}:
+                <strong class="uppercase"> ${data.item}</strong>
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3">
+              <div class="border-4 border-black p-4 bg-brandYellow flex justify-between items-center">
+                <div>
+                  <p class="font-black text-lg uppercase">${t('IMPACT_CO2')}</p>
+                  <p class="font-bold text-xs text-gray-600 mt-0.5">${t('IMPACT_CO2_SUB')}</p>
+                </div>
+                <p class="text-3xl md:text-4xl font-black">${data.co2} <span class="text-base">kg</span></p>
+              </div>
+
+              <div class="border-4 border-black p-4 bg-orange-100 flex justify-between items-center">
+                <div>
+                  <p class="font-black text-lg uppercase">${t('IMPACT_BURN')}</p>
+                  <p class="font-bold text-xs text-gray-600 mt-0.5">${t('IMPACT_BURN_SUB')}</p>
+                </div>
+                <p class="text-3xl md:text-4xl font-black">${data.incin ?? 0} <span class="text-base">kg</span></p>
+              </div>
+
+              <div class="border-4 border-black p-4 bg-brandPink flex justify-between items-center">
+                <div>
+                  <p class="font-black text-lg uppercase">${t('IMPACT_WATER')}</p>
+                  <p class="font-bold text-xs text-gray-600 mt-0.5">${t('IMPACT_WATER_SUB')}</p>
+                </div>
+                <p class="text-3xl md:text-4xl font-black">${data.water >= 1000 ? (data.water/1000).toFixed(1)+'k' : data.water} <span class="text-base">L</span></p>
+              </div>
+
+              <div class="border-4 border-black p-4 bg-white flex justify-between items-center">
+                <div>
+                  <p class="font-black text-lg uppercase">${t('IMPACT_TREE')}</p>
+                  <p class="font-bold text-xs text-gray-600 mt-0.5">${t('IMPACT_TREE_SUB')}</p>
+                </div>
+                <p class="text-3xl md:text-4xl font-black">${data.trees} 🌳</p>
+              </div>
+            </div>
+
+            <div class="border-4 border-black p-4 bg-black text-white flex justify-between items-center">
+              <p class="font-black text-xl uppercase">${t('IMPACT_POINTS')}</p>
+              <p class="text-4xl font-black text-brandYellow">+${data.points}</p>
+            </div>
+
+            <button onClick=${onClose}
+                    class="w-full bg-black text-white border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0_#000] hover:bg-gray-800 transition-colors">
+              ${t('IMPACT_CLOSE')}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function JobChatModal({ job, chatJobId, setChatJobId, auth, apiBase, window.currentLang, t, jobChats, setJobChats }) {
+      const [chatMessages, setChatMessages] = useState([]);
+      const [chatInputItem, setChatInputItem] = useState('');
+      
+      useEffect(() => {
+        if (!chatJobId) return;
+        fetch(`${apiBase}/api/messages?jobId=${chatJobId}`)
+          .then(res => res.json())
+          .then(data => setChatMessages(data))
+          .catch(() => setChatMessages(jobChats[chatJobId] || []));
+      }, [chatJobId, apiBase, jobChats]);
+
+      const handleSendChat = () => {
+        if (!chatInputItem.trim()) return;
+        const newMsg = { role: auth.role, name: auth.email.split('@')[0], text: chatInputItem.trim(), time: new Date().toISOString() };
+        fetch(`${apiBase}/api/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobId: chatJobId, ...newMsg })
+        }).then(() => {
+          setChatMessages(prev => [...prev, newMsg]);
+          setChatInputItem('');
+        }).catch(() => {
+          setJobChats(prev => ({...prev, [chatJobId]: [...(prev[chatJobId] || []), newMsg]}));
+          setChatMessages(prev => [...prev, newMsg]);
+          setChatInputItem('');
+        });
+      };
+
+      if (!job) return null;
+      const otherName = auth.role === 'musteri' ? (job.assignedTo ? job.assignedTo.split('@')[0] : (window.currentLang === 'en' ? 'Master' : 'Usta')) : job.musteri;
+      
+      return html`
+        <div class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/70">
+          <div class="brutal-card bg-white max-w-md w-full p-6 md:p-10 space-y-5 border-[6px] max-h-[80vh] flex flex-col">
+            <div class="flex items-center justify-between">
+              <h3 class="text-2xl font-black uppercase">${t('MESSAGES_WITH', job.baslik, otherName)}</h3>
+              <button onClick=${() => setChatJobId(null)} class="text-3xl hover:scale-125 transition-transform">×</button>
+            </div>
+            <div class="flex-grow overflow-y-auto space-y-4 max-h-64">
+              ${chatMessages.length === 0 ? html`<p class="text-center text-gray-500">${t('NO_MESSAGES')}</p>` : chatMessages.map((m, idx) => html`
+                <div key=${idx} class="p-3 border-4 border-black font-bold text-black ${m.role === auth.role ? 'bg-brandYellow' : 'bg-white shadow-[4px_4px_0px_#000]'}">
+                  <div class="text-xs font-bold uppercase text-gray-600 mb-1">${m.name}</div>
+                  ${m.text}
+                </div>
+              `)}
+            </div>
+            <div class="flex gap-2">
+              <input value=${chatInputItem} onInput=${e => setChatInputItem(e.target.value)} onKeyPress=${e => e.key === 'Enter' && handleSendChat()}
+                     class="flex-grow p-2 border-4 border-black outline-none font-bold" placeholder="${t('MSG_PLACEHOLDER')}" />
+              <button onClick=${handleSendChat} class="bg-black text-white px-4 border-4 border-black font-black">${t('MSG_SEND')}</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+// ── App ──
+function App() {
+      const [language, setLanguage]                     = useState(window.currentLang);
+      const handleLanguageChange = (lang) => setLanguage(lang);
+
+      useEffect(() => {
+        const handleLangEvent = (e) => {
+          setLanguage(e.detail.lang);
+        };
+        window.addEventListener('languageChange', handleLangEvent);
+        return () => window.removeEventListener('languageChange', handleLangEvent);
+      }, []);
+
+      const [auth, setAuth]                             = useState({ loggedIn: false, role: null, email: null });
+      const [selectedRole, setSelectedRole]             = useState(null);
+      const [email, setEmail]                           = useState('');
+      const [password, setPassword]                     = useState('');
+      const [authError, setAuthError]                   = useState('');
+      const [isLoggingIn, setIsLoggingIn]               = useState(false);
+      // API base - use relative URL for production compatibility
+      // In production, API should be served from same origin
+      const apiBase = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+        ? '' // Production: use relative URLs (same origin)
+        : 'http://127.0.0.1:5001'; // Local: use explicit port
+
+      useEffect(() => {
+        const savedAuth = sessionStorage.getItem('auth');
+        if (savedAuth) {
+          const parsed = JSON.parse(savedAuth);
+          setAuth(parsed);
+        }
+        const savedJobPostings = localStorage.getItem('globalJobPostings');
+        if (savedJobPostings) setJobPostings(JSON.parse(savedJobPostings));
+      }, []);
+
+      useEffect(() => {
+        sessionStorage.setItem('auth', JSON.stringify(auth));
+      }, [auth]);
+
+      const [view, setView]                             = useState('panel');
+      const [puan, setPuan]                             = useState(250);
+      const [kullanilanlar, setKullanilanlar]           = useState([]);
+      const [isChatOpen, setIsChatOpen]                 = useState(false);
+      const [messages, setMessages]                     = useState([{ role: 'bot', text: t('CHATBOT_GREETING') }]);
+      const [chatInput, setChatInput]                   = useState('');
+      const [matchCategory, setMatchCategory]           = useState('');
+      const [matchDesc, setMatchDesc]                   = useState('');
+      const [allShops, setAllShops]                     = useState([]);
+      const [selectedShop, setSelectedShop]             = useState(null);
+      const [customerLocation, setCustomerLocation]     = useState(null);
+      const [locationPermissionAsked, setLocationPermissionAsked] = useState(false);
+
+      const [borrowedTools, setBorrowedTools]           = useState({});
+      const [toolCounts, setToolCounts]                 = useState({ 1: 3, 2: 2, 3: 2, 4: 4, 5: 2, 6: 3 });
+      const [cumulativeImpact, setCumulativeImpact]     = useState({ co2: 0, water: 0 });
+      const [ustaView, setUstaView]                     = useState('panel');
+      const [ustaLocation, setUstaLocation]             = useState(null);
+      const [ustaLocationPermissionAsked, setUstaLocationPermissionAsked] = useState(false);
+      const [wasteItems, setWasteItems]                 = useState([
+        { id: 1, desc: 'Kırık Ekranlı Telefon', amount: 2, category: 'Elektronik', lat: 40.9875, lon: 29.0441, ownerEmail: 'ayse@demo.com', ownerName: 'ayse', reserved: false, reservedBy: null },
+        { id: 2, desc: 'Eski Kot Pantolon',      amount: 3, category: 'Tekstil',   lat: 40.9912, lon: 29.0378, ownerEmail: 'mehmet@demo.com', ownerName: 'mehmet', reserved: false, reservedBy: null },
+        { id: 3, desc: 'Bozuk Tablet',           amount: 1, category: 'Elektronik', lat: 40.9843, lon: 29.0523, ownerEmail: 'fatma@demo.com', ownerName: 'fatma', reserved: false, reservedBy: null },
+        { id: 4, desc: 'Hasarlı Jant', amount: 1, category: 'Diğer', lat: 40.9901, lon: 29.0495, ownerEmail: 'can@demo.com', ownerName: 'can', reserved: false, reservedBy: null },
+      ]);
+      const [impactModal, setImpactModal]               = useState(null);
+      const [jobPostings, setJobPostings]               = useState([]);
+      const [assignedJobs, setAssignedJobs]             = useState({});
+      const [jobChats, setJobChats]                     = useState({});
+      const [chatJobId, setChatJobId]                   = useState(null);
+      const [isRefreshing, setIsRefreshing]             = useState(false);
+
+      useEffect(() => {
+        fetch('./kadikoy_map_data.json').then(res => res.json()).then(data => {
+          const shops = [];
+          if (data.tamirciler) {
+            Object.entries(data.tamirciler).forEach(([kategori, dukkanlar]) => {
+              dukkanlar.forEach(d => shops.push({ ...d, kategori, ratings: { hiz: (4 + Math.random()).toFixed(1), kalite: (4 + Math.random()).toFixed(1), fiyat: (4 + Math.random()).toFixed(1) } }));
+            });
+          }
+          setAllShops(shops);
+        });
+      }, []);
+
+      useEffect(() => {
+        if (auth.loggedIn && auth.role === 'musteri' && view === 'panel' && !customerLocation && !locationPermissionAsked) {
+          requestLocationPermission();
+        }
+      }, [auth, view, customerLocation, locationPermissionAsked]);
+
+      const loadJobPostings = () => {
+        const saved = localStorage.getItem('globalJobPostings');
+        const localJobs = saved ? (() => { try { return JSON.parse(saved); } catch { return []; } })() : [];
+        if (localJobs.length > 0) setJobPostings(localJobs);
+
+        fetch(`${apiBase}/api/jobpostings`)
+          .then(r => r.ok ? r.json() : [])
+          .then(apiJobs => {
+            if (!Array.isArray(apiJobs) || apiJobs.length === 0) return;
+            const merged = [...localJobs];
+            apiJobs.forEach(aj => {
+              if (!merged.find(lj => String(lj.id) === String(aj.id))) merged.push(aj);
+            });
+            setJobPostings(merged);
+            localStorage.setItem('globalJobPostings', JSON.stringify(merged));
+          })
+          .catch(() => {});
+      };
+
+      useEffect(() => {
+        loadJobPostings();
+      }, []);
+
+      useEffect(() => {
+        if (auth.loggedIn && auth.role === 'tamirci' && ustaView === 'panel' && !ustaLocation && !ustaLocationPermissionAsked) {
+          requestUstaLocationPermission();
+        }
+      }, [auth, ustaView, ustaLocation, ustaLocationPermissionAsked]);
+
+      // ─── BUTON KAYBOLMA (DOM Thrashing) ÇÖZÜMÜ ───
+      useEffect(() => {
+        if (!auth.loggedIn || auth.role !== 'tamirci') return;
+
+        const refreshFromLocal = () => {
+          const saved = localStorage.getItem('globalJobPostings');
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              if (Array.isArray(parsed)) {
+                // Sadece değişiklik varsa güncelle (Gereksiz render'ı engeller)
+                setJobPostings(prev => JSON.stringify(prev) !== JSON.stringify(parsed) ? parsed : prev);
+              }
+            } catch (_) {}
+          }
+        };
+
+        const refreshFromApi = () => {
+          fetch(`${apiBase}/api/jobpostings`)
+            .then(r => r.ok ? r.json() : null)
+            .then(apiJobs => {
+              if (!Array.isArray(apiJobs) || apiJobs.length === 0) return;
+              setJobPostings(prev => {
+                let hasChanges = false;
+                const next = [...prev];
+                
+                apiJobs.forEach(aj => {
+                  const idx = next.findIndex(lj => String(lj.id) === String(aj.id));
+                  if (idx === -1) {
+                    next.push(aj);
+                    hasChanges = true;
+                  } else if (next[idx].assignedTo !== aj.assignedTo || next[idx].assignedDate !== aj.assignedDate) {
+                    next[idx] = { ...next[idx], ...aj };
+                    hasChanges = true;
+                  }
+                });
+
+                if (hasChanges) {
+                  localStorage.setItem('globalJobPostings', JSON.stringify(next));
+                  return next;
+                }
+                return prev; // Değişiklik yoksa render yapma
+              });
+            }).catch(() => refreshFromLocal());
+        };
+
+        refreshFromLocal();
+        refreshFromApi();
+        window.addEventListener('storage', refreshFromLocal);
+        const timer = setInterval(refreshFromApi, 2500);
+
+        return () => {
+          window.removeEventListener('storage', refreshFromLocal);
+          clearInterval(timer);
+        };
+      }, [auth.loggedIn, auth.role]);
+
+      useEffect(() => {
+        if (auth.loggedIn) {
+          const savedPuan = localStorage.getItem(`puan_${auth.email}`);
+          if (savedPuan) setPuan(parseInt(savedPuan));
+          const savedKullanilanlar = localStorage.getItem(`kullanilanlar_${auth.email}`);
+          if (savedKullanilanlar) setKullanilanlar(JSON.parse(savedKullanilanlar));
+          const savedAssignedJobs = localStorage.getItem(`assignedJobs_${auth.email}`);
+          if (savedAssignedJobs) setAssignedJobs(JSON.parse(savedAssignedJobs));
+          const savedJobChats = localStorage.getItem(`jobChats_${auth.email}`);
+          if (savedJobChats) setJobChats(JSON.parse(savedJobChats));
+          const savedCumulativeImpact = localStorage.getItem(`cumulativeImpact_${auth.email}`);
+          if (savedCumulativeImpact) setCumulativeImpact(JSON.parse(savedCumulativeImpact));
+        }
+      }, [auth.loggedIn]);
+
+      useEffect(() => { sessionStorage.setItem('auth', JSON.stringify(auth)); }, [auth]);
+      useEffect(() => { if (auth.loggedIn) localStorage.setItem(`puan_${auth.email}`, puan.toString()); }, [puan, auth.loggedIn]);
+      useEffect(() => { if (auth.loggedIn) localStorage.setItem(`kullanilanlar_${auth.email}`, JSON.stringify(kullanilanlar)); }, [kullanilanlar, auth.loggedIn]);
+      useEffect(() => { if (auth.loggedIn) localStorage.setItem(`assignedJobs_${auth.email}`, JSON.stringify(assignedJobs)); }, [assignedJobs, auth.loggedIn]);
+      useEffect(() => { if (auth.loggedIn) localStorage.setItem(`jobChats_${auth.email}`, JSON.stringify(jobChats)); }, [jobChats, auth.loggedIn]);
+      useEffect(() => { if (auth.loggedIn) localStorage.setItem(`cumulativeImpact_${auth.email}`, JSON.stringify(cumulativeImpact)); }, [cumulativeImpact, auth.loggedIn]);
+      useEffect(() => { localStorage.setItem('globalJobPostings', JSON.stringify(jobPostings)); }, [jobPostings]);
+      useEffect(() => { if (customerLocation) localStorage.setItem('customerLocation', JSON.stringify(customerLocation)); }, [customerLocation]);
+      useEffect(() => { localStorage.setItem('locationPermissionAsked', locationPermissionAsked ? 'true' : 'false'); }, [locationPermissionAsked]);
+      useEffect(() => { if (ustaLocation) localStorage.setItem('ustaLocation', JSON.stringify(ustaLocation)); }, [ustaLocation]);
+      useEffect(() => { localStorage.setItem('ustaLocationPermissionAsked', ustaLocationPermissionAsked ? 'true' : 'false'); }, [ustaLocationPermissionAsked]);
+
+      const handleShopSelect = (shop) => { setSelectedShop(shop); setView('merkezler'); };
+
+      // ─── GÜVENLİ İLAN AÇMA ───
+      const handlePostJob = async (form) => {
+        const defaultKg = DEFAULT_KG[form.kategori] ?? 1;
+        const impact = calcImpact(form.kategori, defaultKg);
+        const newJob = {
+          id: Date.now().toString(), // Veritabanı çökmesini engeller
+          baslik: form.baslik,
+          kategori: form.kategori,
+          musteri: auth.email.split('@')[0],
+          konum: 'Kadıköy (yaklaşık)',
+          aciliyet: form.aciliyet,
+          ucret: parseInt(impact.points),
+          co2: impact.co2,
+          lat: parseFloat(customerLocation ? customerLocation.lat : 40.988),
+          lon: parseFloat(customerLocation ? customerLocation.lon : 29.045),
+          deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          assignedTo: null,
+          assignedDate: null,
+          img: { 'Elektronik': 'telefon.png', 'Tekstil': 'dikis_makinesi.png', 'Mobilya': 'dikis_makinesi.png' }[form.kategori] || 'ingiliz_anahtari.png'
+        };
+
+        try {
+          const res = await fetch(`${apiBase}/api/jobpostings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newJob)
+          });
+          
+          const dbRes = await res.json();
+
+          // EĞER VERİTABANI HATA VERİRSE EKRANA KAYDETME VE BİLGİ VER!
+          if (!res.ok || dbRes.error) {
+             alert('🚨 SUPABASE VERİTABANI HATASI!\n\nLütfen Github\'a kodları pushlayıp Vercel\'in güncellenmesini beklediğinizden emin olun!\n\nHata detayı:\n' + JSON.stringify(dbRes.error || dbRes));
+             return;
+          }
+
+          // Veritabanı sorunsuz çalıştıysa kendi ekranına ekle
+          setJobPostings(prev => {
+            const next = [...prev, newJob];
+            localStorage.setItem('globalJobPostings', JSON.stringify(next));
+            return next;
+          });
+
+          alert(t('JOB_POST_SUCCESS'));
+          setView('panel');
+
+        } catch (err) {
+          alert('🚨 SUNUCU/AĞ HATASI:\n' + err.message + '\n\nBackend (chat.py) Vercel\'de aktif olmayabilir.');
+        }
+      };
+
+      const handleAuthSubmit = async () => {
+        if (!email.trim() || !password.trim() || !selectedRole) { setAuthError('Lütfen e-posta, şifre ve rol seçimi tamamlayın.'); return; }
+        setIsLoggingIn(true);
+        setAuthError('');
+
+        const localLogin = () => {
+          setAuth({ loggedIn: true, role: selectedRole, email: email.trim().toLowerCase() });
+          setLocationPermissionAsked(false);
+          setUstaLocationPermissionAsked(false);
+          setCustomerLocation(null);
+          setUstaLocation(null);
+          setSelectedRole(null); setEmail(''); setPassword(''); setAuthError('');
+          setMessages([{ role: 'bot', text: window.currentLang === 'en' ? (selectedRole === 'tamirci' ? 'Hey master! 🔧 There are jobs waiting nearby. Type "any jobs?" or a category, I\'ll list them!' : t('CHATBOT_GREETING')) : (selectedRole === 'tamirci' ? 'Selam usta! 🔧 Yakında bekleyen işlerin var. "iş var mı" yaz veya kategori söyle, hemen listelerim!' : t('CHATBOT_GREETING')) }]);
+          if (selectedRole === 'musteri') requestLocationPermission();
+          else if (selectedRole === 'tamirci') requestUstaLocationPermission();
+          setIsLoggingIn(false);
+        };
+
+        const controller = new AbortController();
+        const timer = setTimeout(() => { controller.abort(); localLogin(); }, 4000);
+
+        try {
+          const res  = await fetch(`${apiBase}/api/auth`, { signal: controller.signal, method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.trim().toLowerCase(), password, role: selectedRole }) });
+          clearTimeout(timer);
+          const data = await res.json();
+          if (!res.ok) { setAuthError(data.error || 'Giriş başarısız.'); setIsLoggingIn(false); return; }
+          setAuth({ loggedIn: true, role: selectedRole, email: data.email });
+          setLocationPermissionAsked(false);
+          setUstaLocationPermissionAsked(false);
+          setCustomerLocation(null);
+          setUstaLocation(null);
+          setSelectedRole(null); setEmail(''); setPassword(''); setAuthError('');
+          setMessages([{ role: 'bot', text: window.currentLang === 'en' ? (selectedRole === 'tamirci' ? 'Hey master! 🔧 There are jobs waiting nearby. Type "any jobs?" or a category, I\'ll list them!' : t('CHATBOT_GREETING')) : (selectedRole === 'tamirci' ? 'Selam usta! 🔧 Yakında bekleyen işlerin var. "iş var mı" yaz veya kategori söyle, hemen listelerim!' : t('CHATBOT_GREETING')) }]);
+          if (selectedRole === 'musteri') requestLocationPermission();
+          else if (selectedRole === 'tamirci') requestUstaLocationPermission();
+          setIsLoggingIn(false);
+        } catch (_) {
+          clearTimeout(timer);
+          if (!controller.signal.aborted) localLogin();
+        }
+      };
+
+      const handleSend = async (customMsg = null) => {
+        const msgToSend = customMsg || chatInput;
+        if (!msgToSend.trim()) return;
+        const currentHistory = [...messages];
+        setMessages(prev => [...prev, { role: 'user', text: msgToSend }]);
+        if (!customMsg) setChatInput('');
+        try {
+          const res = await fetch(`${apiBase}/api/chat`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msgToSend, history: currentHistory.map(m => ({ role: m.role === 'bot' ? 'assistant' : 'user', text: m.text })), userEmail: auth.email, userRole: auth.role, ...(customerLocation && { customerLocation }) })
+          });
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+          setMessages(prev => [...prev, { role: 'bot', text: data.reply }]);
+        } catch (_) {
+          if (auth.role === 'tamirci') {
+            const jobList = tamirciIsleri.map(j =>
+              `${j.aciliyet === 'Yüksek' ? '🔴' : j.aciliyet === 'Orta' ? '🟡' : '🟢'} ${j.baslik} | ${j.kategori} | ${j.konum} | ${j.ucret} Puan`
+            ).join('\n');
+            setMessages(prev => [...prev, { role: 'bot', text: t('NEARBY_JOBS_MSG', jobList) }]);
+          } else {
+            setMessages(prev => [...prev, { role: 'bot', text: t('CONN_ERROR') }]);
+          }
+        }
+      };
+
+      const requestLocationPermission = () => {
+        setLocationPermissionAsked(true);
+        if (!navigator.geolocation) { setMessages(prev => [...prev, { role: 'bot', text: t('NO_GEO') }]); return; }
+        navigator.geolocation.getCurrentPosition(
+          pos => { setCustomerLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude }); setMessages(prev => [...prev, { role: 'bot', text: t('LOC_FOUND_CUSTOMER') }]); },
+          ()  => { setMessages(prev => [...prev, { role: 'bot', text: t('LOC_ERROR') }]); }
+        );
+      };
+
+      const requestUstaLocationPermission = () => {
+        setUstaLocationPermissionAsked(true);
+        if (!navigator.geolocation) { setMessages(prev => [...prev, { role: 'bot', text: t('NO_GEO') }]); return; }
+        navigator.geolocation.getCurrentPosition(
+          pos => { setUstaLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude }); setMessages(prev => [...prev, { role: 'bot', text: t('LOC_FOUND_USTA') }]); },
+          ()  => { setMessages(prev => [...prev, { role: 'bot', text: t('LOC_ERROR') }]); }
+        );
+      };
+
+      const triggerMatch = () => {
+        if (!matchCategory || !matchDesc) { alert('Kanka lütfen bir kategori seçip sorunu kısaca anlat!'); return; }
+        const query = `Kategori: ${matchCategory}. Eşyamın sorunu şu: "${matchDesc}". Bana veri tabanındaki tamircilerden en uygununu önerir misin?`;
+        setIsChatOpen(true); handleSend(query); setMatchDesc(''); setMatchCategory('');
+      };
+
+      const handleKullan = (kampanya) => {
+        if (kullanilanlar.includes(kampanya.id) || puan < kampanya.points) return;
+        setPuan(prev => prev - kampanya.points);
+        setKullanilanlar(prev => [...prev, kampanya.id]);
+        alert(t('CAMPAIGN_USE_SUCCESS', kampanya.title, puan - kampanya.points));
+      };
+
+      const borrowTool = (tool) => {
+        if ((toolCounts[tool.id] ?? 0) <= 0) { alert('Bu alet şu an mevcut değil!'); return; }
+        const now        = new Date();
+        const returnDate = new Date(now.getTime() + tool.days * 86400000);
+        setBorrowedTools(prev => ({ ...prev, [tool.id]: { borrowDate: now.toISOString(), returnDate: returnDate.toISOString(), toolName: tool.name } }));
+        setToolCounts(prev => ({ ...prev, [tool.id]: Math.max(0, (prev[tool.id] ?? 0) - 1) }));
+        alert(t('TOOL_BORROW_SUCCESS', tool.name, tool.days));
+      };
+      const returnTool = (toolId) => {
+        setBorrowedTools(prev => { const n = {...prev}; delete n[toolId]; return n; });
+        setToolCounts(prev => ({ ...prev, [toolId]: (prev[toolId] ?? 0) + 1 }));
+      };
+      const getRemainingDays = (returnDateStr) => {
+        const diff = new Date(returnDateStr) - new Date();
+        return Math.max(0, Math.ceil(diff / 86400000));
+      };
+
+      const handleAddWaste = (item) => setWasteItems(prev => [...prev, item]);
+      const handleReserveWaste = (item) => {
+        if (item.reserved)                     { alert(t('WASTE_RESERVED_ERR')); return; }
+        if (item.ownerEmail === auth.email)    { alert(t('WASTE_OWN_ERR')); return; }
+        setWasteItems(prev => prev.map(w => w.id === item.id ? {...w, reserved: true, reservedBy: auth.email} : w));
+        const impact = calcImpact(item.category, item.amount);
+        setPuan(prev => prev + impact.points);
+        setCumulativeImpact(prev => ({ co2: prev.co2 + impact.co2, water: prev.water + impact.water }));
+        setImpactModal({ ...impact, item: `${item.amount} ${t('UNITS')} ${item.desc}`, type: 'atik' });
+      };
+
+      const handleShowRepairImpact = (repair) => {
+        setImpactModal({ co2: repair.co2, water: repair.water, trees: Math.max(1, Math.round(repair.co2 / 21)), points: repair.puan, item: repair.isim, type: 'tamir' });
+      };
+
+      const handleJobTake = (job) => {
+        const impact = calcImpact(job.kategori, 1);
+        setPuan(prev => prev + parseInt(job.ucret));
+        const deadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        const assignedDateStr = new Date().toISOString();
+        const deadlineStr = deadline.toISOString();
+
+        setJobPostings(prev => prev.map(j => String(j.id) === String(job.id) ? {...j, assignedTo: auth.email, assignedDate: assignedDateStr, deadline: deadlineStr} : j));
+        setAssignedJobs(prev => ({...prev, [job.id]: {deadline: deadlineStr, type: 'usta'}}));
+
+        fetch(`${apiBase}/api/jobpostings`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: job.id,
+            assignedTo: auth.email,
+            assignedDate: assignedDateStr,
+            deadline: deadlineStr
+          })
+        }).catch(err => console.warn('[JobTake API] Backend güncellenemedi:', err));
+      };
+
+      const ustaKampanyalarData = [
+        { id: 1,  tag: 'Kültür-Sanat', tagEn: 'Culture-Art', title: 'KADIKÖY BELEDİYESİ TİYATROSU',   desc: 'Ücretsiz Tiyatro Bileti',          descEn: 'Free Theater Ticket',            points: 350, color: 'bg-brandPink'           },
+        { id: 2,  tag: 'Kültür-Sanat', tagEn: 'Culture-Art', title: 'MODA KÜLTÜR MERKEZİ',             desc: 'Sergi & Atölye Girişi',            descEn: 'Exhibition & Workshop Entry',    points: 200, color: 'bg-brandYellow'         },
+        { id: 3,  tag: 'Kültür-Sanat', tagEn: 'Culture-Art', title: 'KALAMIŞ KÜLTÜR MERKEZİ',          desc: 'Etkinlik Katılım Hakkı',           descEn: 'Event Participation Right',      points: 150, color: 'bg-brandPink'           },
+        { id: 4,  tag: 'Kültür-Sanat', tagEn: 'Culture-Art', title: 'YELDEĞİRMENİ KÜLTÜR MERKEZİ',    desc: 'Ücretsiz Atölye Katılımı',         descEn: 'Free Workshop Participation',    points: 200, color: 'bg-brandYellow'         },
+        { id: 5,  tag: 'Kafe',         tagEn: 'Cafe',        title: 'YOĞURTÇU PARKI KAFETERYASı',      desc: 'Ücretsiz İçecek',                  descEn: 'Free Beverage',                  points: 100, color: 'bg-brandPink'           },
+        { id: 6,  tag: 'Kafe',         tagEn: 'Cafe',        title: 'MODA SAHİLİ KAFETERYASı',         desc: 'Ücretsiz Kahve & Çay',             descEn: 'Free Coffee & Tea',              points: 100, color: 'bg-brandYellow'         },
+        { id: 7,  tag: 'Kütüphane',    tagEn: 'Library',     title: 'KADIKÖY BELEDİYESİ KÜTÜPHANESİ', desc: 'Ücretsiz Aylık Üyelik',            descEn: 'Free Monthly Membership',        points: 100, color: 'bg-brandBlue text-white' },
+        { id: 8,  tag: 'Kütüphane',    tagEn: 'Library',     title: 'MODA KÜTÜPHANESİ',                desc: 'Öncelikli Kitap Ödünç Hakkı',     descEn: 'Priority Book Borrowing Right',  points: 150, color: 'bg-brandPink'           },
+        { id: 9,  tag: 'Spor',         tagEn: 'Sports',      title: 'KADIKÖY SPOR VE YAŞAM KÖYÜ',      desc: 'Ücretsiz Spor Salonu Girişi',      descEn: 'Free Gym Entry',                 points: 250, color: 'bg-brandYellow'         },
+        { id: 10, tag: 'Spor',         tagEn: 'Sports',      title: 'BELEDİYE YÜZME HAVUZU',           desc: 'Ücretsiz Yüzme Seansı',            descEn: 'Free Swimming Session',          points: 200, color: 'bg-brandPink'           },
+        { id: 11, tag: 'Ulaşım',       tagEn: 'Transport',   title: 'KADIKÖY BELEDİYE BİSİKLETİ',     desc: '2 Saatlik Ücretsiz Kiralama',      descEn: '2-Hour Free Rental',             points: 150, color: 'bg-brandYellow'         },
+        { id: 12, tag: 'Sosyal',       tagEn: 'Social',      title: 'KADIKÖY SOSYAL MARKET',            desc: 'Belediye Market İndirimi',          descEn: 'Municipality Market Discount',   points: 300, color: 'bg-brandBlue text-white' },
+        { id: 13, tag: 'Ulaşım',       tagEn: 'Transport',   title: 'İSTANBUL KART BONUSU',            desc: '1 Haftalık Ücretsiz Toplu Taşıma', descEn: '1-Week Free Public Transport',   points: 400, color: 'bg-brandBlue text-white' },
+        { id: 14, tag: 'Kafe',         tagEn: 'Cafe',        title: 'FİKİRTEPE KAFETERYASı',           desc: 'Ücretsiz Öğle Yemeği',             descEn: 'Free Lunch',                     points: 150, color: 'bg-brandYellow'         },
+        { id: 15, tag: 'Kültür-Sanat', tagEn: 'Culture-Art', title: 'KADIKÖY SANAT GECESİ',            desc: 'Müzik & Performans Bileti',         descEn: 'Music & Performance Ticket',     points: 250, color: 'bg-brandPink'           },
+      ];
+
+      const kampanyalarData = [
+        { id: 1,  tag: 'Kültür-Sanat', tagEn: 'Culture-Art', title: 'KADIKÖY BELEDİYESİ TİYATROSU',   desc: 'Ücretsiz Tiyatro Bileti',         descEn: 'Free Theater Ticket',           points: 350, color: 'bg-brandPink'           },
+        { id: 2,  tag: 'Kültür-Sanat', tagEn: 'Culture-Art', title: 'MODA KÜLTÜR MERKEZİ',             desc: 'Sergi & Atölye Girişi',           descEn: 'Exhibition & Workshop Entry',   points: 200, color: 'bg-brandYellow'         },
+        { id: 3,  tag: 'Kültür-Sanat', tagEn: 'Culture-Art', title: 'KALAMIŞ KÜLTÜR MERKEZİ',          desc: 'Etkinlik Katılım Hakkı',          descEn: 'Event Participation Right',     points: 150, color: 'bg-brandPink'           },
+        { id: 4,  tag: 'Kültür-Sanat', tagEn: 'Culture-Art', title: 'YELDEĞİRMENİ KÜLTÜR MERKEZİ',    desc: 'Ücretsiz Atölye Katılımı',        descEn: 'Free Workshop Participation',   points: 200, color: 'bg-brandYellow'         },
+        { id: 5,  tag: 'Kafe',         tagEn: 'Cafe',        title: 'YOĞURTÇU PARKI KAFETERYASı',      desc: 'Ücretsiz İçecek',                 descEn: 'Free Beverage',                 points: 100, color: 'bg-brandPink'           },
+        { id: 6,  tag: 'Kafe',         tagEn: 'Cafe',        title: 'MODA SAHİLİ KAFETERYASı',         desc: 'Ücretsiz Kahve & Çay',            descEn: 'Free Coffee & Tea',             points: 100, color: 'bg-brandYellow'         },
+        { id: 7,  tag: 'Kütüphane',    tagEn: 'Library',     title: 'KADIKÖY BELEDİYESİ KÜTÜPHANESİ', desc: 'Ücretsiz Aylık Üyelik',           descEn: 'Free Monthly Membership',       points: 100, color: 'bg-brandBlue text-white' },
+        { id: 8,  tag: 'Kütüphane',    tagEn: 'Library',     title: 'MODA KÜTÜPHANESİ',                desc: 'Öncelikli Kitap Ödünç Hakkı',    descEn: 'Priority Book Borrowing Right', points: 150, color: 'bg-brandPink'           },
+        { id: 9,  tag: 'Spor',         tagEn: 'Sports',      title: 'KADIKÖY SPOR VE YAŞAM KÖYÜ',      desc: 'Ücretsiz Spor Salonu Girişi',     descEn: 'Free Gym Entry',                points: 250, color: 'bg-brandYellow'         },
+        { id: 10, tag: 'Spor',         tagEn: 'Sports',      title: 'BELEDİYE YÜZME HAVUZU',           desc: 'Ücretsiz Yüzme Seansı',           descEn: 'Free Swimming Session',         points: 200, color: 'bg-brandPink'           },
+        { id: 11, tag: 'Ulaşım',       tagEn: 'Transport',   title: 'KADIKÖY BELEDİYE BİSİKLETİ',     desc: '2 Saatlik Ücretsiz Kiralama',     descEn: '2-Hour Free Rental',            points: 150, color: 'bg-brandYellow'         },
+        { id: 12, tag: 'Sosyal',       tagEn: 'Social',      title: 'KADIKÖY SOSYAL MARKET',            desc: 'Belediye Market İndirimi',         descEn: 'Municipality Market Discount',  points: 300, color: 'bg-brandBlue text-white' },
+      ];
+
+      const sonTamirlerData = [
+        { id: 1, isim: 'TOST MAKİNESİ',  konum: 'Moda Merkezi',         tarih: '2026-03-25', puan: 50,  bg: 'bg-mainBg',    text: 'text-black', kg: 1.5, co2: 4,  water: 750  },
+        { id: 2, isim: 'SANDALYE',        konum: 'Yeldeğirmeni Merkezi', tarih: '2026-03-12', puan: 150, bg: 'bg-brandPink', text: 'text-black', kg: 5.0, co2: 14, water: 1000 },
+        { id: 3, isim: 'BİSİKLET FRENİ', konum: 'Moda Sahili',          tarih: '2026-02-18', puan: 80,  bg: 'bg-mainBg',    text: 'text-black', kg: 0.3, co2: 1,  water: 135  },
+      ];
+
+      const tamirciIsleri = [
+        { id: 1, baslik: 'Kırık Ekran',     kategori: 'Elektronik', musteri: 'Ahmet Y.', konum: 'Moda Sahil (300m)',     aciliyet: 'Yüksek', ucret: '500', img: 'telefon.png'        },
+        { id: 2, baslik: 'Fermuar Değişimi', kategori: 'Tekstil',   musteri: 'Zeynep K.', konum: 'Yeldeğirmeni (1.2km)', aciliyet: 'Orta',   ucret: '150', img: 'dikis_makinesi.png' },
+        { id: 3, baslik: 'Vites Ayarı',      kategori: 'Diğer',     musteri: 'Can B.',    konum: 'Osmanağa (800m)',      aciliyet: 'Düşük',  ucret: '200', img: 'ingiliz_anahtari.png' },
+      ];
+
+      if (!auth.loggedIn) {
+        return html`
+          <div class="min-h-[80vh] flex items-center justify-center relative z-10 flex-col space-y-12">
+            <div class="text-center">
+              <h1 class="text-6xl md:text-9xl font-black tracking-tighter uppercase leading-[0.8] text-black drop-shadow-md">
+                TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL
+              </h1>
+            </div>
+            <div class="brutal-card p-8 md:p-12 bg-white max-w-lg w-full space-y-8 text-center border-[6px]">
+              <h2 class="text-4xl md:text-5xl font-black uppercase tracking-tighter bg-brandBlue text-white px-4 py-2 border-4 border-black inline-block transform -rotate-2">${t('LOGIN')}</h2>
+              ${!selectedRole ? html`
+                <p class="font-bold text-xl mb-8">${t('CHOOSE_PROFILE')}</p>
+                <button onClick=${() => setSelectedRole('musteri')} class="w-full bg-brandPink text-black border-4 border-black p-4 md:p-6 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-between items-center group">
+                  <span>${t('CUSTOMER')}</span><img src="musteri.png" alt="Müşteri" class="w-24 h-24 object-contain group-hover:scale-110 transition-transform" />
+                </button>
+                <button onClick=${() => setSelectedRole('tamirci')} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-between items-center group">
+                  <span>${t('REPAIRER')}</span><img src="ingiliz_anahtari.png" alt="İngiliz Anahtarı" class="w-24 h-24 object-contain group-hover:scale-110 transition-transform" />
+                </button>
+              ` : html`
+                <div class="space-y-6 text-left">
+                  <div class="border-4 border-black p-6 bg-mainBg">
+                    <p class="text-2xl font-black uppercase">${selectedRole === 'musteri' ? (window.currentLang === 'en' ? 'CUSTOMER' : 'MÜŞTERİ') : (window.currentLang === 'en' ? 'REPAIRER' : 'TAMİRCİ')} ${window.currentLang === 'en' ? 'account' : 'hesabı'}</p>
+                    <p class="text-sm font-bold opacity-80 mt-2">${t('LOGIN_HINT')}</p>
+                  </div>
+                  <div class="space-y-4">
+                    <input type="email" value=${email} onInput=${e => setEmail(e.target.value)} placeholder="${t('EMAIL_PH')}" class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
+                    <input type="password" value=${password} onInput=${e => setPassword(e.target.value)} placeholder="${t('PWD_PH')}" class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
+                    ${authError && html`<div class="text-red-600 font-bold">${authError}</div>`}
+                    <div class="flex flex-col gap-3 md:flex-row">
+                      <button onClick=${handleAuthSubmit} disabled=${isLoggingIn} class="flex-1 bg-black text-white border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0px_#000] hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-wait">
+                        ${isLoggingIn ? t('LOGIN_LOADING') : t('LOGIN_BTN')}
+                      </button>
+                      <button onClick=${() => { setSelectedRole(null); setAuthError(''); setEmail(''); setPassword(''); }} class="flex-1 bg-white text-black border-4 border-black p-4 font-black text-2xl uppercase shadow-[6px_6px_0px_#000]">${t('BACK')}</button>
+                    </div>
+                  </div>
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      }
+
+      if (auth.role === 'tamirci') {
+        const ustaKullanilanlar = kullanilanlar;
+        return html`
+          <div class="max-w-7xl mx-auto space-y-8 md:space-y-12 relative z-10">
+            <header class="flex flex-col gap-4 border-b-8 border-black pb-6 md:pb-8 mt-4">
+              <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h1 class="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-[0.8] text-black">${window.currentLang === 'en' ? 'MASTER' : 'USTA'}<br/><span class="text-brandBlue">${window.currentLang === 'en' ? 'PANEL' : 'PANELİ'}</span></h1>
+              </div>
+              <nav class="flex gap-2 flex-wrap">
+                <button onClick=${() => setUstaView('panel')} class="flex items-center gap-2 px-6 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap ${ustaView === 'panel' ? 'bg-black text-white' : 'bg-white text-black'}">
+                  🏠 ${window.currentLang === 'en' ? 'PANEL' : 'PANEL'}
+                </button>
+                <button onClick=${() => setUstaView('yakindaki_isler')} class="flex items-center gap-2 px-6 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap ${ustaView === 'yakindaki_isler' ? 'bg-black text-white' : 'bg-white text-black'}">
+                  <${IconSearch} /> ${t('NAV_NEAR_JOBS')}
+                </button>
+                <button onClick=${() => setUstaView('harita')} class="flex items-center gap-2 px-6 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap ${ustaView === 'harita' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
+                  <${IconMap} /> ${t('MAP_NAV')}
+                </button>
+                <button onClick=${() => setUstaView('kampanyalar')} class="flex items-center gap-2 px-6 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap ${ustaView === 'kampanyalar' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
+                  <${IconGift} /> ${t('NAV_CAMPAIGNS')}
+                </button>
+                <button onClick=${() => setUstaView('hesap')} class="flex items-center gap-2 px-6 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap ${ustaView === 'hesap' ? 'bg-black text-white' : 'bg-brandPink text-black'}">
+                  <${IconGlobe} /> ${t('NAV_MY_ACCOUNT')}
+                </button>
+              </nav>
+            </header>
+
+            <main class="space-y-8">
+              ${ustaView === 'panel' && html`
+                <div class="space-y-8">
+                  ${!ustaLocation ? html`
+                    <button onClick=${requestUstaLocationPermission} class="w-full brutal-card p-6 md:p-8 bg-brandPink text-black font-black text-2xl md:text-3xl uppercase hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#000] transition-all flex items-center justify-center gap-4">
+                      <span class="text-5xl">📍</span><span>${t('FIND_LOCATION')}</span>
+                    </button>
+                  ` : html`
+                    <div class="brutal-card p-4 md:p-6 bg-brandPink text-black font-black text-lg uppercase flex items-center gap-4">
+                      <span class="text-4xl">✔️</span>
+                      <div>
+                        <div>${t('LOCATION_ACTIVE')}</div>
+                        <div class="text-sm font-bold opacity-70">${ustaLocation.lat.toFixed(4)}, ${ustaLocation.lon.toFixed(4)}</div>
+                      </div>
+                      <button onClick=${() => setUstaView('harita')} class="ml-auto bg-black text-white px-4 py-2 font-black text-sm border-2 border-black hover:bg-gray-800 transition-colors whitespace-nowrap">${t('VIEW_MAP_BTN')}</button>
+                    </div>
+                  `}
+                  <div class="brutal-card p-6 md:p-10 bg-white border-[5px]">
+                    <div class="inline-block relative mb-8">
+                      <div class="absolute inset-0 bg-brandYellow transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                      <h2 class="relative bg-black text-white px-5 py-2 text-2xl md:text-4xl font-black uppercase tracking-tighter border-4 border-black">${t('HOW_TO_USE')}</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                      <div class="space-y-5">
+                        <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandPink">
+                          <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">1</div>
+                          <div><p class="font-black uppercase text-base">${t('USTA_STEP1_TITLE')}</p><p class="font-bold text-sm text-gray-700 mt-1">${t('USTA_STEP1_DESC')}</p></div>
+                        </div>
+                        <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandYellow">
+                          <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">2</div>
+                          <div><p class="font-black uppercase text-base">${t('USTA_STEP2_TITLE')}</p><p class="font-bold text-sm text-gray-700 mt-1">${t('USTA_STEP2_DESC')}</p></div>
+                        </div>
+                        <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandPink">
+                          <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">3</div>
+                          <div><p class="font-black uppercase text-base">${t('USTA_STEP3_TITLE')}</p><p class="font-bold text-sm text-gray-700 mt-1">${t('USTA_STEP3_DESC')}</p></div>
+                        </div>
+                        <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandYellow">
+                          <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">4</div>
+                          <div><p class="font-black uppercase text-base">${t('USTA_STEP4_TITLE')}</p><p class="font-bold text-sm text-gray-700 mt-1">${t('USTA_STEP4_DESC')}</p></div>
+                        </div>
+                        <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandPink">
+                          <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">5</div>
+                          <div><p class="font-black uppercase text-base">${t('USTA_STEP5_TITLE')}</p><p class="font-bold text-sm text-gray-700 mt-1">${t('USTA_STEP5_DESC')}</p></div>
+                        </div>
+                        <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandYellow">
+                          <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">6</div>
+                          <div><p class="font-black uppercase text-base">${t('USTA_STEP6_TITLE')}</p><p class="font-bold text-sm text-gray-700 mt-1">${t('USTA_STEP6_DESC')}</p></div>
+                        </div>
+                      </div>
+                      <div class="border-4 border-black overflow-hidden aspect-square h-max bg-gray-100 flex items-center justify-center">
+                        <img src="kadıköy tamir ediyor.png" alt="Kadıköy Tamir Ediyor" class="w-full h-full object-cover" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `}
+
+              ${ustaView === 'yakindaki_isler' && html`
+                <div class="space-y-8">
+                  <div class="flex flex-wrap items-center gap-4">
+                    <div class="inline-block relative">
+                      <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                      <h2 class="relative bg-black text-white px-6 py-3 text-3xl md:text-4xl font-black uppercase tracking-tighter border-4 border-black">${t('NEARBY_JOBS')}</h2>
+                    </div>
+                    <button onClick=${async () => {
+                      setIsRefreshing(true);
+                      try {
+                        const response = await fetch(`${apiBase}/api/jobpostings`);
+                        if (!response.ok) {
+                          alert('⚠️ API bağlantı sorunu. (Kodları Vercel\'e pushladınız mı?)');
+                          return;
+                        }
+                        const apiJobs = await response.json();
+
+                        if (apiJobs.length === 0) {
+                          alert('ℹ️ Henüz açık ilan yok');
+                          setJobPostings([]);
+                          return;
+                        }
+
+                        setJobPostings(apiJobs);
+                        localStorage.setItem('globalJobPostings', JSON.stringify(apiJobs));
+                      } catch (err) {
+                        alert('❌ Hata: ' + err.message);
+                      } finally {
+                        setIsRefreshing(false);
+                      }
+                    }} disabled=${isRefreshing} class="bg-brandYellow border-4 border-black px-4 py-2 font-black text-base uppercase brutal-btn shadow-[4px_4px_0px_#000] hover:translate-y-1 hover:shadow-[2px_2px_0px_#000] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                      ${isRefreshing ? '⏳' : '🔄'} ${isRefreshing ? t('LOADING_DOTS') : t('REFRESH')}
+                    </button>
+                    <span class="font-bold text-sm text-gray-500 border-2 border-dashed border-gray-300 px-3 py-1">${t('OPEN_LISTINGS', jobPostings.filter(j => !j.assignedTo).length)}</span>
+                  </div>
+                  ${jobPostings.filter(j => !j.assignedTo).length === 0 ? html`
+                    <div class="brutal-card p-8 bg-white border-4 border-dashed border-gray-300 text-center col-span-3">
+                      <p class="text-5xl mb-4">🔍</p>
+                      <p class="font-black text-xl uppercase text-gray-500">${t('NO_JOBS_TITLE')}</p>
+                      <p class="font-bold text-sm text-gray-400 mt-2">${t('NO_JOBS_SUB')}</p>
+                    </div>
+                  ` : ''}
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                    ${jobPostings.filter(j => !j.assignedTo).map((is, idx) => html`
+                      <div key=${is.id || idx} class="brutal-card bg-white p-6 flex flex-col justify-between border-[5px] hover:-translate-y-2 transition-transform cursor-pointer">
+                        <div>
+                          <div class="flex justify-between items-start mb-4">
+                            <span class="bg-brandPink text-black font-black px-3 py-1 text-sm border-2 border-black uppercase">${catName(is.kategori)}</span>
+                            <span class="bg-mainBg font-bold text-xs px-2 py-1 border-2 border-black">${is.konum}</span>
+                          </div>
+                          <div class="flex gap-4 items-center mb-4">
+                            <img src="${is.img || 'tamir.png'}" alt="${is.baslik}" class="w-32 h-32 object-contain" />
+                            <h3 class="text-2xl md:text-3xl font-black uppercase leading-none">${is.baslik}</h3>
+                          </div>
+                          <p class="font-bold text-gray-600 mb-6 border-b-2 border-dashed border-gray-300 pb-4">${window.currentLang === 'en' ? 'Customer' : 'Müşteri'}: ${is.musteri}</p>
+                        </div>
+                        <div class="space-y-4">
+                          <div class="flex justify-between items-center bg-mainBg p-3 border-4 border-black">
+                            <span class="font-black text-xl text-brandBlue">${is.ucret} ${window.currentLang === 'en' ? 'Pts' : 'Puan'}</span>
+                            <span class="${is.aciliyet === 'Yüksek' ? 'text-red-600 animate-pulse' : 'text-black'} font-black uppercase">${urgencyLabel(is.aciliyet)} ${t('URGENT_SUFFIX')}</span>
+                          </div>
+                          <div class="flex gap-2 mt-4">
+                            <button onClick=${() => handleJobTake(is)} class="w-2/3 bg-brandYellow text-black border-4 border-black p-3 font-black text-lg uppercase brutal-btn shadow-[4px_4px_0px_#000]">${t('TAKE_JOB')}</button>
+                            <button class="w-1/3 bg-white text-black border-4 border-black p-3 font-black text-lg uppercase hover:bg-gray-200 transition-colors">${t('PASS')}</button>
+                          </div>
+                        </div>
+                      </div>
+                    `)}
+                  </div>
+                </div>
+              `}
+
+              ${ustaView === 'harita' && html`<${Map} selectedShop=${selectedShop} setSelectedShop=${setSelectedShop} customerLocation=${ustaLocation} jobPostings=${jobPostings} />`}
+
+              ${ustaView === 'hesap' && (() => {
+                const myJobs = Object.entries(assignedJobs).filter(([id, info]) => info.type === 'usta');
+                const totalRepaired = myJobs.length;
+                const totalSavings = myJobs.reduce((s, [id, info]) => {
+                  const job = jobPostings.find(j => String(j.id) === String(id));
+                  return s + (job ? parseInt(job.ucret) : 0);
+                }, 0);
+                const totalCo2 = myJobs.reduce((s, [id, info]) => {
+                  const job = jobPostings.find(j => String(j.id) === String(id));
+                  if (!job) return s;
+                  const impact = calcImpact(job.kategori, 1);
+                  return s + impact.co2;
+                }, 0);
+                return html`
+                <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
+                  <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div class="inline-block relative">
+                      <div class="absolute inset-0 bg-brandBlue transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                      <h2 class="relative bg-black text-white px-5 py-2 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('MY_ACCOUNT_TITLE')}</h2>
+                    </div>
+                    <div class="flex items-center gap-4">
+                      <div class="bg-brandYellow text-black border-4 border-black px-4 py-2 font-black uppercase text-lg shadow-[4px_4px_0px_#000]">${puan} ${window.currentLang === 'en' ? 'PTS' : 'PUAN'}</div>
+                      <span class="font-bold text-gray-600 border-4 border-black px-4 py-2 bg-white">${auth.email}</span>
+                      <button onClick=${() => setAuth({loggedIn: false, role: null, email: null})} class="bg-red-600 text-white border-4 border-black px-5 py-2 font-black uppercase brutal-btn">${t('LOGOUT')}</button>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                    <div class="brutal-card p-5 md:p-6 bg-black text-white border-[5px] flex flex-col gap-5">
+                      <div class="inline-block bg-brandYellow border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000] text-black">${t('MY_REPAIRS_LABEL')}</div>
+                      <div class="grid grid-cols-2 gap-3">
+                        <div class="border-4 border-white/30 p-4">
+                          <p class="font-bold text-xs uppercase opacity-60">${t('REPAIRED_LABEL')}</p>
+                          <p class="font-black text-3xl mt-1">${totalRepaired} <span class="text-base font-bold opacity-70">${t('PRODUCT_UNIT')}</span></p>
+                        </div>
+                        <div class="border-4 border-white/30 p-4">
+                          <p class="font-bold text-xs uppercase opacity-60">${t('CO2_PREV_LABEL')}</p>
+                          <p class="font-black text-3xl mt-1">${totalCo2} <span class="text-base font-bold opacity-70">kg</span></p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
+                      <div class="inline-block bg-brandPink border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">${t('ONGOING_JOBS')}</div>
+                      ${myJobs.length === 0 ? html`
+                        <p class="font-bold text-gray-400 text-center py-8">${t('NO_JOBS_TAKEN')}</p>
+                      ` : myJobs.map(([id, info]) => {
+                        const job = jobPostings.find(j => String(j.id) === String(id));
+                        const rem = Math.max(0, Math.ceil((new Date(info.deadline) - new Date()) / (24 * 60 * 60 * 1000)));
+                        if(!job) return null;
+                        return html`
+                          <div key=${id} class="border-4 border-black p-4 flex justify-between items-center ${rem === 0 ? 'bg-red-100' : 'bg-brandYellow/40'}">
+                            <div class="flex-1">
+                              <p class="font-black uppercase">${job.baslik}</p>
+                              <p class="font-bold text-sm text-gray-600 mt-1">${t('MUSTERI_LABEL')}: ${job.musteri}</p>
+                            </div>
+                            <div class="flex gap-2">
+                              <button onClick=${() => setChatJobId(id)} class="bg-black text-white px-3 py-1 font-black text-sm uppercase">${t('MESSAGE_BTN')}</button>
+                              <div class="text-right shrink-0 ml-4">
+                                <p class="font-black text-2xl ${rem === 0 ? 'text-red-600' : 'text-brandBlue'}">${rem}</p>
+                                <p class="font-bold text-xs uppercase">${t('DAYS_LEFT_LABEL')}</p>
+                              </div>
+                            </div>
+                          </div>
+                        `;
+                      })}
+                    </div>
+                  </div>
+                </div>`;
+              })()}
+
+              ${ustaView === 'kampanyalar' && html`
+                <div class="space-y-6 md:space-y-8">
+                  <div class="inline-block relative mb-4 md:mb-6">
+                    <div class="absolute inset-0 bg-brandYellow transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                    <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('USTA_CAMPAIGNS')}</h2>
+                  </div>
+                  <div class="brutal-card p-4 bg-brandYellow/60 border-4 border-black flex items-start gap-4">
+                    <span class="text-3xl shrink-0">🎁</span>
+                    <div>
+                      <p class="font-black uppercase">${t('EARN_HINT')}</p>
+                      <p class="font-bold text-sm opacity-70 mt-1">${t('CURRENT_POINTS_LABEL')} <strong>${puan}</strong></p>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                    ${ustaKampanyalarData.map(k => {
+                      const isUsed   = ustaKullanilanlar.includes(k.id + 100);
+                      const isLocked = puan < k.points;
+                      const btnText  = isUsed ? t('BTN_USED') : (isLocked ? t('BTN_LOCKED') : t('BTN_USE'));
+                      const btnClass = (isUsed || isLocked)
+                        ? 'bg-[#c0c0c0] text-gray-600 cursor-not-allowed'
+                        : 'bg-brandYellow text-black active:translate-y-1 active:shadow-none transition-all shadow-[3px_3px_0px_0px_#000]';
+                      return html`
+                        <div key=${k.id} class="border-[5px] border-black shadow-[6px_6px_0px_0px_#000] p-5 flex flex-col relative ${k.color} transition-transform hover:-translate-y-1">
+                          <div class="absolute -top-4 right-3 bg-black text-white px-3 py-1 text-sm font-bold transform rotate-[4deg] border-2 border-black">${window.currentLang === 'en' ? k.tagEn : k.tag}</div>
+                          <h3 class="text-xl md:text-2xl font-black uppercase mb-3 pr-10 leading-none mt-2 ${k.color.includes('text-white') ? 'text-white' : 'text-black'}">${k.title}</h3>
+                          <div class="bg-mainBg border-4 border-black p-3 min-h-[80px] flex items-center justify-center text-center">
+                            <p class="font-bold text-lg uppercase leading-tight text-black">${window.currentLang === 'en' ? k.descEn : k.desc}</p>
+                          </div>
+                          <hr class="border-t-4 border-black my-4" />
+                          <div class="flex justify-between items-center mt-auto">
+                            <div class="bg-white border-4 border-black px-3 py-1">
+                              <span class="text-xl font-black uppercase text-black">${k.points} ${window.currentLang === 'en' ? 'PTS' : 'PUAN'}</span>
+                            </div>
+                            <button onClick=${() => {
+                              if (isUsed || isLocked) return;
+                              setPuan(prev => prev - k.points);
+                              setKullanilanlar(prev => [...prev, k.id + 100]);
+                              alert(t('USTA_CAMPAIGN_SUCCESS', k.title));
+                            }} class="px-4 py-2 border-4 border-black font-black text-lg uppercase ${btnClass}">${btnText}</button>
+                          </div>
+                        </div>
+                      `;
+                    })}
+                  </div>
+                </div>
+              `}
+            </main>
+
+            <${ChatBot} isChatOpen=${isChatOpen} setIsChatOpen=${setIsChatOpen} messages=${messages} input=${chatInput} setInput=${setChatInput} handleSend=${handleSend} allShops=${allShops} onShopClick=${handleShopSelect} title="USTA AI" />
+            ${impactModal && html`<${ImpactModal} data=${impactModal} onClose=${() => setImpactModal(null)} />`}
+            <${JobChatModal} job=${jobPostings.find(j => String(j.id) === String(chatJobId))} chatJobId=${chatJobId} setChatJobId=${setChatJobId} auth=${auth} apiBase=${apiBase} window.currentLang=${window.currentLang} t=${t} jobChats=${jobChats} setJobChats=${setJobChats} />
+          </div>
+        `;
+      }
+
+// ── Customer Screen ──
+return html`
+        <div style="position:fixed;top:16px;right:16px;z-index:10000;display:flex;gap:8px;">
+          <button onClick=${() => { window.currentLang = 'tr'; document.documentElement.lang = window.currentLang; localStorage.setItem('language', 'tr'); handleLanguageChange('tr'); }} style="${'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;' + (language === 'tr' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white') + ';cursor:pointer;'}">TR</button>
+          <button onClick=${() => { window.currentLang = 'en'; document.documentElement.lang = window.currentLang; localStorage.setItem('language', 'en'); handleLanguageChange('en'); }} style="${'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;' + (language === 'en' ? 'background:#dcfc75;box-shadow:4px 4px 0px #000' : 'background:white') + ';cursor:pointer;'}">EN</button>
+        </div>
+        <img src="1.png" alt="" class="absolute pointer-events-none sticker-drop w-16 md:w-28 top-5 left-[-10px] md:left-[5%] rotate-[-15deg] z-0 md:z-50 opacity-40 md:opacity-90" />
+        <img src="2.png" alt="" class="hidden md:block absolute pointer-events-none sticker-drop w-40 top-32 left-[-20px] rotate-[10deg] z-50" />
+        <img src="3.png" alt="" class="absolute pointer-events-none sticker-drop w-32 md:w-64 top-40 md:top-64 right-[-20px] md:right-[-40px] rotate-[-5deg] z-0 md:z-50 transition-opacity duration-300 ${isChatOpen ? 'opacity-0' : 'opacity-40 md:opacity-100'}" />
+        <img src="4.png" alt="" class="hidden md:block absolute pointer-events-none sticker-drop w-24 top-[500px] left-[5%] rotate-[-12deg] z-50" />
+        <img src="5.png" alt="" class="absolute pointer-events-none sticker-drop w-12 md:w-20 top-10 right-[5%] md:right-[25%] rotate-[20deg] z-0 md:z-50 opacity-40 md:opacity-100" />
+        <img src="6.png" alt="" class="hidden md:block absolute pointer-events-none sticker-drop w-36 bottom-20 left-[-30px] rotate-[8deg] z-50" />
+        <img src="7.png" alt="" class="hidden md:block absolute pointer-events-none sticker-drop w-48 bottom-[200px] right-[5%] rotate-[-6deg] z-0 md:z-50 transition-opacity duration-300 ${isChatOpen || view === 'merkezler' ? 'opacity-0' : 'opacity-40 md:opacity-100'}" />
+        <img src="8.png" alt="" class="absolute pointer-events-none sticker-drop w-16 md:w-28 top-[200px] right-[10%] md:right-[40%] rotate-[-18deg] z-0 md:z-50 opacity-40 md:opacity-100" />
+
+        <div class="max-w-7xl mx-auto space-y-8 md:space-y-12 relative z-10">
+          <header class="flex flex-col gap-6 md:gap-8 border-b-8 border-black pb-6 md:pb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
+              <h1 class="text-6xl md:text-9xl font-black tracking-tighter uppercase leading-[0.8] shrink-0 text-left bg-mainBg/80 md:bg-transparent px-2 md:px-0 text-black">
+                TAMİR<br/><span class="text-brandBlue">&</span> ÖDÜL
+              </h1>
+              <div class="text-left md:text-right shrink-0 relative mt-2 md:mt-0 flex justify-start md:justify-end w-full md:w-auto">
+                <div class="bg-brandYellow border-4 border-black shadow-[6px_6px_0px_0px_#000] md:shadow-[8px_8px_0px_0px_#000] p-4 md:p-8 transform rotate-1 -skew-x-6 w-full md:max-w-2xl">
+                  <p class="text-3xl md:text-5xl font-black uppercase text-black leading-tight">${t('TAGLINE')}</p>
+                </div>
+              </div>
+            </div>
+
+            <nav class="nav-scroll flex flex-row flex-nowrap justify-start w-full gap-2 pb-3">
+              <button onClick=${() => setView('panel')} class="flex items-center gap-2 px-5 py-4 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'panel' ? 'bg-black text-white' : 'bg-white text-black'}">
+                <${IconHome} /> ${t('NAV_PANEL')}
+              </button>
+              <button onClick=${() => setView('ustalar')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'ustalar' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
+                <${IconSearch} /> ${t('NAV_FIND_MASTER')}
+              </button>
+              <button onClick=${() => setView('aletler')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'aletler' ? 'bg-black text-white' : 'bg-brandPink text-black'}">
+                <${IconBox} /> ${t('NAV_TOOLS')}
+              </button>
+              <button onClick=${() => setView('merkezler')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'merkezler' ? 'bg-black text-white' : 'bg-white text-black'}">
+                <${IconMap} /> ${t('NAV_CENTERS')}
+              </button>
+              <button onClick=${() => setView('hub')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'hub' ? 'bg-black text-white' : 'bg-brandBlue text-white'}">
+                ${t('NAV_HUB')}
+              </button>
+              <button onClick=${() => setView('ilan-ac')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'ilan-ac' ? 'bg-black text-white' : 'bg-brandPink text-black'}">
+                <${IconWrench} /> ${t('NAV_POST_JOB')}
+              </button>
+              <button onClick=${() => setView('atig')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'atig' ? 'bg-black text-white' : 'bg-brandYellow text-black'}">
+                <${IconLeaf} /> ${t('NAV_WASTE')}
+              </button>
+              <button onClick=${() => setView('kampanyalar')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'kampanyalar' ? 'bg-black text-white' : 'bg-white text-black'}">
+                <${IconGift} /> ${t('NAV_CAMPAIGNS')}
+              </button>
+              <button onClick=${() => setView('hesap')} class="flex items-center gap-2 px-7 py-6 brutal-btn font-black text-base uppercase whitespace-nowrap shrink-0 ${view === 'hesap' ? 'bg-black text-white' : 'bg-brandPink text-black'}">
+                <${IconGlobe} /> ${t('NAV_ACCOUNT')}
+              </button>
+            </nav>
+          </header>
+
+          <main>
+            ${view === 'ustalar' && html`
+              <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
+                <div class="inline-block relative mb-4 md:mb-6">
+                  <div class="absolute inset-0 bg-brandBlue transform translate-x-1 translate-y-1 md:translate-x-2 md:translate-y-2 border-4 border-black"></div>
+                  <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('MATCH_MASTER')}</h2>
+                </div>
+                <div class="max-w-4xl mx-auto brutal-card p-6 md:p-10 bg-white">
+                  <div class="space-y-8">
+                    <div>
+                      <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('FIND_STEP1')}</h3>
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        ${['Elektronik', 'Mobilya', 'Tekstil', 'Diğer'].map(cat => html`
+                          <button key=${cat} onClick=${() => setMatchCategory(cat)} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${matchCategory === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">${catName(cat)}</button>
+                        `)}
+                      </div>
+                    </div>
+                    <div>
+                      <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('FIND_STEP2')}</h3>
+                      <textarea value=${matchDesc} onInput=${e => setMatchDesc(e.target.value)} class="w-full border-4 border-black p-4 font-bold text-lg outline-none h-32 resize-none bg-mainBg" placeholder="${t('PLACEHOLDER_ISSUE')}"></textarea>
+                    </div>
+                    ${matchCategory && customerLocation && html`
+                      <div>
+                        <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('FIND_STEP3', catName(matchCategory))}</h3>
+                        <div class="space-y-4">
+                          ${allShops.filter(s => s.kategori === matchCategory).map(s => ({...s, distance: getDistance(customerLocation.lat, customerLocation.lon, s.lat, s.lon)})).sort((a,b) => a.distance-b.distance).slice(0,3).map((shop, idx) => html`
+                            <div key=${shop.id || idx} class="border-4 border-black p-4 bg-mainBg flex justify-between items-center cursor-pointer hover:bg-brandPink/50 transition-colors" onClick=${() => { setSelectedShop(shop); setView('merkezler'); }}>
+                              <div>
+                                <div class="text-xl font-black uppercase">${shop.name}</div>
+                                <div class="text-sm font-bold text-gray-600">${shop.kategori} • ${(shop.distance/1000).toFixed(1)} ${t('DIST_AWAY')}</div>
+                              </div>
+                              <div class="text-2xl">📍</div>
+                            </div>
+                          `)}
+                        </div>
+                      </div>
+                    `}
+                    <button onClick=${triggerMatch} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl md:text-3xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-center items-center gap-3">
+                      <${IconWrench} /> ${t('FIND_BTN')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `}
+
+            ${view === 'panel' && html`
+              <div class="space-y-8 md:space-y-12 mt-6 md:mt-8 relative z-10">
+                ${!customerLocation ? html`
+                  <button onClick=${requestLocationPermission} class="w-full brutal-card p-6 md:p-8 bg-brandPink text-black font-black text-2xl md:text-3xl uppercase hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#000] transition-all flex items-center justify-center gap-4">
+                    <span class="text-5xl">📍</span><span>${t('FIND_LOCATION')}</span>
+                  </button>
+                ` : html`
+                  <div class="brutal-card p-4 md:p-6 bg-brandPink text-black font-black text-lg uppercase flex items-center gap-4">
+                    <span class="text-4xl">✔️</span>
+                    <div>
+                      <div>${t('LOCATION_ACTIVE')}</div>
+                      <div class="text-sm font-bold opacity-70">${customerLocation.lat.toFixed(4)}, ${customerLocation.lon.toFixed(4)}</div>
+                    </div>
+                    <button onClick=${() => setView('merkezler')} class="ml-auto bg-black text-white px-4 py-2 font-black text-sm border-2 border-black hover:bg-gray-800 transition-colors whitespace-nowrap">${t('VIEW_MAP_BTN')}</button>
+                  </div>
+                `}
+
+                <div class="brutal-card p-6 md:p-10 bg-white border-[5px]">
+                  <div class="inline-block relative mb-8">
+                    <div class="absolute inset-0 bg-brandYellow transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                    <h2 class="relative bg-black text-white px-5 py-2 text-2xl md:text-4xl font-black uppercase tracking-tighter border-4 border-black">${t('HOW_TO_USE')}</h2>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                    <div class="space-y-5">
+                      <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandPink">
+                        <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">1</div>
+                        <div>
+                          <p class="font-black uppercase text-base">${t('STEP1_TITLE')}</p>
+                          <p class="font-bold text-sm text-gray-700 mt-1">${t('STEP1_DESC')}</p>
+                        </div>
+                      </div>
+                      <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandYellow">
+                        <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">2</div>
+                        <div>
+                          <p class="font-black uppercase text-base">${t('STEP2_TITLE')}</p>
+                          <p class="font-bold text-sm text-gray-700 mt-1">${t('STEP2_DESC')}</p>
+                        </div>
+                      </div>
+                      <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandPink">
+                        <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">3</div>
+                        <div>
+                          <p class="font-black uppercase text-base">${t('STEP3_TITLE')}</p>
+                          <p class="font-bold text-sm text-gray-700 mt-1">${t('STEP3_DESC')}</p>
+                        </div>
+                      </div>
+                      <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandYellow">
+                        <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">4</div>
+                        <div>
+                          <p class="font-black uppercase text-base">${t('STEP4_TITLE')}</p>
+                          <p class="font-bold text-sm text-gray-700 mt-1">${t('STEP4_DESC')}</p>
+                        </div>
+                      </div>
+                      <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandPink">
+                        <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">5</div>
+                        <div>
+                          <p class="font-black uppercase text-base">${t('STEP5_TITLE')}</p>
+                          <p class="font-bold text-sm text-gray-700 mt-1">${t('STEP5_DESC')}</p>
+                        </div>
+                      </div>
+                      <div class="flex gap-4 items-start border-4 border-black p-4 bg-brandYellow">
+                        <div class="bg-black text-white w-10 h-10 shrink-0 flex items-center justify-center font-black text-xl border-2 border-black">6</div>
+                        <div>
+                          <p class="font-black uppercase text-base">${t('STEP6_TITLE')}</p>
+                          <p class="font-bold text-sm text-gray-700 mt-1">${t('STEP6_DESC')}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="border-4 border-black overflow-hidden aspect-square h-max bg-gray-100 flex items-center justify-center">
+                      <img src="kadıköy tamir ediyor.png" alt="Kadıköy Tamir Ediyor" class="w-full h-full object-cover" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="brutal-card p-5 md:p-8 bg-white border-[5px]">
+                  <div class="inline-block relative mb-6">
+                    <div class="absolute inset-0 bg-brandPink transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                    <h2 class="relative bg-black text-white px-5 py-2 text-xl md:text-3xl font-black uppercase tracking-tighter border-4 border-black">${t('RECENT_REPAIRS')}</h2>
+                  </div>
+                  <div class="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+                    ${sonTamirlerData.map(r => html`
+                      <div key=${r.id} onClick=${() => handleShowRepairImpact(r)}
+                           class="shrink-0 w-44 md:w-52 border-4 border-black p-4 cursor-pointer hover:-translate-y-1 transition-all ${r.bg} ${r.text} flex flex-col gap-2 shadow-[4px_4px_0px_#000]">
+                        <p class="font-black text-sm uppercase leading-tight">${r.isim}</p>
+                        <p class="font-bold text-xs opacity-70">${r.konum}</p>
+                        <p class="font-bold text-xs opacity-50">${r.tarih}</p>
+                        <div class="mt-auto bg-black text-brandYellow px-2 py-1 text-xs font-black uppercase border-2 border-black w-fit">${r.puan} ${window.currentLang === 'en' ? 'PTS' : 'PUAN'}</div>
+                      </div>
+                    `)}
+                  </div>
+                </div>
+              </div>
+            `}
+
+            ${view === 'merkezler' && html`<${Map} selectedShop=${selectedShop} setSelectedShop=${setSelectedShop} customerLocation=${customerLocation} />`}
+
+            ${view === 'kampanyalar' && html`
+              <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
+                <div class="inline-block relative mb-4 md:mb-6">
+                  <div class="absolute inset-0 bg-brandYellow transform translate-x-1 translate-y-1 md:translate-x-2 md:translate-y-2 border-4 border-black"></div>
+                  <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('USE_REWARDS')}</h2>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
+                  ${kampanyalarData.map(k => {
+                    const isUsed   = kullanilanlar.includes(k.id);
+                    const isLocked = puan < k.points;
+                    const btnText  = isUsed ? t('BTN_USED') : (isLocked ? t('BTN_LOCKED') : t('BTN_USE'));
+                    const btnClass = (isUsed || isLocked)
+                      ? 'bg-[#c0c0c0] text-gray-600 cursor-not-allowed'
+                      : 'bg-brandYellow text-black active:translate-y-1 active:translate-x-1 active:shadow-none transition-all shadow-[2px_2px_0px_0px_#000] md:shadow-[3px_3px_0px_0px_#000]';
+                    return html`
+                      <div key=${k.id} class="border-[4px] md:border-[6px] border-black shadow-[4px_4px_0px_0px_#000] md:shadow-[8px_8px_0px_0px_#000] p-4 md:p-6 flex flex-col relative ${k.color} transition-transform hover:-translate-y-1">
+                        <div class="absolute -top-3 md:-top-4 right-2 md:right-4 bg-black text-white px-2 md:px-4 py-1 text-sm md:text-lg font-bold transform rotate-[4deg] border-2 md:border-4 border-black">${window.currentLang === 'en' ? k.tagEn : k.tag}</div>
+                        <h3 class="text-2xl md:text-3xl font-black uppercase mb-3 md:mb-4 pr-10 md:pr-12 leading-none mt-2 ${k.color.includes('text-white') ? 'text-white' : 'text-black'}">${k.title}</h3>
+                        <div class="bg-mainBg border-[3px] md:border-[4px] border-black p-3 md:p-4 min-h-[80px] md:min-h-[120px] flex items-center justify-center text-center">
+                          <p class="font-bold text-lg md:text-xl uppercase leading-tight text-black">${window.currentLang === 'en' ? k.descEn : k.desc}</p>
+                        </div>
+                        <hr class="border-t-[4px] md:border-t-[6px] border-black my-4 md:my-5" />
+                        <div class="flex justify-between items-center mt-auto">
+                          <div class="bg-white border-[3px] md:border-[4px] border-black px-2 md:px-3 py-1">
+                            <span class="text-xl md:text-2xl font-black uppercase text-black">${k.points} ${window.currentLang === 'en' ? 'PTS' : 'PUAN'}</span>
+                          </div>
+                          <button onClick=${() => handleKullan(k)} class="px-3 md:px-5 py-1 md:py-2 border-[3px] md:border-[4px] border-black font-black text-lg md:text-xl uppercase ${btnClass}">${btnText}</button>
+                        </div>
+                      </div>
+                    `;
+                  })}
+                </div>
+              </div>
+            `}
+
+            ${view === 'hub' && (() => {
+              const [uploadedImage, setUploadedImage] = useState(false);
+              const [analyzing, setAnalyzing] = useState(false);
+              const [toolSuggestions, setToolSuggestions] = useState(null);
+              const [drawTick, setDrawTick] = useState(0);
+              const [roomArea, setRoomArea] = useState(60);
+              const canvasRef = useRef(null);
+
+// ── HYBRID ML: Repair Hub Physical Layer referanslı ──
+// Kaynak: 60m² Repair Hub layout (Workspace 30-40m², Tool Library 15-20m²,
+              //         Digital Station 10m²) + gerçek ekipman ölçüleri (endüstriyel standartlar)
+              //
+              // ZONE HARİTASI (görseldeki Physical Layer'a göre):
+              //   textile    → sol-orta: tekstil istasyonu (dikiş, overlok)
+              //   electronics → sağ-orta: elektronik istasyonu (havya, osiloskop)
+              //   mechanical  → orta: mekanik alan (matkap tezgahı, zımpara)
+              //   storage     → arka duvar: alet kütüphanesi (raflar)
+              //   welcome     → giriş: karşılama & dijital istasyon
+              //   wall        → duvar kenarı gerektiren büyük ekipman
+
+              // Physical Layer (60m² Repair Hub) alt başlıklarına göre büyük ekipmanlar:
+              // Küçük el aletleri (multimetre, tornavida vb.) raf sisteminde saklanır,
+              // plan üzerinde ayrı alan gerekmez — sadece büyük sabit ekipmanlar listelendi.
+              const TOOL_SPECS = [
+
+// ── TEKSTİL İSTASYONU ──
+// Physical Layer: "Textile Station — Sewing machines, overlock machines, fabric shears"
+                {
+                  name: 'DİKİŞ MAKİNESİ', nameEn: 'SEWING MACHINE', emoji: '🧵',
+                  zone: 'textile', needsWall: true, wallPrefer: true, // Elektrikli alet, duvara yaslanmalı
+                  wCm: 119, dCm: 52,
+                  minClearanceCm: 90, priority: 1,
+                  reason:  'Tekstil istasyonu — dikiş makinesi tezgahı, 119×52 cm, prize takılması için duvarda olmalı',
+                  reasonEn:'Textile station — sewing machine table, 119×52 cm, requires wall power',
+                },
+
+// ── ELEKTRONİK İSTASYONU ──
+// Physical Layer: "Electronics Station — Soldering iron sets, oscilloscopes, magnifying lamps"
+                {
+                  name: 'ELEKTRONİK ÇALIŞMA TEZGAHI', nameEn: 'ELECTRONICS WORKBENCH', emoji: '🔬',
+                  zone: 'electronics', needsWall: true, wallPrefer: true, // Elektrikli alet, duvara yaslanmalı
+                  wCm: 200, dCm: 76,
+                  minClearanceCm: 90, priority: 1,
+                  reason:  'Elektronik istasyonu — lehimleme, osiloskop, 200×76 cm tezgah, prize takılması için duvarda olmalı',
+                  reasonEn:'Electronics station — soldering, oscilloscope, 200×76 cm bench, requires wall power',
+                },
+
+// ── MEKANİK ALAN ──
+// Physical Layer: "Mechanical Area — Drill press, hand drills, jigsaws, sanders"
+                {
+                  name: 'MEKANİK TAMİR TEZGAHI', nameEn: 'MECHANICAL WORKBENCH', emoji: '🪛',
+                  zone: 'mechanical', needsWall: true, wallPrefer: true,
+                  wCm: 180, dCm: 75,
+                  minClearanceCm: 90, priority: 1,
+                  reason:  'Mekanik alan — mengene, el aleti seti, 180×75 cm çelik tezgah (Physical Layer)',
+                  reasonEn:'Mechanical area — vise, hand tool set, 180×75 cm steel workbench (Physical Layer)',
+                },
+                {
+                  name: 'MATKAP & ZİMPARA İSTASYONU', nameEn: 'DRILL PRESS & SANDER', emoji: '🔩',
+                  zone: 'mechanical', needsWall: true, wallPrefer: true,
+                  wCm: 100, dCm: 80, // Küçük el aleti olsa da çalışma tezgahı boyutu
+                  minClearanceCm: 120, priority: 2,
+                  reason:  'Mekanik alan — ayaklı matkap + zımpara için taban tezgahı, 100×80 cm + 1.2m güvenlik alanı',
+                  reasonEn:'Mechanical area — drill press + belt sander base table, 100×80 cm + 1.2m safety clearance',
+                },
+
+// ── ALET KÜTÜPHANESİ (TOOL LIBRARY, 15-20m²) ──
+// Physical Layer: "Tool Library — Tool Inventory, Hand Tools (hammers, pliers,
+                //   screwdrivers, wrenches, saws, calipers), Consumables (bolts, nuts,
+                //   needle/thread sets, electronic components)"
+                {
+                  name: 'ALET KÜTÜPHANESİ ANA RAFLARI', nameEn: 'TOOL LIBRARY MAIN SHELVING', emoji: '📦',
+                  zone: 'storage', needsWall: true, wallPrefer: true,
+                  wCm: 280, dCm: 45,
+                  minClearanceCm: 120, priority: 1,
+                  reason:  'Alet kütüphanesi — el aletleri (çekiç/pense/tornavida/anahtar), sarf malzeme rafları, 280×45 cm (Physical Layer)',
+                  reasonEn:'Tool library — hand tools (hammer/pliers/screwdrivers/wrenches), consumables shelving, 280×45 cm (Physical Layer)',
+                },
+                {
+                  name: 'ELEKTRONİK & DİKİŞ STOK RAFI', nameEn: 'ELECTRONICS & TEXTILE STOCK RACK', emoji: '🗄️',
+                  zone: 'storage', needsWall: true, wallPrefer: true,
+                  wCm: 120, dCm: 40,
+                  minClearanceCm: 90, priority: 2,
+                  reason:  'Alet kütüphanesi — lehimleme kitleri, elektronik bileşenler, iğne/iplik seti stoğu, 120×40 cm',
+                  reasonEn:'Tool library stock — soldering kits, electronic components, needle/thread sets, 120×40 cm',
+                },
+
+// ── DİJİTAL İSTASYON & KARŞILAMA (10m²) ──
+// Physical Layer: "Digital Station & Welcome Desk — 10m²"
+                {
+                  name: 'KARŞILAMA & DİJİTAL İSTASYON', nameEn: 'WELCOME & DIGITAL STATION', emoji: '🖥️',
+                  zone: 'welcome', needsWall: false, wallPrefer: false,
+                  wCm: 180, dCm: 75,
+                  minClearanceCm: 120, priority: 1,
+                  reason:  'Giriş noktası — dijital rezervasyon terminali + oryantasyon masası, 10m² alan (Physical Layer)',
+                  reasonEn:'Entry point — digital reservation terminal + orientation desk, 10m² area (Physical Layer)',
+                },
+              ];
+
+              // Zone → plan üzerinde bölge tercihi (0=sol, 1=sağ, 0=üst, 1=alt normalize)
+              // Physical Layer görseline göre:
+              //   storage (alet kütüphanesi)  → üst+sağ  [x: 0.5–1.0, y: 0–0.4]
+              //   electronics                  → sağ-orta [x: 0.55–1.0, y: 0.3–0.7]
+              //   textile                      → sol-orta [x: 0–0.45, y: 0.2–0.7]
+              //   mechanical                   → orta     [x: 0.2–0.8, y: 0.3–0.8]
+              //   welcome                      → sol-giriş[x: 0–0.3, y: 0.6–1.0]
+              // Physical Layer'a göre zone koordinatları (normalize, 0-1 arası):
+              // Repair hub genellikle L şeklinde veya dikdörtgen → geniş bölgeler kullan
+              // welcome: ön/giriş tarafı; storage: duvar boyunca her yer (raf sistemi)
+              // Bölgeler birbirini kapsayabilir — skor sistemi en iyi eşleşmeyi seçer
+              const ZONE_REGIONS = {
+                // Alet kütüphanesi rafları → duvar boyunca (üst veya alt ya da yanda)
+                storage:     { x0: 0.0, x1: 1.0, y0: 0.0, y1: 0.40 },
+                // Elektronik tezgah → sağ çalışma alanı
+                electronics: { x0: 0.40, x1: 1.0, y0: 0.15, y1: 0.80 },
+                // Tekstil tezgah → sol çalışma alanı
+                textile:     { x0: 0.0, x1: 0.60, y0: 0.15, y1: 0.80 },
+                // Mekanik alan → merkez geniş alan
+                mechanical:  { x0: 0.10, x1: 0.90, y0: 0.20, y1: 0.85 },
+                // Karşılama & dijital istasyon → ön giriş, geniş yelpaze
+                welcome:     { x0: 0.0, x1: 1.0, y0: 0.55, y1: 1.0 },
+              };
+
+// ── ADIM 1: plan içeriğinin gerçek piksel sınırları ──
+const findContentBounds = (data, W, H) => {
+                let x0 = W, y0 = H, x1 = 0, y1 = 0;
+                for (let y = 0; y < H; y++) {
+                  for (let x = 0; x < W; x++) {
+                    const i = (y * W + x) * 4;
+                    const lum = data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114;
+                    if (lum < 180) {
+                      if (x < x0) x0 = x; if (x > x1) x1 = x;
+                      if (y < y0) y0 = y; if (y > y1) y1 = y;
+                    }
+                  }
+                }
+                const pad = 8;
+                return { x0: x0+pad, y0: y0+pad, x1: x1-pad, y1: y1-pad };
+              };
+
+// ── ADIM 2: Watershed algoritması ──
+// Distance transform + dilation + flood-fill → oda merkezlerini bulur
+              // Kapı boşluklarına rağmen iç/dış doğru ayrılır
+              const buildOpenGrid = (data, W, H, bounds, GW, GH) => {
+                const { x0, y0, x1, y1 } = bounds;
+                const bW = Math.max(1, x1 - x0), bH = Math.max(1, y1 - y0);
+                const cellW = bW / GW, cellH = bH / GH;
+
+                // 1) Ham piksel haritası
+                const pixOpen = new Uint8Array(W * H);
+                for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+                  const i = (y*W+x)*4, l = data[i]*0.299+data[i+1]*0.587+data[i+2]*0.114;
+                  pixOpen[y*W+x] = l > 180 ? 1 : 0;
+                }
+
+                // 2) Distance transform — BFS çok-kaynaklı, O(W*H)
+                //    Her pikselin en yakın duvara olan mesafesi → oda merkezi = yüksek değer
+                const INF = 99999;
+                const dist = new Int32Array(W * H).fill(INF);
+                const dq = []; let dHead = 0;
+                for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+                  const idx = y*W+x;
+                  if (!pixOpen[idx]) { dist[idx] = 0; dq.push(idx); }
+                }
+                while (dHead < dq.length) {
+                  const idx = dq[dHead++];
+                  const px = idx%W, py = (idx/W)|0, d = dist[idx];
+                  if (px<W-1 && dist[idx+1]===INF) { dist[idx+1]=d+1; dq.push(idx+1); }
+                  if (px>0   && dist[idx-1]===INF) { dist[idx-1]=d+1; dq.push(idx-1); }
+                  if (py<H-1 && dist[idx+W]===INF) { dist[idx+W]=d+1; dq.push(idx+W); }
+                  if (py>0   && dist[idx-W]===INF) { dist[idx-W]=d+1; dq.push(idx-W); }
+                }
+
+                // 3) Dilation: duvarları R piksel genişlet → kapı aralıklarını kapat
+                const R = 22;
+                const hP = new Uint8Array(W * H);
+                for (let y = 0; y < H; y++) {
+                  let wc = 0;
+                  for (let x = 0; x <= Math.min(R,W-1); x++) if (!pixOpen[y*W+x]) wc++;
+                  for (let x = 0; x < W; x++) {
+                    hP[y*W+x] = wc===0 ? 1 : 0;
+                    const ax=x+R+1; if(ax<W && !pixOpen[y*W+ax]) wc++;
+                    const rx=x-R;   if(rx>=0 && !pixOpen[y*W+rx]) wc--;
+                  }
+                }
+                const sealed = new Uint8Array(W * H);
+                for (let x = 0; x < W; x++) {
+                  let wc = 0;
+                  for (let y = 0; y <= Math.min(R,H-1); y++) if (!hP[y*W+x]) wc++;
+                  for (let y = 0; y < H; y++) {
+                    sealed[y*W+x] = wc===0 ? 1 : 0;
+                    const ay=y+R+1; if(ay<H && !hP[ay*W+x]) wc++;
+                    const ry=y-R;   if(ry>=0 && !hP[ry*W+x]) wc--;
+                  }
+                }
+
+                // 4) Flood-fill dışarıdan — kapatılmış harita üzerinde
+                const exterior = new Uint8Array(W * H);
+                const eq = []; let eHead = 0;
+                const eseed = (px,py) => {
+                  if(px<0||px>=W||py<0||py>=H) return;
+                  const i=py*W+px;
+                  if(!exterior[i]&&sealed[i]){exterior[i]=1;eq.push(i);}
+                };
+                for(let x=0;x<W;x++){eseed(x,0);eseed(x,H-1);}
+                for(let y=0;y<H;y++){eseed(0,y);eseed(W-1,y);}
+                while(eHead<eq.length){
+                  const i=eq[eHead++]; const px=i%W,py=(i/W)|0;
+                  eseed(px+1,py);eseed(px-1,py);eseed(px,py+1);eseed(px,py-1);
+                }
+
+                // 5) Hücre ızgarası: interiorRatio + avgDist (watershed kalite skoru)
+                const grid = [];
+                for (let gy = 0; gy < GH; gy++) {
+                  for (let gx = 0; gx < GW; gx++) {
+                    const px0=Math.round(x0+gx*cellW), py0=Math.round(y0+gy*cellH);
+                    const px1=Math.min(W-1,Math.round(x0+(gx+1)*cellW));
+                    const py1=Math.min(H-1,Math.round(y0+(gy+1)*cellH));
+                    let interior=0, dark=0, total=0, lumSum=0, distSum=0, extCount=0;
+                    for(let py=py0;py<=py1;py++) for(let px=px0;px<=px1;px++){
+                      const pidx=py*W+px;
+                      const i=pidx*4, l=data[i]*0.299+data[i+1]*0.587+data[i+2]*0.114;
+                      lumSum+=l; if(l<160) dark++;
+                      if(pixOpen[pidx]&&!exterior[pidx]){ interior++; distSum+=dist[pidx]; }
+                      if(exterior[pidx]) extCount++;
+                      total++;
+                    }
+                    const avgLum        = total>0 ? lumSum/total : 0;
+                    const interiorRatio = total>0 ? interior/total : 0;
+                    const darkRatio     = total>0 ? dark/total : 1;
+                    const extRatio      = total>0 ? extCount/total : 0;
+                    // avgDist: duvara ortalama mesafe — yüksek = oda merkezi
+                    const avgDist       = interior>0 ? distSum/interior : 0;
+                    const open = interiorRatio > 0.45 && darkRatio < 0.22;
+                    const cx=Math.round(x0+(gx+0.5)*cellW), cy=Math.round(y0+(gy+0.5)*cellH);
+                    const nx=(gx+0.5)/GW, ny=(gy+0.5)/GH;
+                    grid.push({gx,gy,cx,cy,open,lum:avgLum,nx,ny,interiorRatio,avgDist, darkRatio, extRatio});
+                  }
+                }
+
+                // Yedek: flood-fill sızdıysa saf parlaklık
+                const openCount = grid.filter(c=>c.open).length;
+                if(openCount < grid.length * 0.04) {
+                  grid.forEach(c => { c.open = c.lum > 215; });
+                }
+
+                // 2. pass: Yönelim ve kapı/boşluk algılama
+                const doorCells = [];
+                grid.forEach(c => {
+                  if(!c.open) return;
+                  const getD = (dx,dy) => {
+                    const n = grid.find(g => g.gx===c.gx+dx && g.gy===c.gy+dy);
+                    return n ? n.darkRatio : 0; 
+                  };
+                  const wL = getD(-1,0) + getD(-2,0);
+                  const wR = getD(1,0) + getD(2,0);
+                  const wT = getD(0,-1) + getD(0,-2);
+                  const wB = getD(0,1) + getD(0,2);
+                  
+                  const maxWall = Math.max(wL, wR, wT, wB);
+                  if (maxWall > 0.15) {
+                    if (maxWall === wL || maxWall === wR) c.wallDir = 'V'; 
+                    else c.wallDir = 'H'; 
+                  } else {
+                    c.wallDir = 'H'; 
+                  }
+
+                  // KESİN KAPI TESPİTİ:
+                  const checkExterior = (dx, dy) => {
+                    const n = grid.find(g => g.gx===c.gx+dx && g.gy===c.gy+dy);
+                    // Dışarıyla doğrudan bağlantı (extRatio) veya sınır dışı
+                    return n ? (n.extRatio > 0.05) : true; 
+                  };
+                  
+                  // Hücre kendisi çok karanlık bir duvar parçası değilse (ince bir çizgi veya gölge olabilir < 0.35)
+                  // ve hemen dibi dışarısıysa -> bu kesinlikle bir kapıdır!
+                  if (c.darkRatio < 0.35 && (checkExterior(-1,0) || checkExterior(1,0) || checkExterior(0,-1) || checkExterior(0,1))) {
+                      doorCells.push(c);
+                  }
+                });
+
+                // Kapıların önünde hiçbir objenin giremeyeceği devasa yasaklı bölge oluştur
+                doorCells.forEach(dc => {
+                  grid.forEach(c => {
+                    if (!c.open) return;
+                    const dist = Math.sqrt(Math.pow(c.gx - dc.gx, 2) + Math.pow(c.gy - dc.gy, 2));
+                    // Yarıçapı 4.5 hücrelik (yaklaşık 1.5m - 2m genişliğinde) çok büyük bir alan olarak koruyoruz
+                    if (dist <= 4.5) { 
+                      c.open = false; 
+                      c.isDoorClearance = true; // Welcome masası için işaretle
+                    }
+                  });
+                });
+
+                return { grid, cellW, cellH };
+              };
+
+// ── ADIM 3: duvar yakınlığı (ızgara içi kenar hücreleri) ──
+const isNearWall = (gx, gy, GW, GH) =>
+                gx <= 1 || gx >= GW-2 || gy <= 1 || gy >= GH-2;
+
+// ── ADIM 4: zone + ölçü uyumu skoru ile en iyi hücreyi seç ──
+// spec.wCm / spec.dCm → gerçek ekipman boyutu (cm)
+              // ZONE_REGIONS → her zone için normalize plan koordinatları
+              // minNeighbors → ekipman boyutuna göre hesaplanan min açık komşu sayısı
+              const pickBestCell = (grid, GW, GH, spec, usedCells, bounds, CW, CH) => {
+                const zoneReg = ZONE_REGIONS[spec.zone];
+                const bW = bounds.x1 - bounds.x0, bH = bounds.y1 - bounds.y0;
+                const areaM2 = roomArea || 60;
+                const pxPerMeter = Math.sqrt((bW * bH) / areaM2);
+                const pxPerCm = pxPerMeter / 100;
+                
+                let best = null, bestScore = -1000;
+                
+                for (const cell of grid) {
+                  if (!cell.open) continue;
+
+                  // Eşyanın rotasyonu: Duvar tercihine göre (H/V) genişlik ve derinliği ayarla
+                  let w = spec.wCm, d = spec.dCm;
+                  if (spec.wallPrefer && cell.wallDir === 'V') {
+                    w = spec.dCm; d = spec.wCm;
+                  }
+                  
+                  // Eşyanın fiziksel sınırları (rX_phys, rY_phys) ve güvenlik/temizlik alanı sınırları (rX_clear, rY_clear)
+                  const rX_phys = Math.max(1, Math.ceil((w * pxPerCm) / (bW / GW) / 2));
+                  const rY_phys = Math.max(1, Math.ceil((d * pxPerCm) / (bH / GH) / 2));
+                  const rX_clear = Math.max(1, Math.ceil(((w + spec.minClearanceCm) * pxPerCm) / (bW / GW) / 2));
+                  const rY_clear = Math.max(1, Math.ceil(((d + spec.minClearanceCm) * pxPerCm) / (bH / GH) / 2));
+
+                  // 1. FİZİKSEL ÇARPIŞMA TESTİ (Strict Bounding Box Collision)
+                  let collision = false;
+                  let touchesWall = false;
+                  
+                  for (let dy = -rY_clear; dy <= rY_clear; dy++) {
+                    for (let dx = -rX_clear; dx <= rX_clear; dx++) {
+                      const checkX = cell.gx + dx;
+                      const checkY = cell.gy + dy;
+                      
+                      const isPhys = (Math.abs(dx) <= rX_phys && Math.abs(dy) <= rY_phys);
+                      
+                      // Kendi oluşturduğumuz diğer eşyalarla çarpışma kontrolü (Clearance dahil kimseye değemez)
+                      if (usedCells.has(`${checkX},${checkY}`)) { collision = true; break; }
+                      
+                      const checkCell = grid.find(g => g.gx===checkX && g.gy===checkY);
+                      
+                      // Eğer fiziksel sınırın içindeysek, duvar veya kapı yasaklı bölgesi OLAMAZ
+                      if (isPhys) {
+                         if (!checkCell || !checkCell.open) { collision = true; break; }
+                         
+                         // Duvara temas kontrolü (sadece fiziksel sınırın en dışındayken komşuya bak)
+                         if (!touchesWall) {
+                             if (dx === -rX_phys) {
+                                const nCell = grid.find(g => g.gx===checkX-1 && g.gy===checkY);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                             if (dx === rX_phys) {
+                                const nCell = grid.find(g => g.gx===checkX+1 && g.gy===checkY);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                             if (dy === -rY_phys) {
+                                const nCell = grid.find(g => g.gx===checkX && g.gy===checkY-1);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                             if (dy === rY_phys) {
+                                const nCell = grid.find(g => g.gx===checkX && g.gy===checkY+1);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                         }
+                      }
+                      
+                      // Eğer fiziksel sınırın dışında (sadece clearance) isek
+                      if (!isPhys) {
+                         // Duvar olabilir (sorun yok). Ama kapı boşluğuna (isDoorClearance) denk gelemez!
+                         if (checkCell && checkCell.isDoorClearance) {
+                             collision = true; break;
+                         }
+                      }
+                    }
+                    if (collision) break;
+                  }
+                  if (collision) continue;
+
+                  let nearDoorClearance = false;
+                  // Teğet kontrolü için ekstra 1 hücre dışarıya bak
+                  for (let dy = -(rY_clear+1); dy <= (rY_clear+1); dy++) {
+                    for (let dx = -(rX_clear+1); dx <= (rX_clear+1); dx++) {
+                        const checkX = cell.gx + dx;
+                        const checkY = cell.gy + dy;
+                        const checkCell = grid.find(g => g.gx===checkX && g.gy===checkY);
+                        if (checkCell && checkCell.isDoorClearance) {
+                            nearDoorClearance = true;
+                        }
+                    }
+                  }
+
+                  // ZONE skoru: hücrenin normalize konumu zone bölgesine ne kadar yakın?
+                  let zoneScore = 0;
+                  if (zoneReg) {
+                    const inZoneX = cell.nx >= zoneReg.x0 && cell.nx <= zoneReg.x1;
+                    const inZoneY = cell.ny >= zoneReg.y0 && cell.ny <= zoneReg.y1;
+                    if (inZoneX && inZoneY) zoneScore = 5;
+                    else {
+                      const distX = Math.max(0, Math.max(zoneReg.x0 - cell.nx, cell.nx - zoneReg.x1));
+                      const distY = Math.max(0, Math.max(zoneReg.y0 - cell.ny, cell.ny - zoneReg.y1));
+                      zoneScore = Math.max(-5, 2 - (distX + distY) * 10);
+                    }
+                  }
+
+                  // KESİN KURAL: needsWall true ise mutlaka duvara bitişik olmak ZORUNDA (artık fiziksel sınırlarıyla tam temas etmeli)
+                  if (spec.needsWall && !touchesWall) continue;
+                  
+                  // Welcome Desk özel kuralı: KAPILARA EN YAKIN OLMAK ZORUNDA ve duvar dibinde OLAMAZ (Boşlukta olmalı)
+                  let welcomeScore = 0;
+                  if (spec.zone === 'welcome') {
+                    if (touchesWall) continue; // Karşılama masası duvara yapışık olamaz!
+                    // Eğer kapı yasaklı alanına teğet geçmişse bu mükemmel bir karşılama yeridir
+                    if (nearDoorClearance) welcomeScore = 20; 
+                    else welcomeScore = -5; // Kapıya yakın değilse puan kır
+                  }
+
+                  const wallScore = spec.wallPrefer ? (touchesWall ? 3 : -2) : (touchesWall ? -1 : 1);
+                  const distScore = spec.wallPrefer
+                    ? Math.max(0, 1 - (cell.avgDist || 0) / 40)
+                    : Math.min(1, (cell.avgDist || 0) / 40);
+
+                  const score = zoneScore + wallScore + distScore + welcomeScore;
+                  if (score > bestScore) { 
+                    bestScore = score; 
+                    best = cell; 
+                    best.rotated = (spec.wallPrefer && cell.wallDir === 'V');
+                  }
+                }
+
+                // Yedek: Sıkışık bir planda yer kalmadıysa sadece fiziksel alanı kontrol et
+                if (!best) {
+                  for (const cell of grid) {
+                    if (!cell.open) continue;
+                    if (usedCells.has(`${cell.gx},${cell.gy}`)) continue;
+                    
+                    let w = spec.wCm, d = spec.dCm;
+                    if (spec.wallPrefer && cell.wallDir === 'V') { w = spec.dCm; d = spec.wCm; }
+                    
+                    const rX_phys = Math.max(1, Math.ceil((w * pxPerCm) / (bW / GW) / 2));
+                    const rY_phys = Math.max(1, Math.ceil((d * pxPerCm) / (bH / GH) / 2));
+                    
+                    let collision = false;
+                    let touchesWall = false;
+                    for (let dy = -rY_phys; dy <= rY_phys; dy++) {
+                      for (let dx = -rX_phys; dx <= rX_phys; dx++) {
+                        const checkX = cell.gx + dx;
+                        const checkY = cell.gy + dy;
+                        if (usedCells.has(`${checkX},${checkY}`)) { collision = true; break; }
+                        const checkCell = grid.find(g => g.gx===checkX && g.gy===checkY);
+                        if (!checkCell || !checkCell.open) { collision = true; break; }
+
+                        if (!touchesWall) {
+                             if (dx === -rX_phys) {
+                                const nCell = grid.find(g => g.gx===checkX-1 && g.gy===checkY);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                             if (dx === rX_phys) {
+                                const nCell = grid.find(g => g.gx===checkX+1 && g.gy===checkY);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                             if (dy === -rY_phys) {
+                                const nCell = grid.find(g => g.gx===checkX && g.gy===checkY-1);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                             if (dy === rY_phys) {
+                                const nCell = grid.find(g => g.gx===checkX && g.gy===checkY+1);
+                                if (!nCell || (!nCell.open && !nCell.isDoorClearance)) touchesWall = true;
+                             }
+                         }
+                      }
+                      if (collision) break;
+                    }
+                    if (collision) continue;
+                    
+                    if (spec.needsWall && !touchesWall) continue;
+
+                    const wallScore = spec.wallPrefer ? (touchesWall ? 1.5 : 0) : (touchesWall ? -0.5 : 0.5);
+                    const score = wallScore;
+                    if (score > bestScore) { 
+                      bestScore = score; 
+                      best = cell; 
+                      best.rotated = (spec.wallPrefer && cell.wallDir === 'V');
+                    }
+                  }
+                }
+
+                return best;
+              };
+
+              const pendingImgRef = useRef(null);
+
+              // canvas DOM'a mount olduktan sonra çalışır (drawTick her yeni yüklemede artar)
+              useEffect(() => {
+                if (!drawTick || !canvasRef.current || !pendingImgRef.current) return;
+                const img    = pendingImgRef.current;
+                const canvas = canvasRef.current;
+                const CW = 720, CH = Math.round(720 * img.height / img.width);
+                canvas.width = CW; canvas.height = CH;
+                const ctx = canvas.getContext('2d');
+
+                ctx.drawImage(img, 0, 0, CW, CH);
+                const rawData = ctx.getImageData(0, 0, CW, CH).data;
+
+                const bounds = findContentBounds(rawData, CW, CH);
+                const GW = 32, GH = 22;
+                const { grid } = buildOpenGrid(rawData, CW, CH, bounds, GW, GH);
+
+                // Zone renkleri (Physical Layer görseline uygun)
+                const ZONE_COLORS = {
+                  textile:     '#e1d2f3',  // mor
+                  electronics: '#a5f3fc',  // açık mavi
+                  mechanical:  '#dcfc75',  // sarı-yeşil
+                  storage:     '#fde68a',  // turuncu-sarı
+                  welcome:     '#bbf7d0',  // yeşil
+                };
+
+                const usedCells = new Set();
+                const suggestions = [];
+                for (const spec of TOOL_SPECS) {
+                  if (suggestions.length >= TOOL_SPECS.length) break;
+                  const cell = pickBestCell(grid, GW, GH, spec, usedCells, bounds, CW, CH);
+                  if (!cell) continue;
+                  // Ekipman boyutunu hücre cinsine çevir, komşuları işaretle
+                  const bW = bounds.x1 - bounds.x0;
+                  const bH = bounds.y1 - bounds.y0;
+                  const areaM2 = roomArea || 60;
+                  const pxPerMeter = Math.sqrt((bW * bH) / areaM2);
+                  const pxPerCm = pxPerMeter / 100;
+                  const rotated = cell.wallDir === 'V';
+                  const realW = rotated ? spec.dCm : spec.wCm;
+                  const realH = rotated ? spec.wCm : spec.dCm;
+                  const rX = Math.max(1, Math.ceil(realW * pxPerCm / (bW / GW)));
+                  const rY = Math.max(1, Math.ceil(realH * pxPerCm / (bH / GH)));
+                  for (let dy = -rY; dy <= rY; dy++)
+                    for (let dx = -rX; dx <= rX; dx++)
+                      usedCells.add(`${cell.gx+dx},${cell.gy+dy}`);
+
+                  suggestions.push({
+                    tool:    window.currentLang === 'en' ? spec.nameEn : spec.name,
+                    emoji:   spec.emoji,
+                    zone:    spec.zone,
+                    wCm:     spec.wCm,
+                    dCm:     spec.dCm,
+                    rotated: rotated,
+                    x: cell.cx, y: cell.cy,
+                    wallPrefer: spec.wallPrefer,
+                    reason:  window.currentLang === 'en' ? spec.reasonEn : spec.reason,
+                    color:   ZONE_COLORS[spec.zone] || '#dcfc75',
+                    roomPct: `%${Math.round(cell.nx * 100)} - %${Math.round(cell.ny * 100)}`,
+                  });
+                }
+
+                setToolSuggestions(suggestions);
+
+// ── Canvas üzerine çiz ──
+suggestions.forEach((s, idx) => {
+                  // Ekipman alanı (gerçek boyuta orantılı dikdörtgen)
+                  const bW = bounds.x1 - bounds.x0;
+                  const bH = bounds.y1 - bounds.y0;
+                  const areaM2 = roomArea || 60;
+                  const pxPerMeter = Math.sqrt((bW * bH) / areaM2);
+                  const pxPerCm = pxPerMeter / 100;
+                  const realW = s.rotated ? s.dCm : s.wCm;
+                  const realH = s.rotated ? s.wCm : s.dCm;
+                  const rW = Math.max(14, realW * pxPerCm * 0.5);
+                  const rH = Math.max(14, realH * pxPerCm * 0.5);
+
+                  // Gölge
+                  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+                  ctx.fillRect(s.x - rW + 3, s.y - rH + 3, rW * 2, rH * 2);
+
+                  // Zone rengi dolgu
+                  ctx.fillStyle = s.color;
+                  ctx.strokeStyle = '#000';
+                  ctx.lineWidth = 2.5;
+                  ctx.fillRect(s.x - rW, s.y - rH, rW * 2, rH * 2);
+                  ctx.strokeRect(s.x - rW, s.y - rH, rW * 2, rH * 2);
+
+                  // Numara balonu
+                  ctx.fillStyle = '#000';
+                  ctx.beginPath();
+                  ctx.arc(s.x - rW + 10, s.y - rH + 10, 9, 0, Math.PI * 2);
+                  ctx.fill();
+                  ctx.fillStyle = '#fff';
+                  ctx.font = 'bold 11px sans-serif';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.fillText(idx + 1, s.x - rW + 10, s.y - rH + 10);
+
+                  // Emoji
+                  ctx.font = '16px sans-serif';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.fillText(s.emoji, s.x, s.y);
+
+                  // Boyut etiketi
+                  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+                  ctx.font = 'bold 9px sans-serif';
+                  ctx.textAlign = 'center';
+                  ctx.fillText(s.rotated ? `${s.dCm}×${s.wCm}cm` : `${s.wCm}×${s.dCm}cm`, s.x, s.y + rH + 8);
+                });
+
+                // Hesaplanan oda ebatlarını çiz (Oranların çalıştığını göstermek için)
+                const bW_full = bounds.x1 - bounds.x0;
+                const bH_full = bounds.y1 - bounds.y0;
+                const pxPerMeterGlobal = Math.sqrt((bW_full * bH_full) / (roomArea || 60));
+                const roomWidthM = (bW_full / pxPerMeterGlobal).toFixed(1);
+                const roomHeightM = (bH_full / pxPerMeterGlobal).toFixed(1);
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fillRect(CW - 240, 10, 230, 40);
+                ctx.fillStyle = '#bbf7d0'; // marka yeşili
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(`ESTIMATED DIMENSIONS`, CW - 20, 24);
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText(`${roomWidthM}m × ${roomHeightM}m`, CW - 20, 42);
+
+                setAnalyzing(false);
+              }, [drawTick]);
+
+              const analyzeFloorPlan = (file) => {
+                setAnalyzing(true);
+                setToolSuggestions(null);
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  const img = new Image();
+                  img.onload = () => {
+                    pendingImgRef.current = img;
+                    setUploadedImage(true);
+                    // drawTick'i artır → useEffect tetiklenir, canvas zaten DOM'da
+                    setDrawTick(t => t + 1);
+                  };
+                  img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+              };
+
+              return html`
+                <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
+                  <div class="inline-block relative mb-4 md:mb-6">
+                    <div class="absolute inset-0 bg-brandBlue transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                    <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('HUB_TITLE')}</h2>
+                  </div>
+
+                  <div class="brutal-card p-6 md:p-10 bg-white border-4 border-black space-y-6">
+                    <p class="text-lg font-bold text-gray-600">${t('HUB_DESC')}</p>
+
+                    <div class="flex flex-col md:flex-row gap-4">
+                      <div class="flex-1">
+                        <label class="block text-sm font-black uppercase mb-2">${window.currentLang === 'en' ? 'ROOM AREA (m²)' : 'ODA ALANI (m²)'}</label>
+                        <input
+                          type="number"
+                          value=${roomArea}
+                          onInput=${e => {
+                            setRoomArea(Number(e.target.value));
+                            if (uploadedImage) setDrawTick(t => t + 1); // recalculate on change
+                          }}
+                          class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg"
+                          min="5" max="5000"
+                        />
+                      </div>
+                      <div class="flex-1 flex flex-col justify-end">
+                        <label class="block">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange=${(e) => { if (e.target.files?.[0]) analyzeFloorPlan(e.target.files[0]); }}
+                            class="hidden"
+                          />
+                          <div class="brutal-btn bg-brandYellow text-black border-4 border-black p-4 font-black text-lg uppercase text-center cursor-pointer shadow-[4px_4px_0_#000] hover:translate-y-1 transition-all">
+                            ${analyzing ? t('HUB_ANALYZING') : t('HUB_UPLOAD')}
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    <p class="text-sm font-bold text-gray-500 mt-2">${t('HUB_UPLOAD_HINT')}</p>
+
+                    ${uploadedImage ? html`
+                      <div class="border-4 border-black p-4 bg-mainBg">
+                        <canvas ref=${canvasRef} class="w-full border-4 border-black bg-white"></canvas>
+                      </div>
+                    ` : html`
+                      <div class="border-4 border-dashed border-gray-300 p-12 text-center bg-gray-50">
+                        <p class="text-2xl mb-3">📐</p>
+                        <p class="font-bold text-gray-500">${t('HUB_NO_UPLOAD')}</p>
+                      </div>
+                    `}
+
+                    ${toolSuggestions && html`
+                      <div class="space-y-4">
+                        <div class="flex items-center justify-between border-b-4 border-black pb-3">
+                          <h3 class="text-2xl font-black uppercase">${t('HUB_RESULTS')}</h3>
+                          <span class="text-xs font-bold text-gray-500 uppercase">${roomArea}m² ${window.currentLang === 'en' ? 'Reference' : 'Referansı'}</span>
+                        </div>
+
+                        <!-- Zone açıklaması -->
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs font-bold uppercase">
+                          ${[
+                            { zone: 'textile',     label: window.currentLang==='en'?'Textile':'Tekstil',       color: '#e1d2f3' },
+                            { zone: 'electronics', label: window.currentLang==='en'?'Electronics':'Elektronik', color: '#a5f3fc' },
+                            { zone: 'mechanical',  label: window.currentLang==='en'?'Mechanical':'Mekanik',     color: '#dcfc75' },
+                            { zone: 'storage',     label: window.currentLang==='en'?'Tool Library':'Alet Lib.', color: '#fde68a' },
+                            { zone: 'welcome',     label: window.currentLang==='en'?'Welcome':'Karşılama',      color: '#bbf7d0' },
+                          ].map(z => html`
+                            <div key=${z.zone} class="flex items-center gap-1.5 border-2 border-black px-2 py-1" style="background:${z.color}">
+                              <div class="w-3 h-3 border-2 border-black shrink-0" style="background:${z.color}"></div>
+                              ${z.label}
+                            </div>
+                          `)}
+                        </div>
+
+                        <div class="space-y-3">
+                          ${toolSuggestions.map((s, idx) => html`
+                              <div key=${idx} class="border-4 border-black p-4 md:p-5 flex items-start gap-4 shadow-[3px_3px_0px_#000]"
+                                   style="background:${s.color}">
+                                <!-- Numara + emoji -->
+                                <div class="flex flex-col items-center gap-2 shrink-0">
+                                  <div class="bg-black text-white w-9 h-9 flex items-center justify-center font-black text-base border-2 border-black">${idx + 1}</div>
+                                  <span class="text-3xl">${s.emoji}</span>
+                                </div>
+
+                                <!-- İçerik -->
+                                <div class="flex-1 min-w-0">
+                                  <div class="flex flex-wrap items-start justify-between gap-2 mb-1">
+                                    <h4 class="text-xl font-black uppercase leading-tight">${s.tool}</h4>
+                                    <span class="text-xs font-black uppercase border-2 border-black px-2 py-0.5 bg-black text-white shrink-0">
+                                      ${s.zone?.toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <p class="text-sm font-bold text-gray-800 leading-snug mb-3">${s.reason}</p>
+
+                                  <!-- Ölçüler -->
+                                  <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                    <div class="bg-black/10 border-2 border-black p-2 text-center">
+                                      <div class="text-[10px] font-bold uppercase opacity-70">${window.currentLang==='en'?'Width':'Genişlik'}</div>
+                                      <div class="text-base font-black">${s.wCm} cm</div>
+                                    </div>
+                                    <div class="bg-black/10 border-2 border-black p-2 text-center">
+                                      <div class="text-[10px] font-bold uppercase opacity-70">${window.currentLang==='en'?'Depth':'Derinlik'}</div>
+                                      <div class="text-base font-black">${s.dCm} cm</div>
+                                    </div>
+                                    <div class="bg-black/10 border-2 border-black p-2 text-center">
+                                      <div class="text-[10px] font-bold uppercase opacity-70">${window.currentLang==='en'?'Plan X':'Plan X'}</div>
+                                      <div class="text-base font-black">${Math.round(s.x)} px</div>
+                                    </div>
+                                    <div class="bg-black/10 border-2 border-black p-2 text-center">
+                                      <div class="text-[10px] font-bold uppercase opacity-70">${window.currentLang==='en'?'Plan Y':'Plan Y'}</div>
+                                      <div class="text-base font-black">${Math.round(s.y)} px</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                          `)}
+                        </div>
+                      </div>
+                    `}
+                  </div>
+                </div>
+              `;
+            })()}
+
+            ${view === 'aletler' && html`
+              <${AletEdevat}
+                borrowedTools=${borrowedTools}
+                onBorrow=${borrowTool}
+                onReturn=${returnTool}
+                getRemainingDays=${getRemainingDays}
+                toolCounts=${toolCounts}
+              />
+            `}
+
+            ${view === 'atig' && html`
+              <${Atig}
+                wasteItems=${wasteItems}
+                onAdd=${handleAddWaste}
+                onReserve=${handleReserveWaste}
+                customerLocation=${customerLocation}
+                auth=${auth}
+              />
+            `}
+
+            ${view === 'ilan-ac' && (() => {
+              const [ilanForm, setIlanForm] = useState({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta' });
+              const ilanImpact = calcImpact(ilanForm.kategori, DEFAULT_KG[ilanForm.kategori] ?? 1);
+              return html`
+              <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
+                <div class="inline-block relative mb-4 md:mb-6">
+                  <div class="absolute inset-0 bg-brandBlue transform translate-x-1 translate-y-1 md:translate-x-2 md:translate-y-2 border-4 border-black"></div>
+                  <h2 class="relative bg-black text-white px-4 md:px-6 py-2 md:py-3 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('POST_JOB_TITLE')}</h2>
+                </div>
+                <div class="max-w-4xl mx-auto brutal-card p-6 md:p-10 bg-white">
+                  <div class="space-y-8">
+                    <div>
+                      <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('JOB_TITLE_LABEL')}</h3>
+                      <input value=${ilanForm.baslik} onInput=${e => setIlanForm(f => ({...f, baslik: e.target.value}))} placeholder="${t('PLACEHOLDER_TITLE')}" class="w-full border-4 border-black p-4 font-bold text-lg outline-none bg-mainBg" />
+                    </div>
+                    <div>
+                      <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('JOB_CATEGORY_LABEL')}</h3>
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        ${['Elektronik', 'Tekstil', 'Mobilya', 'Diğer'].map(cat => html`
+                          <button key=${cat} onClick=${() => setIlanForm(f => ({...f, kategori: cat}))} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${ilanForm.kategori === cat ? 'bg-brandPink text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandPink/50'}">${getCategoryEmoji(cat)} ${catName(cat)}</button>
+                        `)}
+                      </div>
+                    </div>
+                    <div>
+                      <h3 class="text-2xl font-black uppercase mb-4 text-black">${t('JOB_URGENCY_LABEL')}</h3>
+                      <div class="grid grid-cols-3 gap-4">
+                        ${['Düşük', 'Orta', 'Yüksek'].map(ac => html`
+                          <button key=${ac} onClick=${() => setIlanForm(f => ({...f, aciliyet: ac}))} class="border-4 border-black p-3 font-black text-lg uppercase transition-all ${ilanForm.aciliyet === ac ? 'bg-brandYellow text-black shadow-[4px_4px_0px_#000] translate-y-[-2px]' : 'bg-mainBg text-black hover:bg-brandYellow/50'}">${urgencyLabel(ac)}</button>
+                        `)}
+                      </div>
+                    </div>
+                    <div class="border-4 border-black bg-black text-white p-6 flex items-center justify-between gap-4">
+                      <div>
+                        <p class="font-black text-xl uppercase">${t('JOB_POINTS_EARN')}</p>
+                        <p class="font-bold text-sm opacity-60 mt-1">${t('JOB_AUTO_CALC', catName(ilanForm.kategori))}</p>
+                      </div>
+                      <p class="font-black text-6xl text-brandYellow">${ilanImpact.points}</p>
+                    </div>
+                    <button onClick=${() => { if (!ilanForm.baslik.trim()) { alert(t('JOB_TITLE_REQUIRED')); return; } handlePostJob(ilanForm); setIlanForm({ baslik: '', kategori: 'Elektronik', aciliyet: 'Orta' }); }} class="w-full bg-brandYellow text-black border-4 border-black p-4 md:p-6 font-black text-2xl md:text-3xl uppercase shadow-[6px_6px_0px_#000] hover:translate-y-1 hover:shadow-[4px_4px_0px_#000] transition-all flex justify-center items-center gap-3">
+                      <${IconWrench} /> ${t('JOB_PUBLISH')}
+                    </button>
+                  </div>
+                </div>
+              </div>`;
+            })()}
+
+            ${view === 'hesap' && (() => {
+              const myWaste      = wasteItems.filter(w => w.ownerEmail === auth.email);
+              const totalCo2     = cumulativeImpact.co2 + sonTamirlerData.reduce((s, r) => s + r.co2, 0);
+              const totalWater   = cumulativeImpact.water + sonTamirlerData.reduce((s, r) => s + r.water, 0);
+              const totalTrees   = Math.max(1, Math.round(totalCo2 / 11));
+              const borrowedList = Object.entries(borrowedTools);
+              return html`
+              <div class="space-y-6 md:space-y-8 mt-6 md:mt-8 relative z-10">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                  <div class="inline-block relative">
+                    <div class="absolute inset-0 bg-brandBlue transform translate-x-2 translate-y-2 border-4 border-black"></div>
+                    <h2 class="relative bg-black text-white px-5 py-2 text-3xl md:text-5xl font-black uppercase tracking-tighter border-4 border-black">${t('MY_ACCOUNT_TITLE')}</h2>
+                  </div>
+                  <div class="flex items-center gap-4">
+                    <span class="font-bold text-gray-600 border-4 border-black px-4 py-2 bg-white">${auth.email}</span>
+                    <button onClick=${() => setAuth({loggedIn: false, role: null, email: null})} class="bg-red-600 text-white border-4 border-black px-5 py-2 font-black uppercase brutal-btn">${t('LOGOUT')}</button>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+
+                  <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
+                    <div class="inline-block bg-brandBlue border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000] text-white">${t('MY_LISTINGS_LABEL')}</div>
+                    ${(() => {
+                      const myPosts = jobPostings.filter(j => j.musteri === auth.email.split('@')[0]);
+                      return myPosts.length === 0 ? html`
+                        <p class="font-bold text-gray-400 text-center py-8">${t('NO_LISTINGS')}</p>
+                      ` : myPosts.map(job => html`
+                        <div key=${job.id} class="border-4 border-black p-3 bg-brandYellow/40">
+                          <h4 class="text-lg font-black uppercase truncate">${job.baslik}</h4>
+                          <span class="text-gray-600 font-bold text-xs truncate block mt-0.5">${catName(job.kategori)} • ${job.ucret} ${window.currentLang === 'en' ? 'Pts' : 'Puan'} • ${urgencyLabel(job.aciliyet)}</span>
+                          <div class="mt-2 flex justify-between items-center">
+                            <span class="text-sm font-bold ${job.assignedTo ? 'text-green-600' : 'text-red-600'}">${job.assignedTo ? t('ASSIGNED_LABEL') : t('WAITING_LABEL')}</span>
+                            ${job.assignedTo && html`<button onClick=${() => setChatJobId(job.id)} class="bg-black text-white px-3 py-1 font-black text-sm uppercase">${t('MESSAGE_BTN')}</button>`}
+                          </div>
+                        </div>
+                      `);
+                    })()}
+                  </div>
+
+                  <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
+                    <div class="inline-block bg-brandPink border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">${t('BORROWED_LABEL')}</div>
+                    ${borrowedList.length === 0 ? html`
+                      <p class="font-bold text-gray-400 text-center py-8">${t('NO_BORROWED')}</p>
+                    ` : borrowedList.map(([id, info]) => {
+                      const rem = getRemainingDays(info.returnDate);
+                      const due = new Date(info.returnDate).toLocaleDateString(window.currentLang === 'en' ? 'en-GB' : 'tr-TR', { day: 'numeric', month: 'long' });
+                      return html`
+                        <div key=${id} class="border-4 border-black p-4 flex justify-between items-center ${rem === 0 ? 'bg-red-100' : 'bg-brandYellow/40'}">
+                          <div>
+                            <p class="font-black uppercase">${info.toolName}</p>
+                            <p class="font-bold text-sm text-gray-600 mt-1">${t('RETURN_DATE_LABEL')} ${due}</p>
+                          </div>
+                          <div class="text-right shrink-0 ml-4">
+                            <p class="font-black text-2xl ${rem === 0 ? 'text-red-600' : 'text-brandBlue'}">${rem}</p>
+                            <p class="font-bold text-xs uppercase">${t('DAYS_LEFT_LABEL')}</p>
+                          </div>
+                        </div>
+                      `;
+                    })}
+                  </div>
+
+                  <div class="brutal-card p-5 md:p-6 bg-white border-[5px] flex flex-col gap-4">
+                    <div class="inline-block bg-brandYellow border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000]">${t('MY_WASTE_LABEL')}</div>
+                    ${myWaste.length === 0 ? html`
+                      <p class="font-bold text-gray-400 text-center py-8">${t('NO_WASTE_MINE')}</p>
+                    ` : html`
+                      <div class="space-y-3 max-h-64 overflow-y-auto hide-scrollbar">
+                        ${myWaste.map(w => html`
+                          <div key=${w.id} class="border-4 border-black p-3 flex justify-between items-center ${w.reserved ? 'bg-gray-100' : 'bg-white'}">
+                            <div>
+                              <p class="font-black uppercase text-sm leading-tight">${w.desc}</p>
+                              <p class="font-bold text-xs text-gray-500 mt-1">${w.amount} ${t('UNITS')} • ${catName(w.category)}</p>
+                            </div>
+                            <span class="${w.reserved ? 'bg-gray-300 text-gray-600' : 'bg-brandYellow'} border-2 border-black px-2 py-1 text-xs font-black uppercase shrink-0 ml-2">${w.reserved ? t('RESERVED_BADGE') : t('AVAILABLE_BADGE')}</span>
+                          </div>
+                        `)}
+                      </div>
+                    `}
+                  </div>
+
+                  <div class="brutal-card p-5 md:p-6 bg-black text-white border-[5px] flex flex-col gap-5">
+                    <div class="inline-block bg-brandYellow border-4 border-black px-3 py-1 font-black text-lg uppercase w-max shadow-[3px_3px_0_#000] text-black">${t('MY_IMPACT_LABEL')}</div>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div class="border-4 border-white/30 p-4">
+                        <p class="font-bold text-xs uppercase opacity-60">${t('CO2_PREV_LABEL')}</p>
+                        <p class="font-black text-3xl mt-1">${totalCo2} <span class="text-base font-bold opacity-70">kg</span></p>
+                      </div>
+                      <div class="border-4 border-white/30 p-4">
+                        <p class="font-bold text-xs uppercase opacity-60">${t('WATER_SAVE_LABEL')}</p>
+                        <p class="font-black text-3xl mt-1">${totalWater >= 1000 ? (totalWater/1000).toFixed(1)+'k' : totalWater} <span class="text-base font-bold opacity-70">L</span></p>
+                      </div>
+                      <div class="border-4 border-white/30 p-4">
+                        <p class="font-bold text-xs uppercase opacity-60">${t('TREE_EQ_LABEL')}</p>
+                        <p class="font-black text-3xl mt-1">${totalTrees} <span class="text-xl">🌳</span></p>
+                      </div>
+                      <div class="border-4 border-white/30 p-4">
+                        <p class="font-bold text-xs uppercase opacity-60">${t('REPAIRED_COUNT_LABEL')}</p>
+                        <p class="font-black text-3xl mt-1">${sonTamirlerData.length} <span class="text-base font-bold opacity-70">${t('PRODUCT_UNIT')}</span></p>
+                      </div>
+                    </div>
+                    <div class="border-4 border-brandYellow p-4 flex justify-between items-center">
+                      <p class="font-black text-xl uppercase">${t('CURRENT_PTS_LABEL')}</p>
+                      <p class="text-4xl font-black text-brandYellow">${puan}</p>
+                    </div>
+                  </div>
+
+                </div>
+              </div>`;
+            })()}
+
+          </main>
+
+          <${ChatBot}
+            isChatOpen=${isChatOpen}
+            setIsChatOpen=${setIsChatOpen}
+            messages=${messages}
+            input=${chatInput}
+            setInput=${setChatInput}
+            handleSend=${handleSend}
+            allShops=${allShops}
+            onShopClick=${handleShopSelect}
+          />
+
+          ${impactModal && html`<${ImpactModal} data=${impactModal} onClose=${() => setImpactModal(null)} />`}
+          <${JobChatModal} job=${jobPostings.find(j => String(j.id) === String(chatJobId))} chatJobId=${chatJobId} setChatJobId=${setChatJobId} auth=${auth} apiBase=${apiBase} window.currentLang=${window.currentLang} t=${t} jobChats=${jobChats} setJobChats=${setJobChats} />
+        </div>
+      `;
+    }
+
+    render(html`<${App} />`, document.getElementById('root'));
+
+// ── Language Toggle Buttons (after render) ──
+setTimeout(() => {
+      const langDiv = document.createElement('div');
+      langDiv.id = 'lang-toggle';
+      langDiv.style.cssText = 'position:fixed;top:16px;right:16px;z-index:10000;display:flex;gap:8px;';
+
+      const createBtn = (lang, label) => {
+        const btn = document.createElement('button');
+        btn.textContent = label;
+        btn.style.cssText = 'padding:8px 16px;font-weight:900;font-size:14px;text-transform:uppercase;border:4px solid black;background:' + (window.currentLang === lang ? '#dcfc75' : 'white') + ';cursor:pointer;box-shadow:' + (window.currentLang === lang ? '4px 4px 0px #000' : 'none') + ';';
+        btn.onclick = () => {
+          localStorage.setItem('language', lang);
+          location.reload();
+        };
+        return btn;
+      };
+
+      langDiv.appendChild(createBtn('tr', 'TR'));
+      langDiv.appendChild(createBtn('en', 'EN'));
+      document.body.appendChild(langDiv);
+    }, 100);
+
