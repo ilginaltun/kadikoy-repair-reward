@@ -149,7 +149,7 @@ Veriler: {map_data}"""
     messages.append({"role": "user", "content": user_message})
 
     payload = {
-        "model": "llama-3.1-8b-instant",
+        "model": "openai/gpt-oss-20b",
         "messages": messages,
         "temperature": 0.7,
         "max_tokens": 400
@@ -177,15 +177,6 @@ Veriler: {map_data}"""
     except Exception as e:
         return jsonify({"reply": f"Hata: {str(e)[:100]}"}), 500
 
-
-@app.route('/api/keepalive', methods=['GET'])
-def keepalive():
-    try:
-        # Perform a simple query to keep Supabase awake
-        result = supabase.table('users').select('email').limit(1).execute()
-        return jsonify({"status": "ok", "message": "Supabase pinged successfully!"})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/export/users', methods=['GET'])
 def export_users():
