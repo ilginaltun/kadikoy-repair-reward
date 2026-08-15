@@ -1,1 +1,7 @@
 .env
+
+# Büyük medya dosyaları - Vercel bundle limitini aşıyor
+*.mp4
+*.reality
+*.usdz
+*.db
